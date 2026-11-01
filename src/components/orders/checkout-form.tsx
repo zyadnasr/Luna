@@ -275,15 +275,7 @@ export function CheckoutForm({
           {message}
         </p>
       ) : null}
-      <Button
-        disabled={
-          saving ||
-          !items.length ||
-          (context.type === "delivery" && (!data.zone || !data.address.trim()))
-        }
-      >
-        {saving ? t.submitting : t.submit}
-      </Button>
+      <Button disabled={saving || !items.length}>{saving ? t.submitting : t.submit}</Button>
     </form>
   );
 }
