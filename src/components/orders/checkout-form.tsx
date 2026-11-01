@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createPublicOrder } from "@/lib/orders/actions";
+import { createPublicOrder, validatePublicCoupon } from "@/lib/orders/actions";
 import { useCart } from "./cart-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,11 +40,14 @@ export function CheckoutForm({
   });
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const [couponState, setCouponState] = useState<"idle" | "checking" | "applied" | "invalid">(
+    "idle",
+  );
   useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem("luna-customer-v1") ?? "null") as
-        | Partial<typeof data>
-        | null;
+      const saved = JSON.parse(localStorage.getItem("luna-customer-v1") ?? "null") as Partial<
+        typeof data
+      > | null;
       if (saved) setData((current) => ({ ...current, ...saved, payment: "cash" }));
     } catch {
       // Ignore malformed local customer data.
@@ -53,7 +56,12 @@ export function CheckoutForm({
   useEffect(() => {
     localStorage.setItem(
       "luna-customer-v1",
-      JSON.stringify({ name: data.name, phone: data.phone, address: data.address, location: data.location }),
+      JSON.stringify({
+        name: data.name,
+        phone: data.phone,
+        address: data.address,
+        location: data.location,
+      }),
     );
   }, [data.name, data.phone, data.address, data.location]);
   async function submit(event: React.FormEvent) {
@@ -82,6 +90,16 @@ export function CheckoutForm({
     router.push(
       `/order/success?number=${encodeURIComponent(result.orderNumber ?? "")}&token=${encodeURIComponent(result.lookupToken ?? "")}`,
     );
+  }
+  async function applyCoupon() {
+    if (!data.coupon.trim() || !items.length) return;
+    setCouponState("checking");
+    try {
+      const result = await validatePublicCoupon({ code: data.coupon, items });
+      setCouponState(result.success ? "applied" : "invalid");
+    } catch {
+      setCouponState("invalid");
+    }
   }
   if (context.type === "delivery" && !zones.length)
     return (
@@ -120,8 +138,12 @@ export function CheckoutForm({
               <option value="">{t.chooseZone}</option>
               {zones.map((zone) => (
                 <option value={zone.id} key={zone.id}>
-                  {(locale === "ar" ? zone.name_ar : locale === "it" ? zone.name_it : zone.name_en) ??
-                    zone.name_ar} · {zone.delivery_fee_egp} {t.egp}
+                  {(locale === "ar"
+                    ? zone.name_ar
+                    : locale === "it"
+                      ? zone.name_it
+                      : zone.name_en) ?? zone.name_ar}{" "}
+                  · {zone.delivery_fee_egp} {t.egp}
                 </option>
               ))}
             </Select>
@@ -165,12 +187,26 @@ export function CheckoutForm({
           <Input
             value={data.coupon}
             placeholder={t.couponPlaceholder}
-            onChange={(event) => setData({ ...data, coupon: event.target.value.toUpperCase() })}
+            onChange={(event) => {
+              setData({ ...data, coupon: event.target.value.toUpperCase() });
+              setCouponState("idle");
+            }}
           />
-          <span className="inline-flex min-h-11 items-center rounded-[var(--radius-pill)] border border-[var(--color-border)] px-3 text-xs text-[var(--color-text-muted)]">
-            {t.applyCoupon}
-          </span>
+          <button
+            type="button"
+            disabled={couponState === "checking" || !data.coupon.trim() || !items.length}
+            onClick={applyCoupon}
+            className="inline-flex min-h-11 items-center rounded-[var(--radius-pill)] border border-[var(--color-border)] px-3 text-xs text-[var(--color-text-muted)] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {couponState === "checking" ? t.checkingCoupon : t.applyCoupon}
+          </button>
         </div>
+        {couponState === "applied" ? (
+          <p className="text-xs text-green-700">{t.couponApplied}</p>
+        ) : null}
+        {couponState === "invalid" ? (
+          <p className="text-xs text-[var(--color-danger)]">{t.couponInvalid}</p>
+        ) : null}
       </label>
       <fieldset className="grid gap-3">
         <legend className="text-sm font-semibold">{t.payment}</legend>
@@ -190,8 +226,8 @@ export function CheckoutForm({
             onChange={() => setData({ ...data, payment: "card" })}
           />{" "}
           <span>
-            {t.visa}
-            <span className="ms-2 text-xs font-normal">({t.visaComingSoon})</span>
+            <span>{t.visa}</span>
+            <span className="ms-2 block text-xs font-normal">({t.visaComingSoon})</span>
           </span>
         </label>
       </fieldset>

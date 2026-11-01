@@ -64,10 +64,18 @@ export default async function OrderPage() {
                             <MenuOrderControls
                               productId={product.id}
                               productName={translation?.name}
+                              productNames={Object.fromEntries(
+                                product.product_translations.map((item) => [
+                                  item.locale,
+                                  item.name,
+                                ]),
+                              )}
                               prices={prices}
                             />
                           ) : (
-                            <p className="mt-4 text-sm text-[var(--color-warning)]">{t.unavailable}</p>
+                            <p className="mt-4 text-sm text-[var(--color-warning)]">
+                              {t.unavailable}
+                            </p>
                           )}
                         </article>
                       );

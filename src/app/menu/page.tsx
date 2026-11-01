@@ -5,7 +5,7 @@ import { PageContainer } from "@/components/ui/page-container";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { MenuOrderControls } from "@/components/orders/menu-order-controls";
 import { getServerLocale } from "@/i18n/server";
-import { getPublicCopy } from "@/i18n/public";
+import { getPublicCopy, localizePriceLabel } from "@/i18n/public";
 import { getProductAvailability } from "@/lib/inventory/availability";
 
 export const dynamic = "force-dynamic";
@@ -105,7 +105,7 @@ export default async function MenuPage() {
                             {productPrices.map((price) => (
                               <div className="flex justify-between gap-4 text-sm" key={price.id}>
                                 <span className="text-[var(--color-text-muted)]">
-                                  {price.label ?? t.price}
+                                  {localizePriceLabel(price.label, locale) || t.price}
                                 </span>
                                 <span className="font-semibold">
                                   {price.price_egp.toLocaleString(
@@ -123,6 +123,9 @@ export default async function MenuPage() {
                           <MenuOrderControls
                             productId={product.id}
                             productName={translation?.name}
+                            productNames={Object.fromEntries(
+                              product.product_translations.map((item) => [item.locale, item.name]),
+                            )}
                             prices={productPrices}
                             availabilityByPriceId={availabilityByPriceId}
                           />

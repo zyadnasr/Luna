@@ -1,3 +1,4 @@
+import type { Locale } from "@/config/site";
 import type { OrderSource, ProductAvailabilityStatus } from "./domain";
 export type OrderType = "table" | "delivery" | "external";
 export type OrderStatus =
@@ -10,6 +11,7 @@ export type CartItem = {
   priceId: string;
   quantity: number;
   productName?: string;
+  productNameByLocale?: Partial<Record<Locale, string>>;
   priceLabel?: string | null;
   unitPrice?: number;
 };

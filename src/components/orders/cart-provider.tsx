@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { CartItem } from "@/types/orders";
-const key = "luna-cart-v1";
+const key = "luna-cart-v2";
 type CartContext = {
   items: CartItem[];
   add: (item: CartItem) => void;

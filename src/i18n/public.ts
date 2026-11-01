@@ -1,5 +1,12 @@
 import type { Locale } from "@/config/site";
 
+export function localizePriceLabel(label: string | null | undefined, locale: Locale) {
+  if (!label) return "";
+  if (locale === "ar") return label.replace(/pieces?|pcs?/gi, "قطعة").replace(/\s*g\b/gi, " جم");
+  if (locale === "it") return label.replace(/pieces?|pcs?/gi, "pezzi").replace(/\b g\b/gi, " g");
+  return label.replace(/قطع?|قطعة/g, "pieces").replace(/\s*ج\.م/g, "");
+}
+
 export const publicCopy = {
   ar: {
     menu: "المنيو",
@@ -62,6 +69,10 @@ export const publicCopy = {
     coupon: "كود الخصم",
     couponPlaceholder: "أدخل كود الخصم إن وجد",
     applyCoupon: "تطبيق الكود",
+    couponApplied: "تم تطبيق الكود",
+    couponInvalid: "كود الخصم غير صالح لهذا الطلب.",
+    couponApplyError: "تعذر التحقق من الكود. حاول مرة أخرى.",
+    checkingCoupon: "جارٍ التحقق...",
     visa: "الدفع بالفيزا",
     visaComingSoon: "الدفع بالفيزا سيتاح قريبًا بعد ربط بوابة الدفع",
     cashOnDelivery: "الدفع عند الاستلام",
@@ -142,6 +153,10 @@ export const publicCopy = {
     coupon: "Discount code",
     couponPlaceholder: "Enter a discount code if you have one",
     applyCoupon: "Apply code",
+    couponApplied: "Code applied",
+    couponInvalid: "This discount code is not valid for these items.",
+    couponApplyError: "We could not verify the code. Try again.",
+    checkingCoupon: "Checking...",
     visa: "Visa payment",
     visaComingSoon: "Visa payment will be available after the payment gateway integration",
     cashOnDelivery: "Cash on delivery",
@@ -222,6 +237,10 @@ export const publicCopy = {
     coupon: "Codice sconto",
     couponPlaceholder: "Inserisci un codice sconto se ne hai uno",
     applyCoupon: "Applica codice",
+    couponApplied: "Codice applicato",
+    couponInvalid: "Questo codice non è valido per questi prodotti.",
+    couponApplyError: "Impossibile verificare il codice. Riprova.",
+    checkingCoupon: "Verifica...",
     visa: "Pagamento Visa",
     visaComingSoon: "Il pagamento Visa sarà disponibile dopo l'integrazione del gateway",
     cashOnDelivery: "Pagamento alla consegna",

@@ -3,15 +3,19 @@ import { useState } from "react";
 import { useCart } from "./cart-provider";
 import { useLocale } from "@/components/ui/locale-provider";
 import { getPublicCopy } from "@/i18n/public";
+import { localizePriceLabel } from "@/i18n/public";
+import type { Locale } from "@/config/site";
 export function MenuOrderControls({
   productId,
   prices,
   productName,
+  productNames,
   availabilityByPriceId,
 }: {
   productId: string;
   prices: Array<{ id: string; label: string | null; price_egp: number }>;
   productName?: string;
+  productNames?: Partial<Record<Locale, string>>;
   availabilityByPriceId?: Record<string, boolean>;
 }) {
   const { add } = useCart();
@@ -43,7 +47,7 @@ export function MenuOrderControls({
             key={price.id}
             disabled={availabilityByPriceId?.[price.id] === false}
           >
-            {price.label ?? t.price} ·{" "}
+            {localizePriceLabel(price.label, locale) || t.price} ·{" "}
             {price.price_egp.toLocaleString(locale === "ar" ? "ar-EG" : "en-EG")} {t.egp}
             {availabilityByPriceId?.[price.id] === false ? ` · ${t.unavailable}` : ""}
           </option>
@@ -60,6 +64,7 @@ export function MenuOrderControls({
               priceId: selected.id,
               quantity: 1,
               productName,
+              productNameByLocale: productNames,
               priceLabel: selected.label,
               unitPrice: selected.price_egp,
             });

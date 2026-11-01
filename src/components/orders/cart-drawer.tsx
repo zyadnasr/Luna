@@ -5,14 +5,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useCart } from "./cart-provider";
 import { useLocale } from "@/components/ui/locale-provider";
-import { getPublicCopy } from "@/i18n/public";
-
-function localizePriceLabel(label: string | null | undefined, locale: "ar" | "en" | "it") {
-  if (!label) return "";
-  if (locale === "ar") return label.replace(/pieces?|pcs?/gi, "قطعة").replace(/\b g\b/gi, " جم");
-  if (locale === "it") return label.replace(/pieces?|pcs?/gi, "pezzi").replace(/\b g\b/gi, " g");
-  return label.replace(/قطع?|قطعة/g, "pieces").replace(/\s*ج\.م/g, "");
-}
+import { getPublicCopy, localizePriceLabel } from "@/i18n/public";
 
 export function CartDrawer({ contextLabel }: { contextLabel?: string }) {
   const { items, setQuantity, remove, clear } = useCart();
@@ -107,10 +100,15 @@ export function CartDrawer({ contextLabel }: { contextLabel?: string }) {
                       {items.map((item) => (
                         <div className="flex gap-3 py-4" key={`${item.productId}-${item.priceId}`}>
                           <div className="min-w-0 flex-1">
-                            <p className="font-semibold">{item.productName ?? t.product}</p>
+                            <p className="font-semibold">
+                              {item.productNameByLocale?.[locale] ?? item.productName ?? t.product}
+                            </p>
                             <p className="mt-1 text-xs text-[var(--color-text-muted)]">
                               {localizePriceLabel(item.priceLabel, locale) || t.priceShort} ·{" "}
-                              {(item.unitPrice ?? 0).toLocaleString(locale === "ar" ? "ar-EG" : "en-EG")} {t.egp}
+                              {(item.unitPrice ?? 0).toLocaleString(
+                                locale === "ar" ? "ar-EG" : "en-EG",
+                              )}{" "}
+                              {t.egp}
                             </p>
                             <div className="mt-3 inline-flex items-center rounded-full border border-[var(--color-border)]">
                               <button
@@ -149,7 +147,12 @@ export function CartDrawer({ contextLabel }: { contextLabel?: string }) {
                     <div className="mt-5 border-t border-[var(--color-border)] pt-5">
                       <div className="flex items-center justify-between font-bold">
                         <span>{t.subtotal}</span>
-                        <span>{subtotal.toLocaleString("ar-EG")} ج.م</span>
+                        <span>
+                          {subtotal.toLocaleString(
+                            locale === "ar" ? "ar-EG" : locale === "it" ? "it-IT" : "en-EG",
+                          )}{" "}
+                          {t.egp}
+                        </span>
                       </div>
                       <Link
                         href="/order"

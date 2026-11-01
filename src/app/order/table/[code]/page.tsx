@@ -64,6 +64,9 @@ export default async function TableOrderPage({ params }: { params: Promise<{ cod
                           <MenuOrderControls
                             productId={product.id}
                             productName={translation?.name}
+                            productNames={Object.fromEntries(
+                              product.product_translations.map((item) => [item.locale, item.name]),
+                            )}
                             prices={prices}
                           />
                         ) : (

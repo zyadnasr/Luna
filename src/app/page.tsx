@@ -126,6 +126,7 @@ export default function Home() {
               alt={menuImageAlt}
               width={1080}
               height={1350}
+              priority
               className="h-auto max-h-[34rem] w-full object-contain object-top"
             />
           </div>

@@ -19,6 +19,35 @@ const transitions: Record<OrderStatus, OrderStatus[]> = {
 };
 const fail = (message: string): OrderResult => ({ success: false, message });
 
+export async function validatePublicCoupon(input: {
+  code: string;
+  items: Array<{ productId: string; quantity: number }>;
+}): Promise<{ success: boolean; discountPercent?: number }> {
+  const code = input.code.trim().toUpperCase();
+  if (!code || !input.items.length) return { success: false };
+  const writer = createServiceClient();
+  const ids = [...new Set(input.items.map((item) => item.productId))];
+  const { data: coupon } = await writer
+    .from("coupons")
+    .select(
+      "discount_percent, applies_to_all, max_uses, uses_count, starts_at, ends_at, coupon_products(product_id)",
+    )
+    .eq("code", code)
+    .eq("is_active", true)
+    .maybeSingle();
+  const now = new Date();
+  const withinDates =
+    coupon &&
+    (!coupon.starts_at || new Date(coupon.starts_at) <= now) &&
+    (!coupon.ends_at || new Date(coupon.ends_at) >= now);
+  const withinUses = coupon && (!coupon.max_uses || coupon.uses_count < coupon.max_uses);
+  const eligible =
+    coupon?.applies_to_all ||
+    coupon?.coupon_products?.some((item: { product_id: string }) => ids.includes(item.product_id));
+  if (!coupon || !withinDates || !withinUses || !eligible) return { success: false };
+  return { success: true, discountPercent: Number(coupon.discount_percent) };
+}
+
 export async function createPublicOrder(input: OrderInput): Promise<OrderResult> {
   const supabase = await createClient();
   const writer = createServiceClient();
@@ -130,7 +159,9 @@ export async function createPublicOrder(input: OrderInput): Promise<OrderResult>
     couponCode = input.couponCode.trim().toUpperCase();
     const { data: coupon } = await writer
       .from("coupons")
-      .select("id, code, discount_percent, applies_to_all, max_uses, uses_count, starts_at, ends_at, coupon_products(product_id)")
+      .select(
+        "id, code, discount_percent, applies_to_all, max_uses, uses_count, starts_at, ends_at, coupon_products(product_id)",
+      )
       .eq("code", couponCode)
       .eq("is_active", true)
       .maybeSingle();
@@ -142,10 +173,16 @@ export async function createPublicOrder(input: OrderInput): Promise<OrderResult>
     const withinUses = coupon && (!coupon.max_uses || coupon.uses_count < coupon.max_uses);
     const eligible =
       coupon?.applies_to_all ||
-      coupon?.coupon_products?.some((item: { product_id: string }) => ids.includes(item.product_id));
-    if (!coupon || !withinDates || !withinUses || !eligible) return fail("كود الخصم غير صالح لهذا الطلب.");
+      coupon?.coupon_products?.some((item: { product_id: string }) =>
+        ids.includes(item.product_id),
+      );
+    if (!coupon || !withinDates || !withinUses || !eligible)
+      return fail("كود الخصم غير صالح لهذا الطلب.");
     couponId = coupon.id;
-    discount = Math.min(subtotal, Math.round((subtotal * Number(coupon.discount_percent)) * 100) / 10000);
+    discount = Math.min(
+      subtotal,
+      Math.round(subtotal * Number(coupon.discount_percent) * 100) / 10000,
+    );
   }
   const total = Math.max(0, subtotal + deliveryFee - discount);
   const { data: order, error } = await writer

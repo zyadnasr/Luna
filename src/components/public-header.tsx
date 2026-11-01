@@ -18,7 +18,7 @@ const labels = {
   },
   en: { home: "Home", menu: "Menu", quick: "Quick order", contact: "Contact", open: "Open menu" },
   it: {
-    home: "Home",
+    home: "Casa",
     menu: "Menu",
     quick: "Ordine rapido",
     contact: "Contatti",

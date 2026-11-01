@@ -7,7 +7,7 @@ import { useLocale } from "./ui/locale-provider";
 const labels = {
   ar: ["الرئيسية", "المنيو", "الطلبات", "الحساب"],
   en: ["Home", "Menu", "Orders", "Account"],
-  it: ["Home", "Menu", "Ordini", "Account"],
+  it: ["Casa", "Menu", "Ordini", "Account"],
 } as const;
 
 export function PublicBottomNav() {
