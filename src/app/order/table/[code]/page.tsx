@@ -48,7 +48,7 @@ export default async function TableOrderPage({ params }: { params: Promise<{ cod
             return items.length ? (
               <section key={category.id}>
                 <h2 className="text-2xl font-semibold">{category.slug}</h2>
-                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div className="luna-menu-grid mt-4 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2">
                   {items.map((product) => {
                     const translation = product.product_translations.find(
                       (item) => item.locale === "ar",
@@ -56,10 +56,14 @@ export default async function TableOrderPage({ params }: { params: Promise<{ cod
                     const prices = product.product_prices.filter((price) => price.is_active);
                     return (
                       <article
-                        className="rounded-[1.25rem] border border-[var(--color-border)] bg-[var(--color-surface)] p-4"
+                        className="luna-menu-card luna-glass min-w-0 rounded-[1.15rem] border p-3 sm:rounded-[1.25rem] sm:p-4"
                         key={product.id}
                       >
-                        <h3 className="font-semibold">{translation?.name}</h3>
+                        <div className="flex min-h-[5rem] items-start rounded-[0.95rem] bg-[var(--color-background-deep)] p-3 sm:min-h-20">
+                          <h3 className="line-clamp-3 text-[1.05rem] font-semibold leading-5 sm:text-xl sm:leading-normal">
+                            {translation?.name}
+                          </h3>
+                        </div>
                         {product.availability_status === "available" ? (
                           <MenuOrderControls
                             productId={product.id}
