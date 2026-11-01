@@ -68,7 +68,7 @@ export default async function MenuPage() {
                   </h2>
                 </div>
               </div>
-              <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="luna-menu-grid mt-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {categoryProducts.map((product) => {
                   const translation =
                     product.product_translations.find((item) => item.locale === locale) ??
@@ -83,11 +83,13 @@ export default async function MenuPage() {
                     productPrices.some((price) => availabilityByPriceId[price.id] === true);
                   return (
                     <article
-                      className="luna-glass rounded-[1.25rem] border p-4 transition hover:-translate-y-0.5"
+                      className="luna-menu-card luna-glass min-w-0 rounded-[1.15rem] border p-3 transition hover:-translate-y-0.5 sm:rounded-[1.25rem] sm:p-4"
                       key={product.id}
                     >
-                      <div className="flex min-h-28 items-start justify-between gap-4 rounded-xl bg-[var(--color-background-deep)] p-3">
-                        <h3 className="text-xl font-semibold">{translation?.name ?? t.menu}</h3>
+                      <div className="flex min-h-[7.2rem] flex-col items-start justify-between gap-3 rounded-[0.95rem] bg-[var(--color-background-deep)] p-3 sm:min-h-28 sm:flex-row sm:items-start sm:gap-4">
+                        <h3 className="line-clamp-3 text-[1.05rem] font-semibold leading-5 sm:text-xl sm:leading-normal">
+                          {translation?.name ?? t.menu}
+                        </h3>
                         {!productAvailable ? (
                           <StatusBadge status="warning">{t.unavailable}</StatusBadge>
                         ) : (
@@ -95,19 +97,19 @@ export default async function MenuPage() {
                         )}
                       </div>
                       {translation?.description ? (
-                        <p className="mt-3 leading-7 text-[var(--color-text-muted)]">
+                        <p className="mt-3 line-clamp-3 text-sm leading-6 text-[var(--color-text-muted)] sm:text-base sm:leading-7">
                           {translation.description}
                         </p>
                       ) : null}
-                      <div className="mt-6 border-t border-[var(--color-border)] pt-4">
+                      <div className="mt-4 border-t border-[var(--color-border)] pt-3 sm:mt-6 sm:pt-4">
                         {productPrices.length ? (
-                          <div className="grid gap-2">
+                          <div className="grid gap-1.5 sm:gap-2">
                             {productPrices.map((price) => (
-                              <div className="flex justify-between gap-4 text-sm" key={price.id}>
-                                <span className="text-[var(--color-text-muted)]">
+                              <div className="flex items-baseline justify-between gap-2 text-xs sm:text-sm" key={price.id}>
+                                <span className="min-w-0 truncate text-[var(--color-text-muted)]">
                                   {localizePriceLabel(price.label, locale) || t.price}
                                 </span>
-                                <span className="font-semibold">
+                                <span className="shrink-0 font-semibold tabular-nums">
                                   {price.price_egp.toLocaleString(
                                     locale === "ar" ? "ar-EG" : "en-EG",
                                   )}{" "}

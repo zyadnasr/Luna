@@ -64,6 +64,32 @@ body::before {
 .luna-gallery-scroll::-webkit-scrollbar {
   display: none;
 }
+.luna-menu-card {
+  position: relative;
+  overflow: hidden;
+}
+.luna-menu-card::before {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 1.35rem;
+  width: 0.2rem;
+  height: 2.8rem;
+  border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+  background: var(--color-brand-primary);
+  content: "";
+  opacity: 0.58;
+}
+@media (max-width: 639px) {
+  .luna-menu-grid {
+    align-items: start;
+  }
+  .luna-menu-card:nth-child(3n + 2) {
+    transform: translateY(0.45rem);
+  }
+  .luna-menu-card:nth-child(3n + 2):hover {
+    transform: translateY(0.2rem);
+  }
+}
 @keyframes catalog-product-row-in {
   from {
     opacity: 0;

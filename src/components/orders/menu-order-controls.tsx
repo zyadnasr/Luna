@@ -28,7 +28,7 @@ export function MenuOrderControls({
   if (!prices.length)
     return <p className="mt-4 text-xs text-[var(--color-text-muted)]">{t.noPrice}</p>;
   return (
-    <div className="mt-5 border-t border-[var(--color-border)] pt-4">
+    <div className="mt-4 border-t border-[var(--color-border)] pt-3 sm:mt-5 sm:pt-4">
       <select
         aria-label={
           locale === "ar"
@@ -39,7 +39,7 @@ export function MenuOrderControls({
         }
         value={priceId}
         onChange={(event) => setPriceId(event.target.value)}
-        className="min-h-10 w-full rounded-[var(--radius-pill)] border border-[var(--color-border)] bg-[var(--color-background)] px-3 text-xs"
+        className="min-h-10 w-full min-w-0 rounded-[var(--radius-pill)] border border-[var(--color-border)] bg-[var(--color-background)] px-2 text-[11px] sm:px-3 sm:text-xs"
       >
         {prices.map((price) => (
           <option
@@ -56,7 +56,7 @@ export function MenuOrderControls({
       <button
         type="button"
         disabled={!selectedAvailable}
-        className="mt-3 min-h-10 w-full rounded-[var(--radius-pill)] bg-[var(--color-brand-secondary)] px-4 text-xs font-semibold text-[var(--color-on-brand)] disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-2 min-h-10 w-full rounded-[var(--radius-pill)] bg-[var(--color-brand-secondary)] px-2 text-[11px] font-semibold text-[var(--color-on-brand)] transition hover:-translate-y-0.5 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 sm:mt-3 sm:px-4 sm:text-xs"
         onClick={() => {
           if (selected && selectedAvailable) {
             add({
