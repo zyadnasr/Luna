@@ -1,6 +1,6 @@
 # Luna Healthy — Project Handoff
 
-آخر تحديث: 2026-10-31
+آخر تحديث: 2026-11-01
 
 هذا الملف هو مرجع الاستلام لأي AI أو مطوّر سيكمل مشروع Luna Healthy. اقرأه قبل تعديل الكود، خصوصًا قبل لمس الـ Supabase migrations أو نظام الترجمة أو الـ inventory.
 
@@ -293,6 +293,27 @@ src/styles/tokens.css
 
 تم إضافة custom scrollbar في `src/app/globals.css` باستخدام brand tokens ويتغير تلقائيًا مع Light/Dark.
 
+### آخر تحديثات كروت المنتجات
+
+تم توحيد نظام كروت المنتجات responsive في كل تدفقات الطلب العامة:
+
+- `/menu`
+- `/order` لطلبات التوصيل
+- `/order/table/[code]` لطلبات الطاولات عبر QR
+
+على شاشات الموبايل تستخدم المنتجات شبكة من عمودين بدل كروت بعرض الشاشة بالكامل. الكروت تستخدم `luna-glass` و`luna-menu-card`، مع عنوان محدود الأسطر، مسافات compact، تدرّج بصري خفيف، وأزرار/اختيارات مناسبة للمس. على الشاشات الأكبر ترجع الشبكة تلقائيًا إلى تخطيط أوسع عبر breakpoints الموجودة في Tailwind.
+
+الـ shared styles الخاصة بالكروت موجودة في `src/app/globals.css`، بينما markup التدفقات موجود في:
+
+```text
+src/app/menu/page.tsx
+src/app/order/page.tsx
+src/app/order/table/[code]/page.tsx
+src/components/orders/menu-order-controls.tsx
+```
+
+اسم البراند يظل `Luna Healthy` بالإنجليزية في كل اللغات، بينما نصوص الواجهة نفسها تظل مترجمة. تم تحديث الـ header، footer، auth، home، not-found، وpublic/admin copy لتجنب ظهور اسم البراند بالعربية.
+
 ## 9. الصور حسب اللغة
 
 في `src/app/page.tsx`:
@@ -343,8 +364,29 @@ src/styles/tokens.css
 - `npm.cmd run type-check`
 - `npm.cmd test` — 11 tests passed
 - `npm.cmd run build` — succeeded with known SWC WASM warning
+- Mobile visual QA على عرض يقارب 400px: شبكة الكروت والـ bottom navigation لا تتداخل مع محتوى الكروت أثناء التمرير.
+- تم اختبار تبديل اللغة في cart: أسماء المنتجات والأسعار تتغير حسب اللغة، مع بقاء `Luna Healthy` بالإنجليزية.
 
-## 12. الخطوات التالية المقترحة
+آخر commits الخاصة بهذه التحديثات:
+
+```text
+cc33ac8 Refine mobile menu product cards
+dc62479 Apply responsive product cards to order flows
+ae602ae Keep Luna brand name in English
+```
+
+تم دفعها إلى GitHub على branch `main`، وVercel مربوط بالنشر التلقائي من هذا الفرع.
+
+## 12. الطلبات والدفع والإشعارات
+
+- الدفع عند الاستلام يعمل كطريقة الدفع الحالية.
+- Visa ظاهرة كخيار معطّل مؤقتًا حتى ربط بوابة دفع حقيقية.
+- رسوم توصيل El Tagamo3 مضبوطة على `45 EGP`، ويمكن إضافة مناطق أخرى من البيانات/الإدارة لاحقًا.
+- التحقق من كوبونات الخصم أصبح متاحًا من checkout عبر `validatePublicCoupon`، مع دعم نسبة الخصم والمنتجات المسموح بها من لوحة الإدارة.
+- بيانات العميل تُحفظ ضمن تدفق الطلب لدعم إعادة الطلب/الشحن المجاني للعميل العائد حسب قواعد المشروع الحالية.
+- Telegram bot المجهز للطلبات هو `@LunaHealthyOrdersBot`، ومتغيرا `TELEGRAM_BOT_TOKEN` و`TELEGRAM_CHAT_ID` مضبوطان على Vercel. لم يتم إنشاء طلب حقيقي أثناء QA.
+
+## 13. الخطوات التالية المقترحة
 
 بالترتيب:
 
@@ -357,7 +399,7 @@ src/styles/tokens.css
 7. استكمال workflows الحقيقية لـ Tables وExpenses وReports بدل placeholder.
 8. عمل bulk setup utility للمنتجات/recipes فقط إذا تم اعتماد قواعد الوصفات والكميات من صاحب المشروع.
 
-## 13. قواعد عدم تكرار الأخطاء
+## 14. قواعد عدم تكرار الأخطاء
 
 - لا تضف business data وهمية للمخزون أو recipes.
 - لا تعتبر المنتج قابلًا للطلب اعتمادًا على `availability_status` فقط؛ يجب فحص recipe وstock.
