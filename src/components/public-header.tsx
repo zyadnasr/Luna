@@ -79,7 +79,10 @@ export function PublicHeader() {
               <button
                 key={language.code}
                 type="button"
-                onClick={() => setLocale(language.code)}
+                onClick={() => {
+                  setLocale(language.code);
+                  closeMenu();
+                }}
                 className={`grid h-8 min-w-8 place-items-center rounded-full px-1 text-[10px] font-bold ${locale === language.code ? "bg-[var(--color-brand-secondary)] text-[var(--color-on-brand)]" : "text-[var(--color-text-muted)]"}`}
                 aria-label={`تغيير اللغة إلى ${language.code}`}
               >
@@ -116,7 +119,10 @@ export function PublicHeader() {
                   <button
                     key={language.code}
                     type="button"
-                    onClick={() => setLocale(language.code)}
+                    onClick={() => {
+                      setLocale(language.code);
+                      closeMenu();
+                    }}
                     className={`grid h-8 min-w-8 place-items-center rounded-full px-1 text-[10px] font-bold ${locale === language.code ? "bg-[var(--color-brand-secondary)] text-[var(--color-on-brand)]" : "text-[var(--color-text-muted)]"}`}
                     aria-label={`تغيير اللغة إلى ${language.code}`}
                   >
@@ -130,7 +136,6 @@ export function PublicHeader() {
           <nav className="grid gap-1 text-sm font-semibold" aria-label={t.open}>
             <Link
               onClick={closeMenu}
-              onNavigate={closeMenu}
               className="rounded-xl px-4 py-3 hover:bg-[var(--color-background-deep)]"
               href="/"
             >
@@ -138,7 +143,6 @@ export function PublicHeader() {
             </Link>
             <Link
               onClick={closeMenu}
-              onNavigate={closeMenu}
               className="rounded-xl px-4 py-3 hover:bg-[var(--color-background-deep)]"
               href="/menu"
             >
@@ -146,7 +150,6 @@ export function PublicHeader() {
             </Link>
             <Link
               onClick={closeMenu}
-              onNavigate={closeMenu}
               className="rounded-xl px-4 py-3 hover:bg-[var(--color-background-deep)]"
               href="/order"
             >
