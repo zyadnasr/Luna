@@ -23,6 +23,7 @@ export async function createPublicOrder(input: OrderInput): Promise<OrderResult>
   const supabase = await createClient();
   const writer = createServiceClient();
   if (!input.items.length) return fail("أضف منتجًا واحدًا على الأقل.");
+  if (input.paymentMethod === "card") return fail("الدفع بالفيزا غير متاح حاليًا.");
   if (input.paymentMethod === "instapay") {
     const number = await getInstapaySettings();
     if (!number) return fail("الدفع عبر Instapay غير مكوّن حاليًا.");
@@ -41,6 +42,12 @@ export async function createPublicOrder(input: OrderInput): Promise<OrderResult>
     (!input.deliveryZoneId || !input.deliveryAddress?.trim())
   )
     return fail("بيانات التوصيل مطلوبة.");
+  const normalizedPhone = input.customerPhone.replace(/[^\d+]/g, "");
+  const { data: customerProfile } = await writer
+    .from("customer_profiles")
+    .select("id, order_count")
+    .eq("phone", normalizedPhone)
+    .maybeSingle();
   const ids = [...new Set(input.items.map((item) => item.productId))];
   const priceIds = [...new Set(input.items.map((item) => item.priceId))];
   if (input.context.type === "table") {
@@ -114,8 +121,33 @@ export async function createPublicOrder(input: OrderInput): Promise<OrderResult>
       .eq("is_active", true)
       .single();
     if (!zone) return fail("منطقة التوصيل غير متاحة.");
-    deliveryFee = Number(zone.delivery_fee_egp);
+    deliveryFee = customerProfile?.order_count ? 0 : Number(zone.delivery_fee_egp);
   }
+  let couponId: string | null = null;
+  let couponCode: string | null = null;
+  let discount = 0;
+  if (input.couponCode?.trim()) {
+    couponCode = input.couponCode.trim().toUpperCase();
+    const { data: coupon } = await writer
+      .from("coupons")
+      .select("id, code, discount_percent, applies_to_all, max_uses, uses_count, starts_at, ends_at, coupon_products(product_id)")
+      .eq("code", couponCode)
+      .eq("is_active", true)
+      .maybeSingle();
+    const nowDate = new Date();
+    const withinDates =
+      coupon &&
+      (!coupon.starts_at || new Date(coupon.starts_at) <= nowDate) &&
+      (!coupon.ends_at || new Date(coupon.ends_at) >= nowDate);
+    const withinUses = coupon && (!coupon.max_uses || coupon.uses_count < coupon.max_uses);
+    const eligible =
+      coupon?.applies_to_all ||
+      coupon?.coupon_products?.some((item: { product_id: string }) => ids.includes(item.product_id));
+    if (!coupon || !withinDates || !withinUses || !eligible) return fail("كود الخصم غير صالح لهذا الطلب.");
+    couponId = coupon.id;
+    discount = Math.min(subtotal, Math.round((subtotal * Number(coupon.discount_percent)) * 100) / 10000);
+  }
+  const total = Math.max(0, subtotal + deliveryFee - discount);
   const { data: order, error } = await writer
     .from("orders")
     .insert({
@@ -124,7 +156,7 @@ export async function createPublicOrder(input: OrderInput): Promise<OrderResult>
       branch_id: input.context.branchId ?? null,
       dining_table_id: input.context.tableId ?? null,
       customer_name: input.customerName.trim(),
-      customer_phone: input.customerPhone.trim(),
+      customer_phone: normalizedPhone,
       customer_email: input.customerEmail?.trim() || null,
       delivery_zone_id: input.deliveryZoneId ?? null,
       delivery_address: input.deliveryAddress?.trim() || null,
@@ -133,7 +165,11 @@ export async function createPublicOrder(input: OrderInput): Promise<OrderResult>
       requested_delivery_time: input.requestedDeliveryTime || null,
       subtotal_egp: subtotal,
       delivery_fee_egp: deliveryFee,
-      total_egp: subtotal + deliveryFee,
+      total_egp: total,
+      customer_profile_id: customerProfile?.id ?? null,
+      coupon_id: couponId,
+      coupon_code: couponCode,
+      discount_egp: discount,
       payment_method: input.paymentMethod,
       payment_status: input.paymentMethod === "cash" ? "cash_pending" : "pending",
     })
@@ -162,6 +198,13 @@ export async function createPublicOrder(input: OrderInput): Promise<OrderResult>
       amount_egp: order.total_egp,
       proof_path: path,
     });
+  } else {
+    await writer.from("payments").insert({
+      order_id: order.id,
+      method: "cash",
+      status: "cash_pending",
+      amount_egp: order.total_egp,
+    });
   }
   const { error: itemError } = await writer
     .from("order_items")
@@ -177,7 +220,40 @@ export async function createPublicOrder(input: OrderInput): Promise<OrderResult>
     entity_id: order.id,
     metadata: { source: input.source, order_type: input.context.type },
   });
-  await notifyTelegram(orderNotification(order.order_number, input.source));
+  if (couponId) {
+    await writer.from("coupon_redemptions").insert({
+      coupon_id: couponId,
+      order_id: order.id,
+      customer_phone: normalizedPhone,
+      discount_egp: discount,
+    });
+    await writer.rpc("increment_coupon_uses", { coupon_id_input: couponId });
+  }
+  await writer.from("customer_profiles").upsert(
+    {
+      id: customerProfile?.id,
+      phone: normalizedPhone,
+      name: input.customerName.trim(),
+      delivery_address: input.deliveryAddress?.trim() || null,
+      delivery_location_url: input.deliveryLocationUrl?.trim() || null,
+      order_count: (customerProfile?.order_count ?? 0) + 1,
+      free_shipping: true,
+      first_order_at: customerProfile ? undefined : new Date().toISOString(),
+      last_order_at: new Date().toISOString(),
+    },
+    { onConflict: "phone" },
+  );
+  await notifyTelegram(
+    orderNotification(order.order_number, input.source, "new", {
+      customerName: input.customerName.trim(),
+      customerPhone: normalizedPhone,
+      address: input.deliveryAddress,
+      location: input.deliveryLocationUrl,
+      payment: input.paymentMethod === "cash" ? "الدفع عند الاستلام" : input.paymentMethod,
+      total: order.total_egp,
+      discount,
+    }),
+  );
   revalidatePath("/admin/orders");
   return {
     success: true,

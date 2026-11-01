@@ -270,6 +270,23 @@ const copy = {
     "هذه الوحدة قيد الإعداد": "This module is being prepared",
     "ستظهر هنا البيانات التشغيلية عند تفعيل هذه الوحدة.":
       "Operational data will appear here once this module is enabled.",
+    الكوبونات: "Coupons",
+    "أنشئ أكواد خصم وحدد المنتجات التي ينطبق عليها الكود.":
+      "Create discount codes and choose which products they apply to.",
+    "كود الخصم": "Discount code",
+    "اسم الكوبون": "Coupon name",
+    "نسبة الخصم": "Discount percentage",
+    "الحد الأقصى للاستخدام": "Maximum uses",
+    "بدون حد": "No limit",
+    "المنتجات المسموح بها": "Eligible products",
+    "اتركها فارغة ليعمل الكوبون على كل المنتجات.":
+      "Leave empty to apply the coupon to all products.",
+    "حفظ الكوبون": "Save coupon",
+    "كل المنتجات": "All products",
+    "منتجات محددة": "Selected products",
+    تعطيل: "Disable",
+    تفعيل: "Enable",
+    "لا توجد كوبونات بعد": "No coupons yet",
   },
   it: {
     الإدارة: "Amministrazione",
@@ -541,6 +558,23 @@ const copy = {
     "هذه الوحدة قيد الإعداد": "Questo modulo è in preparazione",
     "ستظهر هنا البيانات التشغيلية عند تفعيل هذه الوحدة.":
       "I dati operativi appariranno qui quando il modulo sarà attivato.",
+    الكوبونات: "Coupon",
+    "أنشئ أكواد خصم وحدد المنتجات التي ينطبق عليها الكود.":
+      "Crea codici sconto e scegli i prodotti a cui si applicano.",
+    "كود الخصم": "Codice sconto",
+    "اسم الكوبون": "Nome coupon",
+    "نسبة الخصم": "Percentuale sconto",
+    "الحد الأقصى للاستخدام": "Utilizzi massimi",
+    "بدون حد": "Nessun limite",
+    "المنتجات المسموح بها": "Prodotti idonei",
+    "اتركها فارغة ليعمل الكوبون على كل المنتجات.":
+      "Lascia vuoto per applicare il coupon a tutti i prodotti.",
+    "حفظ الكوبون": "Salva coupon",
+    "كل المنتجات": "Tutti i prodotti",
+    "منتجات محددة": "Prodotti selezionati",
+    تعطيل: "Disattiva",
+    تفعيل: "Attiva",
+    "لا توجد كوبونات بعد": "Nessun coupon",
   },
 } as const;
 

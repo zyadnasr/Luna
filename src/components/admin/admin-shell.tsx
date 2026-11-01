@@ -31,6 +31,7 @@ const navigation = [
     group: "الإدارة",
     items: [
       { label: "المصروفات", href: "/admin/expenses" },
+      { label: "الكوبونات", href: "/admin/coupons" },
       { label: "التقارير", href: "/admin/reports" },
       { label: "المستخدمون", href: "/admin/users" },
       { label: "الإعدادات", href: "/admin/settings" },
@@ -59,6 +60,7 @@ const adminLabels = {
     "تنبيهات المخزون": "Inventory alerts",
     الإدارة: "Administration",
     المصروفات: "Expenses",
+    الكوبونات: "Coupons",
     التقارير: "Reports",
     المستخدمون: "Users",
     الإعدادات: "Settings",
@@ -85,6 +87,7 @@ const adminLabels = {
     "تنبيهات المخزون": "Avvisi inventario",
     الإدارة: "Amministrazione",
     المصروفات: "Spese",
+    الكوبونات: "Coupon",
     التقارير: "Report",
     المستخدمون: "Utenti",
     الإعدادات: "Impostazioni",

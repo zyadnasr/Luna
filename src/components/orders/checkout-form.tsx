@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createPublicOrder } from "@/lib/orders/actions";
 import { useCart } from "./cart-provider";
@@ -14,7 +14,13 @@ export function CheckoutForm({
   zones,
   context,
 }: {
-  zones: Array<{ id: string; name_ar: string; delivery_fee_egp: number }>;
+  zones: Array<{
+    id: string;
+    name_ar: string;
+    name_en?: string;
+    name_it?: string;
+    delivery_fee_egp: number;
+  }>;
   context: OrderContext;
 }) {
   const router = useRouter();
@@ -29,11 +35,27 @@ export function CheckoutForm({
     location: "",
     notes: "",
     time: "",
-    payment: "cash" as "cash" | "instapay",
+    coupon: "",
+    payment: "cash" as "cash" | "card",
   });
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
-  const [proof, setProof] = useState<File | undefined>();
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("luna-customer-v1") ?? "null") as
+        | Partial<typeof data>
+        | null;
+      if (saved) setData((current) => ({ ...current, ...saved, payment: "cash" }));
+    } catch {
+      // Ignore malformed local customer data.
+    }
+  }, []);
+  useEffect(() => {
+    localStorage.setItem(
+      "luna-customer-v1",
+      JSON.stringify({ name: data.name, phone: data.phone, address: data.address, location: data.location }),
+    );
+  }, [data.name, data.phone, data.address, data.location]);
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     setSaving(true);
@@ -48,8 +70,8 @@ export function CheckoutForm({
       customerNotes: data.notes || undefined,
       requestedDeliveryTime: data.time || undefined,
       paymentMethod: data.payment,
+      couponCode: data.coupon || undefined,
       items,
-      paymentProof: proof,
     });
     setSaving(false);
     if (!result.success) {
@@ -98,7 +120,8 @@ export function CheckoutForm({
               <option value="">{t.chooseZone}</option>
               {zones.map((zone) => (
                 <option value={zone.id} key={zone.id}>
-                  {zone.name_ar} · {zone.delivery_fee_egp} {t.egp}
+                  {(locale === "ar" ? zone.name_ar : locale === "it" ? zone.name_it : zone.name_en) ??
+                    zone.name_ar} · {zone.delivery_fee_egp} {t.egp}
                 </option>
               ))}
             </Select>
@@ -136,6 +159,19 @@ export function CheckoutForm({
           onChange={(event) => setData({ ...data, notes: event.target.value })}
         />
       </label>
+      <label className="grid gap-2 text-sm font-semibold">
+        {t.coupon}
+        <div className="flex gap-2">
+          <Input
+            value={data.coupon}
+            placeholder={t.couponPlaceholder}
+            onChange={(event) => setData({ ...data, coupon: event.target.value.toUpperCase() })}
+          />
+          <span className="inline-flex min-h-11 items-center rounded-[var(--radius-pill)] border border-[var(--color-border)] px-3 text-xs text-[var(--color-text-muted)]">
+            {t.applyCoupon}
+          </span>
+        </div>
+      </label>
       <fieldset className="grid gap-3">
         <legend className="text-sm font-semibold">{t.payment}</legend>
         <label className="flex gap-3 rounded-[var(--radius-sm)] border border-[var(--color-border)] p-3">
@@ -144,29 +180,21 @@ export function CheckoutForm({
             checked={data.payment === "cash"}
             onChange={() => setData({ ...data, payment: "cash" })}
           />{" "}
-          {t.cash}
+          {t.cashOnDelivery}
         </label>
-        <label className="flex gap-3 rounded-[var(--radius-sm)] border border-[var(--color-border)] p-3">
+        <label className="flex cursor-not-allowed gap-3 rounded-[var(--radius-sm)] border border-[var(--color-border)] p-3 opacity-60">
           <input
             type="radio"
-            checked={data.payment === "instapay"}
-            onChange={() => setData({ ...data, payment: "instapay" })}
+            disabled
+            checked={data.payment === "card"}
+            onChange={() => setData({ ...data, payment: "card" })}
           />{" "}
-          {t.instapay}
+          <span>
+            {t.visa}
+            <span className="ms-2 text-xs font-normal">({t.visaComingSoon})</span>
+          </span>
         </label>
       </fieldset>
-      {data.payment === "instapay" ? (
-        <label className="grid gap-2 text-sm font-semibold">
-          {t.proof}
-          <input
-            required
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            onChange={(event) => setProof(event.target.files?.[0])}
-          />
-          <span className="text-xs font-normal text-[var(--color-text-muted)]">{t.proofHelp}</span>
-        </label>
-      ) : null}
       {message ? (
         <p className="text-sm text-[var(--color-danger)]" role="alert">
           {message}

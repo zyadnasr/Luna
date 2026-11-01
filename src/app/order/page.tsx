@@ -18,7 +18,7 @@ export default async function OrderPage() {
     getCategories(),
     supabase
       .from("delivery_zones")
-      .select("id, name_ar, delivery_fee_egp")
+      .select("id, name_ar, name_en, name_it, delivery_fee_egp")
       .eq("is_active", true)
       .order("sort_order"),
   ]);
@@ -67,7 +67,7 @@ export default async function OrderPage() {
                               prices={prices}
                             />
                           ) : (
-                            <p className="mt-4 text-sm text-[var(--color-warning)]">نفد مؤقتًا</p>
+                            <p className="mt-4 text-sm text-[var(--color-warning)]">{t.unavailable}</p>
                           )}
                         </article>
                       );

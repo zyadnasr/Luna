@@ -2,7 +2,7 @@ import type { OrderSource, ProductAvailabilityStatus } from "./domain";
 export type OrderType = "table" | "delivery" | "external";
 export type OrderStatus =
   "new" | "confirmed" | "preparing" | "ready" | "delivered" | "cancelled" | "rejected";
-export type PaymentMethod = "cash" | "instapay";
+export type PaymentMethod = "cash" | "card" | "instapay";
 export type PaymentStatus =
   "pending" | "proof_submitted" | "verified" | "rejected" | "cash_pending" | "paid" | "refunded";
 export type CartItem = {
@@ -31,6 +31,7 @@ export type OrderInput = {
   customerNotes?: string;
   requestedDeliveryTime?: string;
   paymentMethod: PaymentMethod;
+  couponCode?: string;
   items: CartItem[];
   paymentProof?: File;
 };

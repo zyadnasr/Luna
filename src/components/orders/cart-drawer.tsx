@@ -61,7 +61,7 @@ export function CartDrawer({ contextLabel }: { contextLabel?: string }) {
             >
               <button
                 className="absolute inset-0 bg-[rgba(48,40,32,0.28)]"
-                aria-label="إغلاق السلة"
+                aria-label={t.close}
                 onClick={() => setOpen(false)}
               />
               <aside className="luna-glass absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-y-auto rounded-t-[2rem] border p-5 md:inset-y-0 md:start-auto md:w-[min(28rem,92vw)] md:rounded-none md:rounded-s-[2rem] md:p-7">
@@ -76,7 +76,7 @@ export function CartDrawer({ contextLabel }: { contextLabel?: string }) {
                     type="button"
                     onClick={() => setOpen(false)}
                     className="grid size-10 place-items-center rounded-full border border-[var(--color-border)]"
-                    aria-label="إغلاق السلة"
+                    aria-label={t.close}
                   >
                     ×
                   </button>
@@ -100,16 +100,16 @@ export function CartDrawer({ contextLabel }: { contextLabel?: string }) {
                       {items.map((item) => (
                         <div className="flex gap-3 py-4" key={`${item.productId}-${item.priceId}`}>
                           <div className="min-w-0 flex-1">
-                            <p className="font-semibold">{item.productName ?? "منتج"}</p>
+                            <p className="font-semibold">{item.productName ?? t.product}</p>
                             <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                              {item.priceLabel ?? "السعر"} ·{" "}
+                              {item.priceLabel ?? t.priceShort} ·{" "}
                               {(item.unitPrice ?? 0).toLocaleString("ar-EG")} ج.م
                             </p>
                             <div className="mt-3 inline-flex items-center rounded-full border border-[var(--color-border)]">
                               <button
                                 type="button"
                                 className="grid size-8 place-items-center"
-                                aria-label="زيادة الكمية"
+                                aria-label={t.increaseQuantity}
                                 onClick={() =>
                                   setQuantity(item.productId, item.priceId, item.quantity + 1)
                                 }
@@ -120,7 +120,7 @@ export function CartDrawer({ contextLabel }: { contextLabel?: string }) {
                               <button
                                 type="button"
                                 className="grid size-8 place-items-center"
-                                aria-label="تقليل الكمية"
+                                aria-label={t.decreaseQuantity}
                                 onClick={() =>
                                   setQuantity(item.productId, item.priceId, item.quantity - 1)
                                 }
@@ -134,14 +134,14 @@ export function CartDrawer({ contextLabel }: { contextLabel?: string }) {
                             className="self-start text-xs text-[var(--color-danger)]"
                             onClick={() => remove(item.productId, item.priceId)}
                           >
-                            حذف
+                            {t.remove}
                           </button>
                         </div>
                       ))}
                     </div>
                     <div className="mt-5 border-t border-[var(--color-border)] pt-5">
                       <div className="flex items-center justify-between font-bold">
-                        <span>الإجمالي قبل التوصيل</span>
+                        <span>{t.subtotal}</span>
                         <span>{subtotal.toLocaleString("ar-EG")} ج.م</span>
                       </div>
                       <Link
