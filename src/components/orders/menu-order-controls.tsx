@@ -39,7 +39,7 @@ export function MenuOrderControls({
         }
         value={priceId}
         onChange={(event) => setPriceId(event.target.value)}
-        className="min-h-10 w-full min-w-0 rounded-[var(--radius-pill)] border border-[var(--color-border)] bg-[var(--color-background)] px-2 text-[11px] sm:px-3 sm:text-xs"
+        className="min-h-10 w-full min-w-0 rounded-[var(--radius-pill)] border border-[var(--glass-border)] bg-[var(--color-surface-focus)] px-3 py-2 text-[11px] leading-5 text-[var(--color-text-primary)] shadow-[inset_0_1px_0_var(--glass-highlight)] outline-none transition focus:border-[var(--color-brand-primary)] sm:text-xs"
       >
         {prices.map((price) => (
           <option
