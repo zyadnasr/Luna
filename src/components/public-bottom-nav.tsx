@@ -5,20 +5,33 @@ import { usePathname } from "next/navigation";
 import { useLocale } from "./ui/locale-provider";
 
 const labels = {
-  ar: ["الرئيسية", "المنيو", "الطلبات", "الحساب"],
-  en: ["Home", "Menu", "Orders", "Account"],
-  it: ["Casa", "Menu", "Ordini", "Account"],
+  ar: {
+    items: ["الرئيسية", "المنيو", "الطلبات", "الحساب"],
+    nav: "تنقل التطبيق",
+    account: "الحساب غير متاح حاليًا",
+  },
+  en: {
+    items: ["Home", "Menu", "Orders", "Account"],
+    nav: "App navigation",
+    account: "Account is currently unavailable",
+  },
+  it: {
+    items: ["Casa", "Menu", "Ordini", "Account"],
+    nav: "Navigazione app",
+    account: "Account non disponibile",
+  },
 } as const;
 
 export function PublicBottomNav() {
   const pathname = usePathname();
   const { locale } = useLocale();
-  const [home, menu, orders, account] = labels[locale];
+  const { items, nav, account: accountLabel } = labels[locale];
+  const [home, menu, orders, account] = items;
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
   return (
     <nav
       className="luna-glass fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 rounded-[1.5rem] border px-2 pb-2 pt-2 shadow-[0_0.75rem_2rem_rgba(25,24,18,0.16)] md:hidden"
-      aria-label="تنقل التطبيق"
+      aria-label={nav}
     >
       <div className="mx-auto grid max-w-md grid-cols-4 gap-1 text-center text-[11px] font-semibold text-[var(--color-text-muted)]">
         <Link
@@ -63,7 +76,7 @@ export function PublicBottomNav() {
         <button
           type="button"
           className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl hover:bg-[var(--color-background-deep)]"
-          aria-label="الحساب غير متاح حاليًا"
+          aria-label={accountLabel}
         >
           <svg
             aria-hidden="true"
