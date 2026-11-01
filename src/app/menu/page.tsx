@@ -1,0 +1,141 @@
+import Link from "next/link";
+import { getCategories, getProducts, translationName } from "@/lib/catalog/queries";
+import { EmptyCatalogState } from "@/components/catalog/empty-catalog-state";
+import { PageContainer } from "@/components/ui/page-container";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { MenuOrderControls } from "@/components/orders/menu-order-controls";
+import { getServerLocale } from "@/i18n/server";
+import { getPublicCopy } from "@/i18n/public";
+import { getProductAvailability } from "@/lib/inventory/availability";
+
+export const dynamic = "force-dynamic";
+
+export default async function MenuPage() {
+  const [{ products }, categories, locale] = await Promise.all([
+    getProducts(),
+    getCategories(),
+    getServerLocale(),
+  ]);
+  const t = getPublicCopy(locale);
+  const grouped = categories
+    .map((category) => ({
+      category,
+      products: products.filter((product) => product.category_id === category.id),
+    }))
+    .filter((group) => group.products.length);
+  const activePrices = products.flatMap((product) =>
+    product.product_prices.filter(
+      (price) =>
+        price.is_active && (!price.valid_until || new Date(price.valid_until) > new Date()),
+    ),
+  );
+  const availabilityEntries = await Promise.all(
+    activePrices.map(
+      async (price) =>
+        [price.id, (await getProductAvailability(price.product_id, price.id)).available] as const,
+    ),
+  );
+  const availabilityByPriceId = Object.fromEntries(availabilityEntries);
+  return (
+    <PageContainer className="max-w-7xl">
+      <header className="flex flex-col items-start justify-between gap-5 border-b border-[var(--color-border)] pb-7 sm:flex-row sm:items-end">
+        <div>
+          <p className="text-sm font-semibold text-[var(--color-brand-primary)]">{t.menuEyebrow}</p>
+          <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-6xl">{t.menu}</h1>
+          <p className="mt-3 max-w-xl leading-7 text-[var(--color-text-muted)]">
+            {t.menuDescription}
+          </p>
+        </div>
+        <Link
+          href="/"
+          className="text-sm font-semibold text-[var(--color-text-secondary)] underline"
+        >
+          {t.backHome}
+        </Link>
+      </header>
+      {grouped.length === 0 ? (
+        <div className="mx-auto max-w-2xl py-20">
+          <EmptyCatalogState />
+        </div>
+      ) : (
+        <div className="mt-7 grid gap-12">
+          {grouped.map(({ category, products: categoryProducts }) => (
+            <section aria-labelledby={`category-${category.id}`} key={category.id}>
+              <div className="flex items-end justify-between gap-4 border-b border-[var(--color-border)] pb-3">
+                <div>
+                  <h2 id={`category-${category.id}`} className="mt-2 text-3xl font-semibold">
+                    {translationName(category.category_translations, locale, category.slug)}
+                  </h2>
+                </div>
+              </div>
+              <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {categoryProducts.map((product) => {
+                  const translation =
+                    product.product_translations.find((item) => item.locale === locale) ??
+                    product.product_translations[0];
+                  const productPrices = product.product_prices.filter(
+                    (price) =>
+                      price.is_active &&
+                      (!price.valid_until || new Date(price.valid_until) > new Date()),
+                  );
+                  const productAvailable =
+                    product.availability_status === "available" &&
+                    productPrices.some((price) => availabilityByPriceId[price.id] === true);
+                  return (
+                    <article
+                      className="luna-glass rounded-[1.25rem] border p-4 transition hover:-translate-y-0.5"
+                      key={product.id}
+                    >
+                      <div className="flex min-h-28 items-start justify-between gap-4 rounded-xl bg-[var(--color-background-deep)] p-3">
+                        <h3 className="text-xl font-semibold">{translation?.name ?? t.menu}</h3>
+                        {!productAvailable ? (
+                          <StatusBadge status="warning">{t.unavailable}</StatusBadge>
+                        ) : (
+                          <StatusBadge status="success">{t.available}</StatusBadge>
+                        )}
+                      </div>
+                      {translation?.description ? (
+                        <p className="mt-3 leading-7 text-[var(--color-text-muted)]">
+                          {translation.description}
+                        </p>
+                      ) : null}
+                      <div className="mt-6 border-t border-[var(--color-border)] pt-4">
+                        {productPrices.length ? (
+                          <div className="grid gap-2">
+                            {productPrices.map((price) => (
+                              <div className="flex justify-between gap-4 text-sm" key={price.id}>
+                                <span className="text-[var(--color-text-muted)]">
+                                  {price.label ?? t.price}
+                                </span>
+                                <span className="font-semibold">
+                                  {price.price_egp.toLocaleString(
+                                    locale === "ar" ? "ar-EG" : "en-EG",
+                                  )}{" "}
+                                  {t.egp}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-[var(--color-text-muted)]">{t.priceLater}</p>
+                        )}
+                        {productAvailable ? (
+                          <MenuOrderControls
+                            productId={product.id}
+                            productName={translation?.name}
+                            prices={productPrices}
+                            availabilityByPriceId={availabilityByPriceId}
+                          />
+                        ) : null}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+    </PageContainer>
+  );
+}
