@@ -5,7 +5,7 @@ import { useCart } from "./cart-provider";
 import { useLocale } from "@/components/ui/locale-provider";
 import { getPublicCopy, localizePriceLabel } from "@/i18n/public";
 
-export function CheckoutSummary() {
+export function CheckoutSummary({ deliveryFee }: { deliveryFee: number | null }) {
   const { items, setQuantity, remove, clear } = useCart();
   const { locale } = useLocale();
   const t = getPublicCopy(locale);
@@ -83,11 +83,27 @@ export function CheckoutSummary() {
             ))}
           </div>
           <div className="mt-5 border-t border-[var(--color-border)] pt-5">
-            <div className="flex items-center justify-between font-bold">
-              <span>{t.subtotal}</span>
-              <span>
-                {subtotal.toLocaleString(numberLocale)} {t.egp}
-              </span>
+            <div className="grid gap-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span>{t.subtotal}</span>
+                <span>
+                  {subtotal.toLocaleString(numberLocale)} {t.egp}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-[var(--color-text-muted)]">
+                <span>{t.deliveryFee}</span>
+                <span>
+                  {deliveryFee === null
+                    ? "—"
+                    : `${deliveryFee.toLocaleString(numberLocale)} ${t.egp}`}
+                </span>
+              </div>
+              <div className="mt-2 flex items-center justify-between border-t border-[var(--color-border)] pt-3 text-base font-bold">
+                <span>{t.total}</span>
+                <span>
+                  {(subtotal + (deliveryFee ?? 0)).toLocaleString(numberLocale)} {t.egp}
+                </span>
+              </div>
             </div>
           </div>
         </>

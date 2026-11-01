@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { PageContainer } from "@/components/ui/page-container";
-import { CheckoutForm } from "@/components/orders/checkout-form";
-import { CheckoutSummary } from "@/components/orders/checkout-summary";
+import { CheckoutContent } from "@/components/orders/checkout-content";
 import { getServerLocale } from "@/i18n/server";
 import { getPublicCopy } from "@/i18n/public";
 
@@ -24,15 +23,7 @@ export default async function CheckoutPage() {
         <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-6xl">{t.checkout}</h1>
         <p className="mt-4 text-[var(--color-text-muted)]">{t.recheck}</p>
       </header>
-      <div className="mt-8 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-        <CheckoutSummary />
-        <section className="rounded-[1.5rem] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)] sm:p-7">
-          <h2 className="text-xl font-semibold">{t.deliveryData}</h2>
-          <div className="mt-6">
-            <CheckoutForm zones={zones ?? []} context={{ type: "delivery" }} />
-          </div>
-        </section>
-      </div>
+      <CheckoutContent zones={zones ?? []} />
     </PageContainer>
   );
 }

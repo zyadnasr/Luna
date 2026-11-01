@@ -13,6 +13,7 @@ import { getPublicCopy } from "@/i18n/public";
 export function CheckoutForm({
   zones,
   context,
+  onDeliveryFeeChange,
 }: {
   zones: Array<{
     id: string;
@@ -22,6 +23,7 @@ export function CheckoutForm({
     delivery_fee_egp: number;
   }>;
   context: OrderContext;
+  onDeliveryFeeChange?: (fee: number | null) => void;
 }) {
   const router = useRouter();
   const { locale } = useLocale();
@@ -30,11 +32,10 @@ export function CheckoutForm({
   const [data, setData] = useState({
     name: "",
     phone: "",
-    zone: "",
+    zone: zones.length === 1 ? zones[0].id : "",
     address: "",
     location: "",
     notes: "",
-    time: "",
     coupon: "",
     payment: "cash" as "cash" | "card",
   });
@@ -72,6 +73,10 @@ export function CheckoutForm({
       }),
     );
   }, [data.name, data.phone, data.address, data.location]);
+  useEffect(() => {
+    const selectedZone = zones.find((zone) => zone.id === data.zone);
+    onDeliveryFeeChange?.(selectedZone ? Number(selectedZone.delivery_fee_egp) : null);
+  }, [data.zone, onDeliveryFeeChange, zones]);
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     setSaving(true);
@@ -84,7 +89,7 @@ export function CheckoutForm({
       deliveryAddress: data.address || undefined,
       deliveryLocationUrl: data.location || undefined,
       customerNotes: data.notes || undefined,
-      requestedDeliveryTime: data.time || undefined,
+      requestedDeliveryTime: new Date().toISOString(),
       paymentMethod: data.payment,
       couponCode: data.coupon || undefined,
       items,
@@ -108,6 +113,26 @@ export function CheckoutForm({
     } catch {
       setCouponState("invalid");
     }
+  }
+  function useCurrentLocation() {
+    if (!navigator.geolocation) {
+      setMessage(t.locationUnavailable);
+      return;
+    }
+    setMessage("");
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const coordinates = `${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}`;
+        setData((current) => ({
+          ...current,
+          address: `${t.locationDetected}: ${coordinates}`,
+          location: `https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`,
+          zone: zones.length === 1 ? zones[0].id : current.zone,
+        }));
+      },
+      () => setMessage(t.locationPermissionRequired),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 },
+    );
   }
   if (context.type === "delivery" && !zones.length)
     return (
@@ -136,26 +161,28 @@ export function CheckoutForm({
       </label>
       {context.type === "delivery" ? (
         <>
-          <label className="grid gap-2 text-sm font-semibold">
-            {t.zone}
-            <Select
-              required
-              value={data.zone}
-              onChange={(event) => setData({ ...data, zone: event.target.value })}
-            >
-              <option value="">{t.chooseZone}</option>
-              {zones.map((zone) => (
-                <option value={zone.id} key={zone.id}>
-                  {(locale === "ar"
-                    ? zone.name_ar
-                    : locale === "it"
-                      ? zone.name_it
-                      : zone.name_en) ?? zone.name_ar}{" "}
-                  · {zone.delivery_fee_egp} {t.egp}
-                </option>
-              ))}
-            </Select>
-          </label>
+          {zones.length > 1 ? (
+            <label className="grid gap-2 text-sm font-semibold">
+              {t.zone}
+              <Select
+                required
+                value={data.zone}
+                onChange={(event) => setData({ ...data, zone: event.target.value })}
+              >
+                <option value="">{t.chooseZone}</option>
+                {zones.map((zone) => (
+                  <option value={zone.id} key={zone.id}>
+                    {(locale === "ar"
+                      ? zone.name_ar
+                      : locale === "it"
+                        ? zone.name_it
+                        : zone.name_en) ?? zone.name_ar}{" "}
+                    · {zone.delivery_fee_egp} {t.egp}
+                  </option>
+                ))}
+              </Select>
+            </label>
+          ) : null}
           <label className="grid gap-2 text-sm font-semibold">
             {t.address}
             <Textarea
@@ -164,22 +191,26 @@ export function CheckoutForm({
               onChange={(event) => setData({ ...data, address: event.target.value })}
             />
           </label>
-          <label className="grid gap-2 text-sm font-semibold">
-            {t.location}
-            <Input
-              type="url"
-              value={data.location}
-              onChange={(event) => setData({ ...data, location: event.target.value })}
-            />
-          </label>
-          <label className="grid gap-2 text-sm font-semibold">
-            {t.time}
-            <Input
-              type="datetime-local"
-              value={data.time}
-              onChange={(event) => setData({ ...data, time: event.target.value })}
-            />
-          </label>
+          <div className="grid gap-2 text-sm font-semibold">
+            <span>{t.location}</span>
+            <button
+              type="button"
+              onClick={useCurrentLocation}
+              className="min-h-11 rounded-[var(--radius-pill)] border border-[var(--color-border)] px-4 text-start font-semibold transition hover:bg-[var(--color-background-deep)]"
+            >
+              {data.location ? t.locationDetected : t.useCurrentLocation}
+            </button>
+            {data.location ? (
+              <a
+                href={data.location}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-normal text-[var(--color-brand-primary)] underline"
+              >
+                {t.openLocation}
+              </a>
+            ) : null}
+          </div>
         </>
       ) : null}
       <label className="grid gap-2 text-sm font-semibold">
@@ -244,7 +275,15 @@ export function CheckoutForm({
           {message}
         </p>
       ) : null}
-      <Button disabled={saving || !items.length}>{saving ? t.submitting : t.submit}</Button>
+      <Button
+        disabled={
+          saving ||
+          !items.length ||
+          (context.type === "delivery" && (!data.zone || !data.address.trim()))
+        }
+      >
+        {saving ? t.submitting : t.submit}
+      </Button>
     </form>
   );
 }
