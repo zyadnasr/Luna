@@ -1,27 +1,16 @@
 import { getCategories, getProducts } from "@/lib/catalog/queries";
-import { createClient } from "@/lib/supabase/server";
 import { PageContainer } from "@/components/ui/page-container";
 import { EmptyCatalogState } from "@/components/catalog/empty-catalog-state";
 import { MenuOrderControls } from "@/components/orders/menu-order-controls";
-import { CheckoutForm } from "@/components/orders/checkout-form";
 import { getServerLocale } from "@/i18n/server";
 import { getPublicCopy } from "@/i18n/public";
 
 export const dynamic = "force-dynamic";
 
 export default async function OrderPage() {
-  const supabase = await createClient();
   const locale = await getServerLocale();
   const t = getPublicCopy(locale);
-  const [{ products }, categories, { data: zones }] = await Promise.all([
-    getProducts(),
-    getCategories(),
-    supabase
-      .from("delivery_zones")
-      .select("id, name_ar, name_en, name_it, delivery_fee_egp")
-      .eq("is_active", true)
-      .order("sort_order"),
-  ]);
+  const [{ products }, categories] = await Promise.all([getProducts(), getCategories()]);
   return (
     <PageContainer className="max-w-6xl">
       <header className="border-b border-[var(--color-border)] pb-7">
@@ -34,7 +23,7 @@ export default async function OrderPage() {
           <EmptyCatalogState />
         </div>
       ) : (
-        <div className="mt-8 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="mt-8">
           <div className="grid gap-8">
             {categories.map((category) => {
               const items = products.filter((product) => product.category_id === category.id);
@@ -89,13 +78,6 @@ export default async function OrderPage() {
               ) : null;
             })}
           </div>
-          <aside className="rounded-[1.5rem] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)] lg:sticky lg:top-24 lg:h-fit">
-            <h2 className="text-xl font-semibold">{t.deliveryData}</h2>
-            <p className="mt-2 text-sm text-[var(--color-text-muted)]">{t.recheck}</p>
-            <div className="mt-6">
-              <CheckoutForm zones={zones ?? []} context={{ type: "delivery" }} />
-            </div>
-          </aside>
         </div>
       )}
     </PageContainer>

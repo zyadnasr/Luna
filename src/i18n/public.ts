@@ -25,6 +25,7 @@ export const publicCopy = {
     deliveryOrder: "طلب التوصيل",
     cairoOnly: "داخل القاهرة فقط.",
     deliveryData: "بيانات التوصيل",
+    checkout: "إتمام الطلب",
     recheck: "تتم إعادة التحقق من الأسعار والتوفر عند الإرسال.",
     unavailableDelivery: "التوصيل غير متاح حاليًا حتى يتم إعداد مناطق التوصيل من الإدارة.",
     name: "الاسم",
@@ -108,6 +109,7 @@ export const publicCopy = {
     deliveryOrder: "Delivery order",
     cairoOnly: "Cairo delivery only.",
     deliveryData: "Delivery details",
+    checkout: "Checkout",
     recheck: "Prices and availability are checked again when you submit.",
     unavailableDelivery:
       "Delivery is unavailable until delivery zones are configured by the admin.",
@@ -192,6 +194,7 @@ export const publicCopy = {
     deliveryOrder: "Ordine con consegna",
     cairoOnly: "Consegna solo al Cairo.",
     deliveryData: "Dati di consegna",
+    checkout: "Checkout",
     recheck: "Prezzi e disponibilità vengono verificati al momento dell'invio.",
     unavailableDelivery:
       "La consegna non è disponibile finché le zone non saranno configurate dall'amministrazione.",

@@ -44,14 +44,22 @@ export function CheckoutForm({
     "idle",
   );
   useEffect(() => {
+    let cancelled = false;
     try {
       const saved = JSON.parse(localStorage.getItem("luna-customer-v1") ?? "null") as Partial<
         typeof data
       > | null;
-      if (saved) setData((current) => ({ ...current, ...saved, payment: "cash" }));
+      if (saved) {
+        queueMicrotask(() => {
+          if (!cancelled) setData((current) => ({ ...current, ...saved, payment: "cash" }));
+        });
+      }
     } catch {
       // Ignore malformed local customer data.
     }
+    return () => {
+      cancelled = true;
+    };
   }, []);
   useEffect(() => {
     localStorage.setItem(

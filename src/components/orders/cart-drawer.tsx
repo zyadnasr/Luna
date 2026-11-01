@@ -29,11 +29,16 @@ export function CartDrawer({ contextLabel }: { contextLabel?: string }) {
   }, [open]);
   return (
     <>
-      <button
-        type="button"
+      <Link
+        href={contextLabel ? "#" : "/checkout"}
         aria-label={`${t.cart}, ${count}`}
-        aria-expanded={open}
-        onClick={() => setOpen(true)}
+        aria-expanded={contextLabel ? open : undefined}
+        onClick={(event) => {
+          if (contextLabel) {
+            event.preventDefault();
+            setOpen(true);
+          }
+        }}
         className="luna-glass relative grid size-11 place-items-center rounded-full border text-[var(--color-text-primary)] transition hover:-translate-y-0.5 active:scale-95"
       >
         <svg
@@ -50,8 +55,8 @@ export function CartDrawer({ contextLabel }: { contextLabel?: string }) {
             {count}
           </span>
         ) : null}
-      </button>
-      {open && typeof document !== "undefined"
+      </Link>
+      {contextLabel && open && typeof document !== "undefined"
         ? createPortal(
             <div
               className="fixed inset-0 z-[80]"
