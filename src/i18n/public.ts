@@ -53,7 +53,7 @@ export const publicCopy = {
     yourOrder: "طلبك",
     catalogPreparing: "القائمة قيد التحضير",
     catalogPreparingHint:
-      "تُجهّز قائمة لونا بعناية. ستظهر المنتجات هنا بعد إضافتها من مساحة الإدارة.",
+      "تُجهّز قائمة Luna بعناية. ستظهر المنتجات هنا بعد إضافتها من مساحة الإدارة.",
     continueOrder: "المتابعة إلى الطلب",
     clearCart: "إفراغ السلة",
     close: "إغلاق",

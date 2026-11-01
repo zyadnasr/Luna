@@ -32,7 +32,7 @@ export default function DesignSystemPage() {
         <div>
           <p className="text-sm font-semibold text-[var(--color-brand-primary)]">المرجع البصري</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-6xl">
-            نظام لونا للتصميم
+            نظام Luna للتصميم
           </h1>
           <p className="mt-4 max-w-2xl leading-7 text-[var(--color-text-muted)]">
             لغة واجهة هادئة، دافئة، واضحة، ومهيأة للعمل من اليمين إلى اليسار.

@@ -38,7 +38,7 @@ const authCopy: Record<Locale, Record<string, string>> = {
     backToSite: "العودة للموقع",
     calm: "هدوء في الواجهة.",
     clarity: "وضوح في العمل.",
-    footer: "مساحة لونا الصحية لإدارة التفاصيل اليومية بعناية.",
+    footer: "مساحة Luna Healthy لإدارة التفاصيل اليومية بعناية.",
   },
   en: {
     workspace: "Admin workspace",

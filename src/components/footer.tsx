@@ -5,7 +5,7 @@ import { LogoMark } from "./ui/logo-mark";
 import { useLocale } from "./ui/locale-provider";
 
 const footerCopy = {
-  ar: { brand: "لونا هيلثي", footer: "بنية تشغيلية قيد الإعداد" },
+  ar: { brand: "Luna Healthy", footer: "بنية تشغيلية قيد الإعداد" },
   en: { brand: "Luna Healthy", footer: "Operations foundation in progress" },
   it: { brand: "Luna Healthy", footer: "Base operativa in preparazione" },
 } as const;

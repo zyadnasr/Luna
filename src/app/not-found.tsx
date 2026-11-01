@@ -11,7 +11,7 @@ export default function NotFound() {
         <p className="mt-8 text-sm font-semibold text-[var(--color-text-muted)]">404</p>
         <h1 className="mt-3 text-4xl font-semibold">الصفحة غير موجودة</h1>
         <p className="mt-4 leading-7 text-[var(--color-text-muted)]">
-          يبدو أن هذا العنوان ليس ضمن مساحة لونا الحالية.
+          يبدو أن هذا العنوان ليس ضمن مساحة Luna الحالية.
         </p>
         <Link
           className="mt-8 inline-flex min-h-11 items-center rounded-[var(--radius-pill)] bg-[var(--color-brand-secondary)] px-5 text-sm font-semibold text-[var(--color-on-brand)]"

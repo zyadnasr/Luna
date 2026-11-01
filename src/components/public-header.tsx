@@ -50,7 +50,7 @@ export function PublicHeader() {
       <div className="relative mx-auto flex min-h-[4.75rem] max-w-7xl items-center justify-between px-4 sm:px-8">
         <Link
           href="/"
-          aria-label="لونا هيلثي"
+          aria-label="Luna Healthy"
           className="absolute left-1/2 -translate-x-1/2 md:absolute md:right-8 md:left-auto md:translate-x-0"
         >
           <LogoMark size={44} />

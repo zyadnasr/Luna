@@ -24,7 +24,7 @@ export const adminCopy = {
     operationalUnits: "الوحدات التشغيلية ستظهر هنا",
     operationalUnitsDescription:
       "لا توجد طلبات أو منتجات أو مخزون لعرضه الآن. هذه حالة إعداد مقصودة وليست بيانات تجريبية.",
-    fallbackName: "لونا",
+    fallbackName: "Luna",
   },
   en: {
     overview: "Overview",

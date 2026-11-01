@@ -19,8 +19,8 @@ export default function Home() {
       description: "كوكيز صحية تُحضّر بعناية. اطلبها من المنيو أو دعنا نوصلها إليك داخل القاهرة.",
       menu: "تصفح المنيو",
       story: "اكتشف قصتنا",
-      places: "أماكن لونا",
-      galleryLabel: "من مطبخ لونا",
+      places: "أماكن Luna",
+      galleryLabel: "من مطبخ Luna",
       galleryTitle: "تفاصيل صغيرة، مزاج أهدأ.",
       galleryBody: "لقطات من تشكيلتنا اليومية، جاهزة تختار منها اللي يناسب يومك.",
       heading: "من مساحة الإنتاج إلى طاولتك.",
@@ -81,7 +81,7 @@ export default function Home() {
     },
   }[locale];
   const menuImage = locale === "ar" ? "/assets/menu-ar.jpeg" : "/assets/menu-en.jpeg";
-  const menuImageAlt = locale === "ar" ? "قائمة لونا هيلثي العربية" : "Luna Healthy English menu";
+  const menuImageAlt = locale === "ar" ? "قائمة Luna Healthy العربية" : "Luna Healthy English menu";
   const galleryItems = [
     { src: menuImage, position: "center top", alt: "Luna Gold cookies" },
     { src: menuImage, position: "left center", alt: "Luna Classic cookies" },

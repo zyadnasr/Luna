@@ -2,12 +2,12 @@ import type { Locale, TranslationDictionary } from "@/types/i18n";
 
 export const translations: Record<Locale, TranslationDictionary> = {
   ar: {
-    brand: "لونا هيلثي",
+    brand: "Luna Healthy",
     navigation: { home: "الرئيسية", health: "فحص النظام" },
     home: {
       eyebrow: "المرحلة صفر",
       title: "أساس واضح للنمو الصحي",
-      description: "تم تجهيز البنية التقنية لنظام إدارة لونا هيلثي.",
+      description: "تم تجهيز البنية التقنية لنظام إدارة Luna Healthy.",
       phase: "التأسيس التقني",
     },
     inventory: {
