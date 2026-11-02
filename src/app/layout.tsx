@@ -6,6 +6,7 @@ import { AppShell } from "@/components/app-shell";
 import { CartProvider } from "@/components/orders/cart-provider";
 import { LocaleProvider } from "@/components/ui/locale-provider";
 import { SplashScreen } from "@/components/ui/splash-screen";
+import { getServerLocale } from "@/i18n/server";
 
 export const metadata: Metadata = {
   title: "Luna Healthy",
@@ -16,11 +17,12 @@ type RootLayoutProps = {
   children: ReactNode;
 };
 
-export default function RootLayout({ children }: RootLayoutProps) {
+export default async function RootLayout({ children }: RootLayoutProps) {
+  const locale = await getServerLocale();
   return (
-    <html lang="ar" dir="rtl" className="h-full antialiased">
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className="h-full antialiased">
       <body className="min-h-full">
-        <LocaleProvider>
+        <LocaleProvider initialLocale={locale}>
           <SplashScreen />
           <CartProvider>
             <AppShell>{children}</AppShell>

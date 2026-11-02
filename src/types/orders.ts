@@ -45,6 +45,8 @@ export type OrderErrorCode =
   | "paymentProofRequired"
   | "invalidName"
   | "invalidPhone"
+  | "invalidAddress"
+  | "invalidLocation"
   | "invalidTableContext"
   | "deliveryRequired"
   | "invalidQrCode"

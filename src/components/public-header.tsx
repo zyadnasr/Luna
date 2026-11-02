@@ -7,31 +7,13 @@ import { CartDrawer } from "./orders/cart-drawer";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { useLocale } from "./ui/locale-provider";
 import type { Locale } from "@/config/site";
-
-const labels = {
-  ar: {
-    home: "الرئيسية",
-    menu: "المنيو",
-    quick: "طلب سريع",
-    contact: "تواصل معنا",
-    open: "فتح القائمة",
-  },
-  en: { home: "Home", menu: "Menu", quick: "Quick order", contact: "Contact", open: "Open menu" },
-  it: {
-    home: "Casa",
-    menu: "Menu",
-    quick: "Ordine rapido",
-    contact: "Contatti",
-    open: "Apri menu",
-  },
-} as const;
+import { getPublicCopy } from "@/i18n/public";
 
 export function PublicHeader() {
-  const { locale } = useLocale();
-  const { setLocale } = useLocale();
+  const { locale, setLocale } = useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
-  const t = labels[locale];
+  const t = getPublicCopy(locale);
   useEffect(() => {
     if (!menuOpen) return;
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -59,7 +41,7 @@ export function PublicHeader() {
           <button
             type="button"
             className="grid size-11 place-items-center rounded-full border border-[var(--color-border)] text-lg"
-            aria-label={t.open}
+            aria-label={t.openMenu}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((current) => !current)}
           >
@@ -84,7 +66,7 @@ export function PublicHeader() {
                   closeMenu();
                 }}
                 className={`grid h-8 min-w-8 place-items-center rounded-full px-1 text-[10px] font-bold ${locale === language.code ? "bg-[var(--color-brand-secondary)] text-[var(--color-on-brand)]" : "text-[var(--color-text-muted)]"}`}
-                aria-label={`تغيير اللغة إلى ${language.code}`}
+                aria-label={`${t.language}: ${language.code}`}
               >
                 {language.label}
               </button>
@@ -97,11 +79,11 @@ export function PublicHeader() {
         </div>
         <nav
           className="mx-auto hidden items-center gap-8 text-sm font-semibold md:flex"
-          aria-label="التنقل الرئيسي"
+          aria-label={t.mainNavigation}
         >
           <Link href="/">{t.home}</Link>
           <Link href="/menu">{t.menu}</Link>
-          <Link href="/order">{t.quick}</Link>
+          <Link href="/order">{t.quickOrder}</Link>
           <Link href="https://wa.me/201551612195" target="_blank" rel="noreferrer">
             {t.contact}
           </Link>
@@ -111,7 +93,7 @@ export function PublicHeader() {
         <div className="luna-mobile-menu absolute inset-x-4 top-[calc(100%+0.75rem)] z-50 rounded-[1.35rem] border p-4 md:hidden">
           <div className="mb-3 flex items-center justify-between gap-3 border-b border-[var(--color-border)] pb-3">
             <span className="text-xs font-semibold text-[var(--color-text-muted)]">
-              {locale === "ar" ? "الإعدادات" : locale === "it" ? "Impostazioni" : "Settings"}
+              {t.settings}
             </span>
             <div className="flex items-center gap-2">
               <div className="flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface-glass)] p-1">
@@ -124,7 +106,7 @@ export function PublicHeader() {
                       closeMenu();
                     }}
                     className={`grid h-8 min-w-8 place-items-center rounded-full px-1 text-[10px] font-bold ${locale === language.code ? "bg-[var(--color-brand-secondary)] text-[var(--color-on-brand)]" : "text-[var(--color-text-muted)]"}`}
-                    aria-label={`تغيير اللغة إلى ${language.code}`}
+                    aria-label={`${t.language}: ${language.code}`}
                   >
                     {language.label}
                   </button>
@@ -133,7 +115,7 @@ export function PublicHeader() {
               <ThemeToggle />
             </div>
           </div>
-          <nav className="grid gap-1 text-sm font-semibold" aria-label={t.open}>
+          <nav className="grid gap-1 text-sm font-semibold" aria-label={t.mainNavigation}>
             <Link
               onClick={closeMenu}
               className="rounded-xl px-4 py-3 hover:bg-[var(--color-background-deep)]"
@@ -153,7 +135,7 @@ export function PublicHeader() {
               className="rounded-xl px-4 py-3 hover:bg-[var(--color-background-deep)]"
               href="/order"
             >
-              {t.quick}
+              {t.quickOrder}
             </Link>
             <Link
               onClick={closeMenu}

@@ -30,9 +30,15 @@ function subscribeToLocale(callback: () => void) {
   };
 }
 
-export function LocaleProvider({ children }: { children: ReactNode }) {
+export function LocaleProvider({
+  children,
+  initialLocale,
+}: {
+  children: ReactNode;
+  initialLocale: Locale;
+}) {
   const router = useRouter();
-  const locale = useSyncExternalStore(subscribeToLocale, getStoredLocale, () => "ar" as Locale);
+  const locale = useSyncExternalStore(subscribeToLocale, getStoredLocale, () => initialLocale);
 
   useEffect(() => {
     document.documentElement.lang = locale;

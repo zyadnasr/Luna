@@ -7,9 +7,12 @@ import { notifyTelegram, orderNotification } from "@/lib/orders/telegram";
 import type { OrderErrorCode, OrderInput, OrderResult, OrderStatus } from "@/types/orders";
 import {
   isValidCustomerName,
+  isValidDeliveryAddress,
+  isValidLocationUrl,
   isValidEgyptianPhone,
   isValidPaymentProof,
   normalizeCustomerName,
+  normalizeDeliveryAddress,
   normalizeEgyptianPhone,
 } from "./validation";
 import { getProductAvailability } from "@/lib/inventory/availability";
@@ -31,6 +34,8 @@ const errorCodeByMessage: Record<string, OrderErrorCode> = {
   "إثبات الدفع مطلوب بصيغة PNG أو JPG أو WEBP وحجم أقل من 5 ميجابايت.": "paymentProofRequired",
   "اكتب اسمًا صحيحًا مكوّنًا من حروف عربية أو إنجليزية فقط.": "invalidName",
   "أدخل رقم هاتف مصري صحيحًا مكوّنًا من 10 أرقام بعد +20.": "invalidPhone",
+  "أدخل عنوانًا صحيحًا للتوصيل.": "invalidAddress",
+  "حدد موقع التوصيل من الخريطة قبل إرسال الطلب.": "invalidLocation",
   "سياق الطاولة غير صالح.": "invalidTableContext",
   "بيانات التوصيل مطلوبة.": "deliveryRequired",
   "رمز الطاولة غير صالح أو غير نشط.": "invalidQrCode",
@@ -117,6 +122,10 @@ async function createPublicOrderInternal(input: OrderInput): Promise<OrderResult
     (!input.deliveryZoneId || !input.deliveryAddress?.trim())
   )
     return fail("بيانات التوصيل مطلوبة.");
+  if (input.context.type === "delivery" && !isValidDeliveryAddress(input.deliveryAddress ?? ""))
+    return fail("أدخل عنوانًا صحيحًا للتوصيل.");
+  if (input.context.type === "delivery" && !isValidLocationUrl(input.deliveryLocationUrl ?? ""))
+    return fail("حدد موقع التوصيل من الخريطة قبل إرسال الطلب.");
   const { data: customerProfile } = await writer
     .from("customer_profiles")
     .select("id, order_count")
@@ -241,7 +250,7 @@ async function createPublicOrderInternal(input: OrderInput): Promise<OrderResult
       customer_phone: normalizedPhone,
       customer_email: input.customerEmail?.trim() || null,
       delivery_zone_id: input.deliveryZoneId ?? null,
-      delivery_address: input.deliveryAddress?.trim() || null,
+      delivery_address: normalizeDeliveryAddress(input.deliveryAddress ?? "") || null,
       delivery_location_url: input.deliveryLocationUrl?.trim() || null,
       customer_notes: input.customerNotes?.trim() || null,
       requested_delivery_time: input.requestedDeliveryTime || null,

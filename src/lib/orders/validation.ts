@@ -8,9 +8,36 @@ export function isValidPaymentProof(file: { type: string; size: number } | null 
 
 const egyptianMobileLocalPattern = /^1[0125][0-9]{8}$/;
 const customerNamePattern = /^[\p{L}]+(?:[\s.'-]+[\p{L}]+)*$/u;
+const deliveryAddressPattern = /[\p{L}\p{N}]/u;
 
 export function normalizeCustomerName(value: string) {
   return value.trim().replace(/\s+/g, " ");
+}
+
+export function normalizeDeliveryAddress(value: string) {
+  return value.trim().replace(/\s+/g, " ");
+}
+
+export function isValidDeliveryAddress(value: string) {
+  const address = normalizeDeliveryAddress(value);
+  return address.length >= 5 && address.length <= 240 && deliveryAddressPattern.test(address);
+}
+
+export function isValidLocationUrl(value: string) {
+  if (!value.trim()) return false;
+  try {
+    const url = new URL(value);
+    const hostname = url.hostname.toLowerCase();
+    return (
+      url.protocol === "https:" &&
+      (hostname === "google.com" ||
+        hostname.endsWith(".google.com") ||
+        hostname === "goo.gl" ||
+        hostname.endsWith(".goo.gl"))
+    );
+  } catch {
+    return false;
+  }
 }
 
 export function isValidCustomerName(value: string) {

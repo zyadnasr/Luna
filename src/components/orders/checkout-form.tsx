@@ -13,9 +13,16 @@ import { useLocale } from "@/components/ui/locale-provider";
 import { getPublicCopy } from "@/i18n/public";
 import {
   isValidCustomerName,
+  isValidDeliveryAddress,
   isValidEgyptianPhone,
+  isValidLocationUrl,
+  normalizeCustomerName,
+  normalizeDeliveryAddress,
   normalizeEgyptianPhoneInput,
 } from "@/lib/orders/validation";
+
+const customerStorageKey = "luna-customer-v2";
+const customerStorageTtlMs = 30 * 24 * 60 * 60 * 1000;
 export function CheckoutForm({
   zones,
   context,
@@ -46,7 +53,12 @@ export function CheckoutForm({
     payment: "cash" as "cash" | "card",
   });
   const [message, setMessage] = useState("");
-  const [fieldErrors, setFieldErrors] = useState({ name: "", phone: "" });
+  const [fieldErrors, setFieldErrors] = useState({
+    name: "",
+    phone: "",
+    address: "",
+    location: "",
+  });
   const [saving, setSaving] = useState(false);
   const [couponState, setCouponState] = useState<"idle" | "checking" | "applied" | "invalid">(
     "idle",
@@ -54,16 +66,24 @@ export function CheckoutForm({
   useEffect(() => {
     let cancelled = false;
     try {
-      const saved = JSON.parse(localStorage.getItem("luna-customer-v1") ?? "null") as Partial<
-        typeof data
-      > | null;
-      if (saved) {
+      const saved = JSON.parse(localStorage.getItem(customerStorageKey) ?? "null") as
+        (Partial<typeof data> & { savedAt?: number }) | null;
+      const isFresh = saved?.savedAt && Date.now() - saved.savedAt <= customerStorageTtlMs;
+      if (saved && isFresh) {
         queueMicrotask(() => {
           if (!cancelled)
             setData((current) => ({
               ...current,
-              ...saved,
-              phone: normalizeEgyptianPhoneInput(saved.phone ?? ""),
+              name: isValidCustomerName(saved.name ?? "")
+                ? normalizeCustomerName(saved.name ?? "")
+                : "",
+              phone: isValidEgyptianPhone(saved.phone ?? "")
+                ? normalizeEgyptianPhoneInput(saved.phone ?? "")
+                : "",
+              address: isValidDeliveryAddress(saved.address ?? "")
+                ? normalizeDeliveryAddress(saved.address ?? "")
+                : "",
+              location: isValidLocationUrl(saved.location ?? "") ? (saved.location ?? "") : "",
               payment: "cash",
             }));
         });
@@ -77,12 +97,13 @@ export function CheckoutForm({
   }, []);
   useEffect(() => {
     localStorage.setItem(
-      "luna-customer-v1",
+      customerStorageKey,
       JSON.stringify({
         name: data.name,
         phone: data.phone,
         address: data.address,
         location: data.location,
+        savedAt: Date.now(),
       }),
     );
   }, [data.name, data.phone, data.address, data.location]);
@@ -96,6 +117,10 @@ export function CheckoutForm({
     const nextFieldErrors = {
       name: isValidCustomerName(data.name) ? "" : t.invalidName,
       phone: isValidEgyptianPhone(data.phone) ? "" : t.invalidPhone,
+      address:
+        context.type !== "delivery" || isValidDeliveryAddress(data.address) ? "" : t.invalidAddress,
+      location:
+        context.type !== "delivery" || isValidLocationUrl(data.location) ? "" : t.invalidLocation,
     };
     setFieldErrors(nextFieldErrors);
     if (nextFieldErrors.name || nextFieldErrors.phone) return;
@@ -125,6 +150,8 @@ export function CheckoutForm({
           paymentProofRequired: t.proofHelp,
           invalidName: t.invalidName,
           invalidPhone: t.invalidPhone,
+          invalidAddress: t.invalidAddress,
+          invalidLocation: t.invalidLocation,
           invalidTableContext: t.submitError,
           deliveryRequired: t.submitError,
           invalidQrCode: t.submitError,
@@ -180,6 +207,7 @@ export function CheckoutForm({
           location: `https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`,
           zone: zones.length === 1 ? zones[0].id : current.zone,
         }));
+        setFieldErrors((current) => ({ ...current, address: "", location: "" }));
       },
       () => setMessage(t.locationPermissionRequired),
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 },
@@ -285,8 +313,23 @@ export function CheckoutForm({
             <Textarea
               required
               value={data.address}
-              onChange={(event) => setData({ ...data, address: event.target.value })}
+              onChange={(event) => {
+                setData({ ...data, address: event.target.value });
+                if (fieldErrors.address) setFieldErrors({ ...fieldErrors, address: "" });
+              }}
+              onBlur={() =>
+                setFieldErrors({
+                  ...fieldErrors,
+                  address: isValidDeliveryAddress(data.address) ? "" : t.invalidAddress,
+                })
+              }
+              aria-invalid={!!fieldErrors.address}
             />
+            {fieldErrors.address ? (
+              <p className="text-xs font-normal text-[var(--color-danger)]" role="alert">
+                {fieldErrors.address}
+              </p>
+            ) : null}
           </label>
           <div className="grid gap-2 text-sm font-semibold">
             <span>{t.location}</span>
@@ -306,6 +349,11 @@ export function CheckoutForm({
               >
                 {t.openLocation}
               </a>
+            ) : null}
+            {fieldErrors.location ? (
+              <p className="text-xs font-normal text-[var(--color-danger)]" role="alert">
+                {fieldErrors.location}
+              </p>
             ) : null}
           </div>
         </>
