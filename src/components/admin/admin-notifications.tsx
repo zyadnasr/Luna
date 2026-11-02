@@ -15,6 +15,7 @@ const labels = {
     markAll: "تحديد الكل كمقروء",
     close: "إغلاق الإشعارات",
     incoming: "تنبيه جديد",
+    enableDesktop: "تفعيل إشعارات الجهاز",
   },
   en: {
     title: "Notifications",
@@ -24,6 +25,7 @@ const labels = {
     markAll: "Mark all as read",
     close: "Close notifications",
     incoming: "New alert",
+    enableDesktop: "Enable desktop notifications",
   },
   it: {
     title: "Notifiche",
@@ -33,6 +35,7 @@ const labels = {
     markAll: "Segna tutto come letto",
     close: "Chiudi notifiche",
     incoming: "Nuovo avviso",
+    enableDesktop: "Attiva notifiche desktop",
   },
 } as const;
 
@@ -55,11 +58,46 @@ export function AdminNotifications({
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState(initialNotifications);
   const [incoming, setIncoming] = useState<StoredNotification | null>(null);
+  const [desktopPermission, setDesktopPermission] = useState<
+    NotificationPermission | "unsupported"
+  >("default");
   const knownIds = useRef(new Set(initialNotifications.map((notification) => notification.id)));
   const audioContext = useRef<AudioContext | null>(null);
+  const desktopPermissionRef = useRef<NotificationPermission | "unsupported">("default");
   const unreadCount = useMemo(
     () => notifications.filter((notification) => !notification.read).length,
     [notifications],
+  );
+
+  const requestDesktopPermission = useCallback(async () => {
+    if (!("Notification" in window)) {
+      desktopPermissionRef.current = "unsupported";
+      setDesktopPermission("unsupported");
+      return;
+    }
+    if (window.Notification.permission !== "default") {
+      desktopPermissionRef.current = window.Notification.permission;
+      setDesktopPermission(window.Notification.permission);
+      return;
+    }
+    const permission = await window.Notification.requestPermission();
+    desktopPermissionRef.current = permission;
+    setDesktopPermission(permission);
+  }, []);
+
+  const showDesktopNotification = useCallback(
+    (notification: StoredNotification) => {
+      if (desktopPermissionRef.current !== "granted") return;
+      try {
+        new window.Notification(labels[locale].incoming, {
+          body: notificationText(notification, locale),
+          tag: notification.id,
+        });
+      } catch {
+        // The in-app alert and sound remain available if desktop notifications fail.
+      }
+    },
+    [locale],
   );
 
   const playNotificationSound = useCallback(() => {
@@ -98,12 +136,13 @@ export function AdminNotifications({
       );
       setIncoming(notification);
       playNotificationSound();
+      showDesktopNotification(notification);
       window.setTimeout(
         () => setIncoming((current) => (current?.id === notification.id ? null : current)),
         7000,
       );
     },
-    [playNotificationSound],
+    [playNotificationSound, showDesktopNotification],
   );
 
   const mergeFetchedNotifications = useCallback(
@@ -215,7 +254,10 @@ export function AdminNotifications({
           type="button"
           aria-expanded={open}
           aria-label={labels[locale].title}
-          onClick={() => setOpen((current) => !current)}
+          onClick={() => {
+            void requestDesktopPermission();
+            setOpen((current) => !current);
+          }}
           className="relative rounded-[var(--radius-pill)] border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary)] transition hover:border-[var(--color-brand-primary)]"
         >
           {labels[locale].title}
@@ -248,6 +290,15 @@ export function AdminNotifications({
                 </button>
               </div>
             </div>
+            {desktopPermission === "default" ? (
+              <button
+                type="button"
+                className="mt-2 w-full rounded-[var(--radius-sm)] border border-[var(--color-brand-primary)] px-3 py-2 text-xs font-semibold text-[var(--color-brand-primary)]"
+                onClick={() => void requestDesktopPermission()}
+              >
+                {labels[locale].enableDesktop}
+              </button>
+            ) : null}
             <div className="mt-2 grid max-h-80 gap-1 overflow-y-auto">
               {notifications.length ? (
                 notifications.map((notification) => (
