@@ -4,6 +4,7 @@ import { updateOrderStatus } from "@/lib/orders/actions";
 import type { OrderStatus } from "@/types/orders";
 import { useLocale } from "@/components/ui/locale-provider";
 import { getTranslations } from "@/i18n";
+import { translateAdminText } from "@/i18n/admin-text";
 export function StatusTransition({ id, status }: { id: string; status: OrderStatus }) {
   const { locale } = useLocale();
   const t = getTranslations(locale);
@@ -37,7 +38,9 @@ export function StatusTransition({ id, status }: { id: string; status: OrderStat
       <button
         type="button"
         className="mt-3 rounded-[var(--radius-pill)] bg-[var(--color-brand-secondary)] px-4 py-2 text-sm text-[var(--color-on-brand)]"
-        onClick={async () => setMessage((await updateOrderStatus(id, value)).message)}
+        onClick={async () =>
+          setMessage(translateAdminText(locale, (await updateOrderStatus(id, value)).message))
+        }
       >
         {locale === "ar" ? "حفظ الحالة" : locale === "it" ? "Salva stato" : "Save status"}
       </button>

@@ -9,6 +9,13 @@ const copy = {
     "أنشئ تصنيفات القائمة ورتّب ظهورها. لا توجد تصنيفات تجريبية مضافة.":
       "Create menu categories and control their order. No demo categories have been added.",
     الطلبات: "Orders",
+    "تم تحديث الحالة.": "Status updated.",
+    "انتقال الحالة غير مسموح.": "This status transition is not allowed.",
+    "مستودع Home غير مكوّن.": "The Home warehouse is not configured.",
+    "تعذر تأكيد الطلب: الوصفة أو المخزون غير كافٍ.":
+      "Unable to confirm the order: the recipe or stock is insufficient.",
+    "تعذر استعادة مخزون الطلب.": "Unable to restore the order stock.",
+    "تعذر تحديث الحالة.": "Unable to update the status.",
     website: "Website",
     qr_table: "Table QR",
     talabat: "Talabat",
@@ -330,6 +337,13 @@ const copy = {
     "أنشئ تصنيفات القائمة ورتّب ظهورها. لا توجد تصنيفات تجريبية مضافة.":
       "Crea le categorie del menu e controllane l'ordine. Non sono state aggiunte categorie demo.",
     الطلبات: "Ordini",
+    "تم تحديث الحالة.": "Stato aggiornato.",
+    "انتقال الحالة غير مسموح.": "Questo passaggio di stato non è consentito.",
+    "مستودع Home غير مكوّن.": "Il magazzino Home non è configurato.",
+    "تعذر تأكيد الطلب: الوصفة أو المخزون غير كافٍ.":
+      "Impossibile confermare l'ordine: ricetta o scorte insufficienti.",
+    "تعذر استعادة مخزون الطلب.": "Impossibile ripristinare le scorte dell'ordine.",
+    "تعذر تحديث الحالة.": "Impossibile aggiornare lo stato.",
     website: "Sito",
     qr_table: "QR tavolo",
     talabat: "Talabat",
