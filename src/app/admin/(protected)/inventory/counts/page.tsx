@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getServerLocale } from "@/i18n/server";
 import { translateAdminText } from "@/i18n/admin-text";
+import { getTranslations } from "@/i18n/translations";
 export default async function InventoryCountsPage() {
   await requireAnyRole(["owner", "inventory"]);
   const supabase = await createClient();
@@ -16,6 +17,8 @@ export default async function InventoryCountsPage() {
   ]);
   const locale = await getServerLocale();
   const t = (value: string) => translateAdminText(locale, value);
+  const translations = getTranslations(locale);
+  const numberLocale = locale === "ar" ? "ar-EG" : locale;
   return (
     <section>
       <h1 className="text-4xl font-semibold">{t("جرد المخزون")}</h1>
@@ -52,7 +55,8 @@ export default async function InventoryCountsPage() {
                 key={count.id}
               >
                 <span>
-                  {count.status} · {new Date(count.created_at).toLocaleString("ar-EG")}
+                  {translations.inventory?.statuses[count.status] ?? count.status} ·{" "}
+                  {new Date(count.created_at).toLocaleString(numberLocale)}
                 </span>
                 {count.status === "open" ? (
                   <div className="flex gap-2">

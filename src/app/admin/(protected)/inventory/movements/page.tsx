@@ -3,11 +3,14 @@ import { InventoryEmptyState } from "@/components/inventory/inventory-empty-stat
 import { getStockMovements } from "@/lib/inventory/queries";
 import { getServerLocale } from "@/i18n/server";
 import { translateAdminText } from "@/i18n/admin-text";
+import { getTranslations } from "@/i18n/translations";
 export default async function InventoryMovementsPage() {
   await requireAnyRole(["owner", "inventory", "manager"]);
   const movements = await getStockMovements();
   const locale = await getServerLocale();
   const t = (value: string) => translateAdminText(locale, value);
+  const translations = getTranslations(locale);
+  const numberLocale = locale === "ar" ? "ar-EG" : locale;
   return (
     <section>
       <h1 className="text-4xl font-semibold">{t("حركات المخزون")}</h1>
@@ -32,11 +35,14 @@ export default async function InventoryMovementsPage() {
                   <tr className="border-t border-[var(--color-border)]" key={movement.id}>
                     <td className="px-4 py-3">{movement.inventory_items?.name_ar ?? "-"}</td>
                     <td className="px-4 py-3">{movement.warehouses?.name ?? "-"}</td>
-                    <td className="px-4 py-3">{movement.movement_type}</td>
+                    <td className="px-4 py-3">
+                      {translations.inventory?.movements[movement.movement_type] ??
+                        movement.movement_type}
+                    </td>
                     <td className="px-4 py-3">{movement.quantity_delta}</td>
                     <td className="px-4 py-3">{movement.stock_batches?.batch_number ?? "-"}</td>
                     <td className="px-4 py-3">
-                      {new Date(movement.created_at).toLocaleString("ar-EG")}
+                      {new Date(movement.created_at).toLocaleString(numberLocale)}
                     </td>
                   </tr>
                 ))}

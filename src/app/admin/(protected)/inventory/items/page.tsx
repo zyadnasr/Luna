@@ -4,11 +4,13 @@ import { getInventoryItems } from "@/lib/inventory/queries";
 import { InventoryEmptyState } from "@/components/inventory/inventory-empty-state";
 import { getServerLocale } from "@/i18n/server";
 import { translateAdminText } from "@/i18n/admin-text";
+import { getTranslations } from "@/i18n/translations";
 export default async function InventoryItemsPage() {
   await requireAnyRole(["owner", "inventory"]);
   const items = await getInventoryItems();
   const locale = await getServerLocale();
   const t = (value: string) => translateAdminText(locale, value);
+  const translations = getTranslations(locale);
   return (
     <section>
       <div className="flex items-end justify-between border-b border-[var(--color-border)] pb-8">
@@ -35,7 +37,8 @@ export default async function InventoryItemsPage() {
               >
                 <p className="font-semibold">{item.name_ar}</p>
                 <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-                  {item.item_type} · {item.unit}
+                  {translations.inventory?.types[item.item_type] ?? item.item_type} ·{" "}
+                  {translations.inventory?.units[item.unit] ?? item.unit}
                 </p>
               </div>
             ))}

@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { getServerLocale } from "@/i18n/server";
 import { translateAdminText } from "@/i18n/admin-text";
+import { getTranslations } from "@/i18n/translations";
 
 export const dynamic = "force-dynamic";
 export default async function OrdersPage() {
@@ -20,6 +21,8 @@ export default async function OrdersPage() {
     .limit(50);
   const locale = await getServerLocale();
   const t = (value: string) => translateAdminText(locale, value);
+  const translations = getTranslations(locale);
+  const numberLocale = locale === "ar" ? "ar-EG" : locale;
   return (
     <section>
       <div className="flex items-end justify-between gap-5 border-b border-[var(--color-border)] pb-8">
@@ -68,8 +71,12 @@ export default async function OrdersPage() {
                       {order.order_number}
                     </Link>
                   </td>
-                  <td className="px-4 py-4">{t(order.source)}</td>
-                  <td className="px-4 py-4">{t(order.order_type)}</td>
+                  <td className="px-4 py-4">
+                    {translations.orders.source[order.source] ?? order.source}
+                  </td>
+                  <td className="px-4 py-4">
+                    {translations.orders.type[order.order_type] ?? order.order_type}
+                  </td>
                   <td className="px-4 py-4">
                     <StatusBadge
                       status={
@@ -80,15 +87,15 @@ export default async function OrdersPage() {
                             : "info"
                       }
                     >
-                      {t(order.status)}
+                      {translations.orders.status[order.status] ?? order.status}
                     </StatusBadge>
                   </td>
                   <td className="px-4 py-4">{order.customer_name ?? "-"}</td>
                   <td className="px-4 py-4">
-                    {Number(order.total_egp).toLocaleString("ar-EG")} ج.م
+                    {Number(order.total_egp).toLocaleString(numberLocale)} EGP
                   </td>
                   <td className="px-4 py-4 text-xs text-[var(--color-text-muted)]">
-                    {new Date(order.created_at).toLocaleString("ar-EG")}
+                    {new Date(order.created_at).toLocaleString(numberLocale)}
                   </td>
                 </tr>
               ))}

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { BatchReceiveForm } from "@/components/inventory/batch-receive-form";
 import { getServerLocale } from "@/i18n/server";
 import { translateAdminText } from "@/i18n/admin-text";
+import { getTranslations } from "@/i18n/translations";
 export default async function InventoryBatchesPage() {
   await requireAnyRole(["owner", "inventory"]);
   const [items, batches, { data: warehouses }] = await Promise.all([
@@ -14,6 +15,8 @@ export default async function InventoryBatchesPage() {
   ]);
   const locale = await getServerLocale();
   const t = (value: string) => translateAdminText(locale, value);
+  const translations = getTranslations(locale);
+  const numberLocale = locale === "ar" ? "ar-EG" : locale;
   return (
     <section>
       <h1 className="text-4xl font-semibold">{t("دفعات المخزون")}</h1>
@@ -44,11 +47,13 @@ export default async function InventoryBatchesPage() {
                     <td className="px-4 py-3">{batch.warehouses?.name ?? "-"}</td>
                     <td className="px-4 py-3">{batch.batch_number ?? "-"}</td>
                     <td className="px-4 py-3">
-                      {batch.quantity_available} {batch.inventory_items?.unit}
+                      {batch.quantity_available}{" "}
+                      {translations.inventory?.units[batch.inventory_items?.unit ?? ""] ??
+                        batch.inventory_items?.unit}
                     </td>
                     <td className="px-4 py-3">{batch.expiry_date ?? "-"}</td>
                     <td className="px-4 py-3">
-                      {new Date(batch.received_at).toLocaleDateString("ar-EG")}
+                      {new Date(batch.received_at).toLocaleDateString(numberLocale)}
                     </td>
                   </tr>
                 ))}

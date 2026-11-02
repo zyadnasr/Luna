@@ -6,6 +6,7 @@ import { TransferForm } from "@/components/inventory/transfer-form";
 import { getInventoryItems, getStockBatches } from "@/lib/inventory/queries";
 import { getServerLocale } from "@/i18n/server";
 import { translateAdminText } from "@/i18n/admin-text";
+import { getTranslations } from "@/i18n/translations";
 export default async function InventoryTransfersPage() {
   await requireAnyRole(["owner", "inventory"]);
   const [{ data: transfers }, { data: warehouses }, items, batches] = await Promise.all([
@@ -19,6 +20,8 @@ export default async function InventoryTransfersPage() {
   ]);
   const locale = await getServerLocale();
   const t = (value: string) => translateAdminText(locale, value);
+  const translations = getTranslations(locale);
+  const numberLocale = locale === "ar" ? "ar-EG" : locale;
   return (
     <section>
       <h1 className="text-4xl font-semibold">{t("النقل بين المستودعات")}</h1>
@@ -33,9 +36,11 @@ export default async function InventoryTransfersPage() {
                 key={transfer.id}
               >
                 <div>
-                  <p className="font-semibold">{transfer.status}</p>
+                  <p className="font-semibold">
+                    {translations.inventory?.statuses[transfer.status] ?? transfer.status}
+                  </p>
                   <p className="text-xs text-[var(--color-text-muted)]">
-                    {new Date(transfer.created_at).toLocaleString("ar-EG")}
+                    {new Date(transfer.created_at).toLocaleString(numberLocale)}
                   </p>
                 </div>
                 {transfer.status !== "completed" && transfer.status !== "cancelled" ? (

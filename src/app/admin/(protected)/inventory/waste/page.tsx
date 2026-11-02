@@ -18,6 +18,7 @@ export default async function InventoryWastePage() {
   ]);
   const locale = await getServerLocale();
   const t = (value: string) => translateAdminText(locale, value);
+  const numberLocale = locale === "ar" ? "ar-EG" : locale;
   return (
     <section>
       <h1 className="text-4xl font-semibold">{t("الهدر والتلف")}</h1>
@@ -37,7 +38,7 @@ export default async function InventoryWastePage() {
                   {record.inventory_items?.name_ar} · {record.quantity}
                 </p>
                 <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                  {record.reason} · {new Date(record.created_at).toLocaleString("ar-EG")}
+                  {t(record.reason)} · {new Date(record.created_at).toLocaleString(numberLocale)}
                 </p>
               </div>
             ))}

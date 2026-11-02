@@ -8,6 +8,7 @@ import { OrderActivity } from "@/components/orders/order-activity";
 import { PaymentTimeline } from "@/components/orders/payment-timeline";
 import { getServerLocale } from "@/i18n/server";
 import { translateAdminText } from "@/i18n/admin-text";
+import { getTranslations } from "@/i18n/translations";
 export const dynamic = "force-dynamic";
 export default async function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   await requireRole("owner");
@@ -21,6 +22,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
   if (!order) notFound();
   const locale = await getServerLocale();
   const t = (value: string) => translateAdminText(locale, value);
+  const translations = getTranslations(locale);
   const { data: payments } = await supabase
     .from("payments")
     .select("*")
@@ -39,10 +41,10 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
       <div className="mt-8 grid gap-5 md:grid-cols-2">
         <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
           <p>
-            {t("المصدر")}: {order.source}
+            {t("المصدر")}: {translations.orders.source[order.source] ?? order.source}
           </p>
           <p className="mt-2">
-            {t("نوع الطلب")}: {order.order_type}
+            {t("نوع الطلب")}: {translations.orders.type[order.order_type] ?? order.order_type}
           </p>
           <p className="mt-2">
             {t("اسم العميل")}: {order.customer_name ?? "-"}
@@ -73,10 +75,10 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
         {payments?.map((payment) => (
           <div className="mt-5 border-t border-[var(--color-border)] pt-5" key={payment.id}>
             <p>
-              {t("الطريقة")}: {payment.method}
+              {t("الطريقة")}: {translations.orders.payment[payment.method] ?? payment.method}
             </p>
             <p className="mt-2">
-              {t("الحالة")}: {payment.status}
+              {t("الحالة")}: {translations.orders.payment[payment.status] ?? payment.status}
             </p>
             <p className="mt-2">
               {t("المبلغ")}:{" "}
