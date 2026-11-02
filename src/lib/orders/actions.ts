@@ -16,6 +16,7 @@ import {
   normalizeEgyptianPhone,
 } from "./validation";
 import { getProductAvailability } from "@/lib/inventory/availability";
+import type { OrderSource } from "@/types/domain";
 
 const transitions: Record<OrderStatus, OrderStatus[]> = {
   new: ["confirmed", "rejected", "cancelled"],
@@ -649,7 +650,11 @@ export async function updateOrderStatus(
 ): Promise<OrderResult> {
   const user = await requireRole("owner");
   const supabase = await createClient();
-  const { data: current } = await supabase.from("orders").select("status").eq("id", id).single();
+  const { data: current } = await supabase
+    .from("orders")
+    .select("status, order_number, source, total_egp")
+    .eq("id", id)
+    .single();
   if (!current || !transitions[current.status as OrderStatus].includes(status))
     return fail("انتقال الحالة غير مسموح.");
   if (status === "confirmed") {
@@ -703,6 +708,11 @@ export async function updateOrderStatus(
     entity_id: id,
     metadata: { note: note || null },
   });
+  await notifyTelegram(
+    orderNotification(current.order_number, current.source as OrderSource, status, {
+      total: Number(current.total_egp),
+    }),
+  );
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${id}`);
   return { success: true, message: "تم تحديث الحالة." };
