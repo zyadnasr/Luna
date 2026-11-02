@@ -79,30 +79,42 @@ export function CheckoutForm({
   }, [data.zone, onDeliveryFeeChange, zones]);
   async function submit(event: React.FormEvent) {
     event.preventDefault();
+    if (saving || !items.length) return;
+    setMessage("");
     setSaving(true);
-    const result = await createPublicOrder({
-      source: context.type === "table" ? "qr_table" : "website",
-      context,
-      customerName: data.name,
-      customerPhone: data.phone,
-      deliveryZoneId: data.zone || undefined,
-      deliveryAddress: data.address || undefined,
-      deliveryLocationUrl: data.location || undefined,
-      customerNotes: data.notes || undefined,
-      requestedDeliveryTime: new Date().toISOString(),
-      paymentMethod: data.payment,
-      couponCode: data.coupon || undefined,
-      items,
-    });
-    setSaving(false);
-    if (!result.success) {
-      setMessage(result.message);
-      return;
+    try {
+      const result = await createPublicOrder({
+        source: context.type === "table" ? "qr_table" : "website",
+        context,
+        customerName: data.name,
+        customerPhone: data.phone,
+        deliveryZoneId: data.zone || undefined,
+        deliveryAddress: data.address || undefined,
+        deliveryLocationUrl: data.location || undefined,
+        customerNotes: data.notes || undefined,
+        requestedDeliveryTime: new Date().toISOString(),
+        paymentMethod: data.payment,
+        couponCode: data.coupon || undefined,
+        items,
+      });
+      if (!result.success) {
+        setMessage(result.message);
+        return;
+      }
+      if (!result.orderNumber || !result.lookupToken) {
+        setMessage(t.submitError);
+        return;
+      }
+      clear();
+      router.replace(
+        `/order/success?number=${encodeURIComponent(result.orderNumber)}&token=${encodeURIComponent(result.lookupToken)}`,
+      );
+    } catch (error) {
+      console.error("Public order submission failed", error);
+      setMessage(t.submitError);
+    } finally {
+      setSaving(false);
     }
-    clear();
-    router.push(
-      `/order/success?number=${encodeURIComponent(result.orderNumber ?? "")}&token=${encodeURIComponent(result.lookupToken ?? "")}`,
-    );
   }
   async function applyCoupon() {
     if (!data.coupon.trim() || !items.length) return;

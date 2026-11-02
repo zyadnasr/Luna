@@ -49,6 +49,15 @@ export async function validatePublicCoupon(input: {
 }
 
 export async function createPublicOrder(input: OrderInput): Promise<OrderResult> {
+  try {
+    return await createPublicOrderInternal(input);
+  } catch (error) {
+    console.error("Public order creation failed", error);
+    return fail("تعذر إنشاء الطلب حاليًا. حاول مرة أخرى.");
+  }
+}
+
+async function createPublicOrderInternal(input: OrderInput): Promise<OrderResult> {
   const supabase = await createClient();
   const writer = createServiceClient();
   if (!input.items.length) return fail("أضف منتجًا واحدًا على الأقل.");
