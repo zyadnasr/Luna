@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient as createBrowserClient } from "@/lib/supabase/browser";
 import { useLocale } from "@/components/ui/locale-provider";
 import { getTranslations } from "@/i18n";
@@ -14,6 +14,7 @@ const labels = {
     status: "تحديث حالة الطلب",
     markAll: "تحديد الكل كمقروء",
     close: "إغلاق الإشعارات",
+    incoming: "تنبيه جديد",
   },
   en: {
     title: "Notifications",
@@ -22,6 +23,7 @@ const labels = {
     status: "Order status updated",
     markAll: "Mark all as read",
     close: "Close notifications",
+    incoming: "New alert",
   },
   it: {
     title: "Notifiche",
@@ -30,6 +32,7 @@ const labels = {
     status: "Stato ordine aggiornato",
     markAll: "Segna tutto come letto",
     close: "Chiudi notifiche",
+    incoming: "Nuovo avviso",
   },
 } as const;
 
@@ -51,9 +54,68 @@ export function AdminNotifications({
   const { locale } = useLocale();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState(initialNotifications);
+  const [incoming, setIncoming] = useState<StoredNotification | null>(null);
+  const knownIds = useRef(new Set(initialNotifications.map((notification) => notification.id)));
+  const audioContext = useRef<AudioContext | null>(null);
   const unreadCount = useMemo(
     () => notifications.filter((notification) => !notification.read).length,
     [notifications],
+  );
+
+  const playNotificationSound = useCallback(() => {
+    try {
+      const AudioContextConstructor = window.AudioContext;
+      if (!AudioContextConstructor) return;
+      const context = audioContext.current ?? new AudioContextConstructor();
+      audioContext.current = context;
+      const start = () => {
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(880, context.currentTime);
+        oscillator.frequency.setValueAtTime(1175, context.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.0001, context.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.16, context.currentTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.34);
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.start();
+        oscillator.stop(context.currentTime + 0.36);
+      };
+      if (context.state === "suspended") void context.resume().then(start);
+      else start();
+    } catch {
+      // Browsers can block audio until the admin interacts with the page.
+    }
+  }, []);
+
+  const announce = useCallback(
+    (notification: StoredNotification) => {
+      if (knownIds.current.has(notification.id)) return;
+      knownIds.current.add(notification.id);
+      setNotifications((current) =>
+        [notification, ...current.filter((item) => item.id !== notification.id)].slice(0, 30),
+      );
+      setIncoming(notification);
+      playNotificationSound();
+      window.setTimeout(
+        () => setIncoming((current) => (current?.id === notification.id ? null : current)),
+        7000,
+      );
+    },
+    [playNotificationSound],
+  );
+
+  const mergeFetchedNotifications = useCallback(
+    (next: StoredNotification[]) => {
+      const unseen = next.filter((notification) => !knownIds.current.has(notification.id));
+      setNotifications(next);
+      if (unseen.length) {
+        announce(unseen[0]);
+        unseen.slice(1).forEach((notification) => knownIds.current.add(notification.id));
+      }
+    },
+    [announce],
   );
 
   useEffect(() => {
@@ -70,25 +132,34 @@ export function AdminNotifications({
             payload: StoredNotification["payload"];
             created_at: string;
           };
-          setNotifications((current) =>
-            [
-              {
-                id: next.id,
-                kind: next.kind,
-                payload: next.payload,
-                createdAt: next.created_at,
-                read: false,
-              },
-              ...current.filter((notification) => notification.id !== next.id),
-            ].slice(0, 30),
-          );
+          announce({
+            id: next.id,
+            kind: next.kind,
+            payload: next.payload,
+            createdAt: next.created_at,
+            read: false,
+          });
         },
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.warn(`Admin notification realtime status: ${status}`);
+        }
+      });
+    const poll = window.setInterval(async () => {
+      if (document.visibilityState === "hidden") return;
+      try {
+        const response = await fetch("/api/admin/notifications", { cache: "no-store" });
+        if (response.ok) mergeFetchedNotifications((await response.json()) as StoredNotification[]);
+      } catch {
+        // Realtime remains active if the fallback request temporarily fails.
+      }
+    }, 5000);
     return () => {
       void supabase.removeChannel(channel);
+      window.clearInterval(poll);
     };
-  }, []);
+  }, [announce, mergeFetchedNotifications]);
 
   async function markAsRead(id: string) {
     setNotifications((current) =>
@@ -118,67 +189,89 @@ export function AdminNotifications({
   }
 
   return (
-    <div className="relative">
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-label={labels[locale].title}
-        onClick={() => setOpen((current) => !current)}
-        className="relative rounded-[var(--radius-pill)] border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary)] transition hover:border-[var(--color-brand-primary)]"
-      >
-        {labels[locale].title}
-        {unreadCount ? (
-          <span className="ms-2 inline-grid min-w-5 place-items-center rounded-full bg-[var(--color-danger)] px-1.5 py-0.5 text-[0.68rem] text-white">
-            {unreadCount}
+    <>
+      {incoming ? (
+        <button
+          type="button"
+          role="alert"
+          onClick={() => {
+            setOpen(true);
+            void markAsRead(incoming.id);
+            setIncoming(null);
+          }}
+          className="fixed end-6 top-24 z-[60] grid w-[min(24rem,calc(100vw-3rem))] gap-1 rounded-[var(--radius-lg)] border border-[var(--color-brand-primary)] bg-[var(--color-surface-elevated)] p-4 text-start shadow-[var(--shadow-soft)]"
+        >
+          <span className="text-xs font-semibold text-[var(--color-brand-primary)]">
+            {labels[locale].incoming}
           </span>
-        ) : null}
-      </button>
-      {open ? (
-        <div className="absolute end-0 top-12 z-50 w-[min(22rem,calc(100vw-2rem))] rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-3 shadow-[var(--shadow-soft)]">
-          <div className="flex items-center justify-between gap-3 border-b border-[var(--color-border)] px-2 pb-3">
-            <p className="font-semibold">{labels[locale].title}</p>
-            <div className="flex items-center gap-2">
-              {unreadCount ? (
+          <span className="font-semibold">{notificationText(incoming, locale)}</span>
+          <span className="text-xs text-[var(--color-text-muted)]">
+            {new Date(incoming.createdAt).toLocaleString(locale === "ar" ? "ar-EG" : locale)}
+          </span>
+        </button>
+      ) : null}
+      <div className="relative">
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-label={labels[locale].title}
+          onClick={() => setOpen((current) => !current)}
+          className="relative rounded-[var(--radius-pill)] border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary)] transition hover:border-[var(--color-brand-primary)]"
+        >
+          {labels[locale].title}
+          {unreadCount ? (
+            <span className="ms-2 inline-grid min-w-5 place-items-center rounded-full bg-[var(--color-danger)] px-1.5 py-0.5 text-[0.68rem] text-white">
+              {unreadCount}
+            </span>
+          ) : null}
+        </button>
+        {open ? (
+          <div className="absolute end-0 top-12 z-50 w-[min(22rem,calc(100vw-2rem))] rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-3 shadow-[var(--shadow-soft)]">
+            <div className="flex items-center justify-between gap-3 border-b border-[var(--color-border)] px-2 pb-3">
+              <p className="font-semibold">{labels[locale].title}</p>
+              <div className="flex items-center gap-2">
+                {unreadCount ? (
+                  <button
+                    type="button"
+                    className="text-xs text-[var(--color-brand-primary)]"
+                    onClick={markAllAsRead}
+                  >
+                    {labels[locale].markAll}
+                  </button>
+                ) : null}
                 <button
                   type="button"
-                  className="text-xs text-[var(--color-brand-primary)]"
-                  onClick={markAllAsRead}
+                  aria-label={labels[locale].close}
+                  onClick={() => setOpen(false)}
                 >
-                  {labels[locale].markAll}
+                  ×
                 </button>
-              ) : null}
-              <button
-                type="button"
-                aria-label={labels[locale].close}
-                onClick={() => setOpen(false)}
-              >
-                ×
-              </button>
+              </div>
+            </div>
+            <div className="mt-2 grid max-h-80 gap-1 overflow-y-auto">
+              {notifications.length ? (
+                notifications.map((notification) => (
+                  <button
+                    type="button"
+                    key={notification.id}
+                    className={`grid gap-1 rounded-[var(--radius-sm)] p-3 text-start text-sm transition hover:bg-[var(--color-nav-active-bg)] ${notification.read ? "opacity-70" : "bg-[var(--color-nav-active-bg)]"}`}
+                    onClick={() => void markAsRead(notification.id)}
+                  >
+                    <span className="font-semibold">{notificationText(notification, locale)}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">
+                      {new Date(notification.createdAt).toLocaleString(
+                        locale === "ar" ? "ar-EG" : locale,
+                      )}
+                    </span>
+                  </button>
+                ))
+              ) : (
+                <p className="p-3 text-sm text-[var(--color-text-muted)]">{labels[locale].empty}</p>
+              )}
             </div>
           </div>
-          <div className="mt-2 grid max-h-80 gap-1 overflow-y-auto">
-            {notifications.length ? (
-              notifications.map((notification) => (
-                <button
-                  type="button"
-                  key={notification.id}
-                  className={`grid gap-1 rounded-[var(--radius-sm)] p-3 text-start text-sm transition hover:bg-[var(--color-nav-active-bg)] ${notification.read ? "opacity-70" : "bg-[var(--color-nav-active-bg)]"}`}
-                  onClick={() => void markAsRead(notification.id)}
-                >
-                  <span className="font-semibold">{notificationText(notification, locale)}</span>
-                  <span className="text-xs text-[var(--color-text-muted)]">
-                    {new Date(notification.createdAt).toLocaleString(
-                      locale === "ar" ? "ar-EG" : locale,
-                    )}
-                  </span>
-                </button>
-              ))
-            ) : (
-              <p className="p-3 text-sm text-[var(--color-text-muted)]">{labels[locale].empty}</p>
-            )}
-          </div>
-        </div>
-      ) : null}
-    </div>
+        ) : null}
+      </div>
+    </>
   );
 }
