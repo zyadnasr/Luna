@@ -4,6 +4,7 @@ import { EmptyCatalogState } from "@/components/catalog/empty-catalog-state";
 import { MenuOrderControls } from "@/components/orders/menu-order-controls";
 import { getServerLocale } from "@/i18n/server";
 import { getPublicCopy } from "@/i18n/public";
+import { getProductAvailability } from "@/lib/inventory/availability";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,19 @@ export default async function OrderPage() {
   const locale = await getServerLocale();
   const t = getPublicCopy(locale);
   const [{ products }, categories] = await Promise.all([getProducts(), getCategories()]);
+  const activePrices = products.flatMap((product) =>
+    product.product_prices.filter(
+      (price) =>
+        price.is_active && (!price.valid_until || new Date(price.valid_until) > new Date()),
+    ),
+  );
+  const availabilityEntries = await Promise.all(
+    activePrices.map(
+      async (price) =>
+        [price.id, (await getProductAvailability(price.product_id, price.id)).available] as const,
+    ),
+  );
+  const availabilityByPriceId = Object.fromEntries(availabilityEntries);
   return (
     <PageContainer className="max-w-6xl">
       <header className="border-b border-[var(--color-border)] pb-7">
@@ -35,14 +49,17 @@ export default async function OrderPage() {
                   </h2>
                   <div className="luna-menu-grid mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {items.map((product) => {
-                      const translation = product.product_translations.find(
-                        (item) => item.locale === locale,
-                      );
+                      const translation =
+                        product.product_translations.find((item) => item.locale === locale) ??
+                        product.product_translations[0];
                       const prices = product.product_prices.filter(
                         (price) =>
                           price.is_active &&
                           (!price.valid_until || new Date(price.valid_until) > new Date()),
                       );
+                      const productAvailable =
+                        product.availability_status === "available" &&
+                        prices.some((price) => availabilityByPriceId[price.id] === true);
                       return (
                         <article
                           className="luna-product-card luna-menu-card luna-glass min-w-0 rounded-[1.15rem] border p-3 sm:rounded-[1.25rem] sm:p-4"
@@ -53,7 +70,7 @@ export default async function OrderPage() {
                             <h3 className="line-clamp-3 text-base font-semibold leading-6 sm:text-xl sm:leading-7">
                               {translation?.name}
                             </h3>
-                            {product.availability_status === "available" ? (
+                            {productAvailable ? (
                               <MenuOrderControls
                                 productId={product.id}
                                 productName={translation?.name}
@@ -64,6 +81,7 @@ export default async function OrderPage() {
                                   ]),
                                 )}
                                 prices={prices}
+                                availabilityByPriceId={availabilityByPriceId}
                               />
                             ) : (
                               <p className="mt-3 text-xs leading-5 text-[var(--color-warning)] sm:text-sm">
