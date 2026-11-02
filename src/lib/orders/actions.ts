@@ -309,7 +309,6 @@ async function createPublicOrderInternal(input: OrderInput): Promise<OrderResult
   await createOrderNotifications({
     orderId: order.id,
     orderNumber: order.order_number,
-    trackingToken: order.status_lookup_token,
     status: "new",
     kind: "order_created",
   });
@@ -637,7 +636,6 @@ export async function createManualOrder(input: {
   await createOrderNotifications({
     orderId: order.id,
     orderNumber: order.order_number,
-    trackingToken: order.status_lookup_token,
     status: "new",
     kind: "order_created",
   });
@@ -719,7 +717,6 @@ export async function updateOrderStatus(
   await createOrderNotifications({
     orderId: current.id,
     orderNumber: current.order_number,
-    trackingToken: current.status_lookup_token,
     status,
     kind: "order_status_changed",
   });
@@ -784,7 +781,6 @@ export async function markPublicOrderDelivered(
   await createOrderNotifications({
     orderId: order.id,
     orderNumber: order.order_number,
-    trackingToken: token,
     status: "delivered",
     kind: "order_status_changed",
   });

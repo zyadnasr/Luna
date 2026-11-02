@@ -16,13 +16,6 @@ export type PublicOrderStatus = {
   dining_tables?: Array<{ table_number: string }> | null;
 };
 
-type PublicOrderNotification = {
-  id: string;
-  kind: "order_created" | "order_status_changed";
-  payload: { orderNumber?: string; status?: OrderStatus };
-  createdAt: string;
-};
-
 const statusSteps: OrderStatus[] = ["new", "confirmed", "preparing", "ready", "delivered"];
 
 function formatDate(value: string, locale: string) {
@@ -53,7 +46,6 @@ export function OrderStatusLive({
   const [order, setOrder] = useState(initialOrder);
   const [confirmingDelivery, setConfirmingDelivery] = useState(false);
   const [deliveryMessage, setDeliveryMessage] = useState("");
-  const [notifications, setNotifications] = useState<PublicOrderNotification[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -62,21 +54,12 @@ export function OrderStatusLive({
       if (refreshing || document.visibilityState === "hidden") return;
       refreshing = true;
       try {
-        const [statusResponse, notificationsResponse] = await Promise.all([
-          fetch(
-            `/api/order-status/${encodeURIComponent(orderNumber)}?token=${encodeURIComponent(token)}`,
-            { cache: "no-store" },
-          ),
-          fetch(
-            `/api/order-notifications/${encodeURIComponent(orderNumber)}?token=${encodeURIComponent(token)}`,
-            { cache: "no-store" },
-          ),
-        ]);
+        const statusResponse = await fetch(
+          `/api/order-status/${encodeURIComponent(orderNumber)}?token=${encodeURIComponent(token)}`,
+          { cache: "no-store" },
+        );
         if (statusResponse.ok && active) {
           setOrder((await statusResponse.json()) as PublicOrderStatus);
-        }
-        if (notificationsResponse.ok && active) {
-          setNotifications((await notificationsResponse.json()) as PublicOrderNotification[]);
         }
       } catch {
         // Keep showing the last known state if a refresh temporarily fails.
@@ -110,15 +93,10 @@ export function OrderStatusLive({
   const currentStep = statusSteps.indexOf(order.status);
   const isException = order.status === "cancelled" || order.status === "rejected";
   const tone = statusTone(order.status);
-  const statusTimes = useMemo(() => {
-    const times = new Map<OrderStatus, string>();
-    times.set("new", order.created_at);
-    notifications.forEach((notification) => {
-      if (notification.payload.status)
-        times.set(notification.payload.status, notification.createdAt);
-    });
-    return times;
-  }, [notifications, order.created_at]);
+  const statusTimes = useMemo(
+    () => new Map<OrderStatus, string>([["new", order.created_at]]),
+    [order.created_at],
+  );
 
   return (
     <div className="space-y-7">
@@ -237,40 +215,6 @@ export function OrderStatusLive({
           </div>
         </section>
       )}
-
-      {notifications.length ? (
-        <section
-          className="rounded-[1.25rem] border border-[var(--glass-border)] bg-[var(--color-surface-glass)] p-4"
-          aria-label={t.notifications}
-        >
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold">{t.notifications}</h2>
-            <span className="text-xs text-[var(--color-text-muted)]">{notifications.length}</span>
-          </div>
-          <div className="mt-3 grid gap-2">
-            {notifications.slice(0, 5).map((notification) => (
-              <div
-                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm"
-                key={notification.id}
-              >
-                <p className="font-medium">
-                  {notification.kind === "order_created"
-                    ? t.newOrderNotification
-                    : t.orderStatusNotification}
-                </p>
-                {notification.payload.status ? (
-                  <p className="mt-1 text-[var(--color-text-muted)]">
-                    {statusLabels[notification.payload.status]}
-                  </p>
-                ) : null}
-                <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                  {formatDate(notification.createdAt, locale)}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
 
       <div className="flex items-end justify-between gap-4 border-t border-[var(--color-border)] pt-6">
         <div className="min-w-0 text-sm leading-relaxed text-[var(--color-text-muted)]">
