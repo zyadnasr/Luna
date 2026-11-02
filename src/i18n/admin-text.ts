@@ -348,6 +348,8 @@ const copy = {
     "ستظهر هنا البيانات التشغيلية عند تفعيل هذه الوحدة.":
       "Operational data will appear here once this module is enabled.",
     الكوبونات: "Coupons",
+    "إضافة كوبون جديد": "Add new coupon",
+    "الكوبونات الحالية": "Current coupons",
     "أنشئ أكواد خصم وحدد المنتجات التي ينطبق عليها الكود.":
       "Create discount codes and choose which products they apply to.",
     "كود الخصم": "Discount code",
@@ -363,6 +365,7 @@ const copy = {
     "منتجات محددة": "Selected products",
     تعطيل: "Disable",
     تفعيل: "Enable",
+    معطل: "Disabled",
     "لا توجد كوبونات بعد": "No coupons yet",
   },
   it: {
@@ -714,6 +717,8 @@ const copy = {
     "ستظهر هنا البيانات التشغيلية عند تفعيل هذه الوحدة.":
       "I dati operativi appariranno qui quando il modulo sarà attivato.",
     الكوبونات: "Coupon",
+    "إضافة كوبون جديد": "Aggiungi coupon",
+    "الكوبونات الحالية": "Coupon attuali",
     "أنشئ أكواد خصم وحدد المنتجات التي ينطبق عليها الكود.":
       "Crea codici sconto e scegli i prodotti a cui si applicano.",
     "كود الخصم": "Codice sconto",
@@ -729,6 +734,7 @@ const copy = {
     "منتجات محددة": "Prodotti selezionati",
     تعطيل: "Disattiva",
     تفعيل: "Attiva",
+    معطل: "Disabilitato",
     "لا توجد كوبونات بعد": "Nessun coupon",
   },
 } as const;
