@@ -6,10 +6,39 @@ import { getPaymentProofUrl } from "@/lib/orders/actions";
 import { PaymentReview } from "@/components/orders/payment-review";
 import { OrderActivity } from "@/components/orders/order-activity";
 import { PaymentTimeline } from "@/components/orders/payment-timeline";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { getServerLocale } from "@/i18n/server";
 import { translateAdminText } from "@/i18n/admin-text";
 import { getTranslations } from "@/i18n/translations";
+
 export const dynamic = "force-dynamic";
+
+function InfoRow({
+  label,
+  children,
+  last = false,
+}: {
+  label: string;
+  children: ReactNode;
+  last?: boolean;
+}) {
+  return (
+    <div
+      className={`grid grid-cols-3 gap-3 py-3 text-sm ${last ? "" : "border-b border-[var(--color-border)]"}`}
+    >
+      <span className="font-medium text-[var(--color-text-muted)]">{label}</span>
+      <span className="col-span-2 min-w-0 text-[var(--color-text-primary)]">{children}</span>
+    </div>
+  );
+}
+
+function orderStatusTone(status: string) {
+  if (status === "delivered") return "success" as const;
+  if (status === "rejected" || status === "cancelled") return "danger" as const;
+  if (status === "new") return "warning" as const;
+  return "info" as const;
+}
+
 export default async function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   await requireRole("owner");
   const { id } = await params;
@@ -20,81 +49,127 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
     .eq("id", id)
     .maybeSingle();
   if (!order) notFound();
+
   const locale = await getServerLocale();
   const t = (value: string) => translateAdminText(locale, value);
   const translations = getTranslations(locale);
-  const { data: payments } = await supabase
-    .from("payments")
-    .select("*")
-    .eq("order_id", id)
-    .order("created_at", { ascending: false });
-  const { data: activities } = await supabase
-    .from("audit_logs")
-    .select("id, action, actor_user_id, created_at, metadata")
-    .eq("entity_type", "order")
-    .eq("entity_id", id)
-    .order("created_at", { ascending: false });
+  const numberLocale = locale === "ar" ? "ar-EG" : locale;
+  const [{ data: payments }, { data: activities }] = await Promise.all([
+    supabase
+      .from("payments")
+      .select("*")
+      .eq("order_id", id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("audit_logs")
+      .select("id, action, actor_user_id, created_at, metadata")
+      .eq("entity_type", "order")
+      .eq("entity_id", id)
+      .order("created_at", { ascending: false }),
+  ]);
+
   return (
-    <section>
-      <p className="text-sm text-[var(--color-brand-primary)]">{t("تفاصيل الطلب")}</p>
-      <h1 className="mt-3 text-4xl font-semibold">{order.order_number}</h1>
-      <div className="mt-8 grid gap-5 md:grid-cols-2">
-        <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
-          <p>
-            {t("المصدر")}: {translations.orders.source[order.source] ?? order.source}
+    <section className="space-y-6">
+      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--color-border)] pb-6">
+        <div>
+          <p className="text-sm font-semibold text-[var(--color-brand-primary)]">
+            {t("تفاصيل الطلب")}
           </p>
-          <p className="mt-2">
-            {t("نوع الطلب")}: {translations.orders.type[order.order_type] ?? order.order_type}
-          </p>
-          <p className="mt-2">
-            {t("اسم العميل")}: {order.customer_name ?? "-"}
-          </p>
-          <p className="mt-2">
-            {t("الهاتف")}: {order.customer_phone ?? "-"}
-          </p>
-          <p className="mt-2">
-            {t("العنوان")}: {order.delivery_address ?? "-"}
-          </p>
-          <p className="mt-2">
-            {t("ملاحظات")}: {order.customer_notes ?? "-"}
-          </p>
-          <p className="mt-2">
-            {t("الإجمالي")}:{" "}
-            {Number(order.total_egp).toLocaleString(locale === "ar" ? "ar-EG" : locale)} EGP
+          <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+            {t("الطلب")}{" "}
+            <span className="text-[var(--color-brand-primary)]">#{order.order_number}</span>
+          </h1>
+          <p className="mt-2 text-sm text-[var(--color-text-muted)]">
+            {new Date(order.created_at).toLocaleString(numberLocale, {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })}
           </p>
         </div>
-        <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
-          <p className="font-semibold">{t("تغيير الحالة")}</p>
-          <div className="mt-4">
-            <StatusTransition id={order.id} status={order.status} />
-          </div>
+        <StatusBadge status={orderStatusTone(order.status)}>
+          {translations.orders.status[order.status] ?? order.status}
+        </StatusBadge>
+      </header>
+
+      <div className="grid items-stretch gap-6 lg:grid-cols-12">
+        <div className="space-y-6 lg:col-span-5">
+          <article className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)] sm:p-6">
+            <h2 className="flex items-center gap-2 text-lg font-bold">
+              <span className="grid size-8 place-items-center rounded-[var(--radius-sm)] bg-[var(--color-nav-active-bg)] text-[var(--color-brand-primary)]">
+                ⌁
+              </span>
+              {t("تفاصيل الطلب")}
+            </h2>
+            <div className="mt-4">
+              <InfoRow label={t("المصدر")}>
+                {translations.orders.source[order.source] ?? order.source}
+              </InfoRow>
+              <InfoRow label={t("نوع الطلب")}>
+                <span className="inline-flex rounded-[var(--radius-pill)] bg-[var(--color-info)]/10 px-2.5 py-1 text-xs font-semibold text-[var(--color-info)]">
+                  {translations.orders.type[order.order_type] ?? order.order_type}
+                </span>
+              </InfoRow>
+              <InfoRow label={t("اسم العميل")}>
+                <span className="font-semibold">{order.customer_name ?? "-"}</span>
+              </InfoRow>
+              <InfoRow label={t("الهاتف")}>{order.customer_phone ?? "-"}</InfoRow>
+              <InfoRow label={t("العنوان")}>{order.delivery_address ?? "-"}</InfoRow>
+              <InfoRow label={t("ملاحظات")}>
+                {order.customer_notes || (
+                  <span className="italic text-[var(--color-text-muted)]">-</span>
+                )}
+              </InfoRow>
+              <InfoRow label={t("الإجمالي")} last>
+                <span className="text-xl font-bold text-[var(--color-success)]">
+                  {Number(order.total_egp).toLocaleString(numberLocale)} EGP
+                </span>
+              </InfoRow>
+            </div>
+          </article>
+
+          <article className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)] sm:p-6">
+            <h2 className="flex items-center gap-2 text-lg font-bold">
+              <span className="grid size-8 place-items-center rounded-[var(--radius-sm)] bg-[var(--color-nav-active-bg)] text-[var(--color-brand-primary)]">
+                ▣
+              </span>
+              {t("الدفع")}
+            </h2>
+            {payments?.map((payment, index) => (
+              <div
+                className={`${index ? "mt-5 border-t border-[var(--color-border)] pt-5" : "mt-4"}`}
+                key={payment.id}
+              >
+                <InfoRow label={t("الطريقة")}>
+                  {translations.orders.payment[payment.method] ?? payment.method}
+                </InfoRow>
+                <InfoRow label={t("الحالة")}>
+                  <span className="inline-flex rounded-[var(--radius-pill)] bg-[var(--color-warning)]/15 px-2.5 py-1 text-xs font-semibold text-[var(--color-warning)]">
+                    {translations.orders.payment[payment.status] ?? payment.status}
+                  </span>
+                </InfoRow>
+                <InfoRow label={t("المبلغ")} last>
+                  {Number(payment.amount_egp).toLocaleString(numberLocale)} EGP
+                </InfoRow>
+                {payment.method === "instapay" ? (
+                  <div className="mt-4">
+                    <PaymentProof paymentId={payment.id} status={payment.status} />
+                  </div>
+                ) : (
+                  <p className="mt-4 text-xs italic text-[var(--color-text-muted)]">
+                    {t("الدفع نقدًا، لا توجد صورة إثبات.")}
+                  </p>
+                )}
+              </div>
+            ))}
+          </article>
         </div>
+
+        <article className="flex min-h-[32rem] flex-col rounded-[var(--radius-lg)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-soft)] sm:p-7 lg:col-span-7">
+          <StatusTransition id={order.id} status={order.status} />
+        </article>
       </div>
-      <div className="mt-5 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
-        <h2 className="text-xl font-semibold">{t("الدفع")}</h2>
-        {payments?.map((payment) => (
-          <div className="mt-5 border-t border-[var(--color-border)] pt-5" key={payment.id}>
-            <p>
-              {t("الطريقة")}: {translations.orders.payment[payment.method] ?? payment.method}
-            </p>
-            <p className="mt-2">
-              {t("الحالة")}: {translations.orders.payment[payment.status] ?? payment.status}
-            </p>
-            <p className="mt-2">
-              {t("المبلغ")}:{" "}
-              {Number(payment.amount_egp).toLocaleString(locale === "ar" ? "ar-EG" : locale)} EGP
-            </p>
-            {payment.method === "instapay" ? (
-              <PaymentProof paymentId={payment.id} status={payment.status} />
-            ) : (
-              <p className="mt-4 text-sm text-[var(--color-text-muted)]">
-                {t("الدفع نقدًا، لا توجد صورة إثبات.")}
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
-      <div className="mt-5 grid gap-5 md:grid-cols-2">
+
+      <div className="grid gap-6 md:grid-cols-2">
         <PaymentTimeline
           payments={
             (payments ?? []) as Array<{
@@ -118,30 +193,32 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
           }
         />
       </div>
-      <div className="mt-5 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
-        <h2 className="text-xl font-semibold">{t("المنتجات")}</h2>
-        {order.order_items?.map(
-          (item: {
-            id: string;
-            product_name_snapshot: unknown;
-            price_label_snapshot: string | null;
-            quantity: number;
-            line_total_egp: number;
-          }) => (
-            <div
-              className="flex justify-between gap-4 border-t border-[var(--color-border)] py-3 text-sm"
-              key={item.id}
-            >
-              <span>
-                {item.price_label_snapshot ?? t("منتج")} × {item.quantity}
-              </span>
-              <span>
-                {Number(item.line_total_egp).toLocaleString(locale === "ar" ? "ar-EG" : locale)} EGP
-              </span>
-            </div>
-          ),
-        )}
-      </div>
+
+      <article className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)] sm:p-6">
+        <h2 className="text-xl font-bold">{t("المنتجات")}</h2>
+        <div className="mt-4">
+          {order.order_items?.map(
+            (item: {
+              id: string;
+              price_label_snapshot: string | null;
+              quantity: number;
+              line_total_egp: number;
+            }) => (
+              <div
+                className="flex justify-between gap-4 border-t border-[var(--color-border)] py-3 text-sm"
+                key={item.id}
+              >
+                <span>
+                  {item.price_label_snapshot ?? t("منتج")} × {item.quantity}
+                </span>
+                <span className="font-semibold">
+                  {Number(item.line_total_egp).toLocaleString(numberLocale)} EGP
+                </span>
+              </div>
+            ),
+          )}
+        </div>
+      </article>
     </section>
   );
 }
@@ -150,3 +227,4 @@ async function PaymentProof({ paymentId, status }: { paymentId: string; status: 
   const signedUrl = await getPaymentProofUrl(paymentId);
   return <PaymentReview paymentId={paymentId} status={status} signedUrl={signedUrl} />;
 }
+import type { ReactNode } from "react";
