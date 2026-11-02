@@ -74,7 +74,7 @@ export function HomePage({ media }: { media: HomepageSettings }) {
 
   return (
     <PageContainer className="max-w-7xl !px-5 sm:!px-8">
-      <section className="grid items-center gap-10 py-8 sm:py-14 md:gap-16 md:py-20 lg:grid-cols-[0.9fr_1.1fr]">
+      <section className="grid items-center gap-8 py-3 sm:py-14 md:gap-16 md:py-20 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="order-2 max-w-xl lg:order-1 lg:pe-8">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-brand-primary)]">
             {t.eyebrow}
@@ -89,7 +89,7 @@ export function HomePage({ media }: { media: HomepageSettings }) {
           <p className="mt-7 max-w-md text-base font-medium leading-8 text-[var(--color-text-secondary)] sm:text-lg">
             {t.description}
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div className="mt-8 hidden flex-wrap items-center gap-3 md:flex">
             <Link
               href="/menu"
               className="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-pill)] bg-[var(--color-brand-secondary)] px-7 text-sm font-semibold text-[var(--color-on-brand)] shadow-[var(--shadow-soft)] transition duration-200 hover:-translate-y-0.5 hover:bg-[var(--color-brand-primary-deep)]"
@@ -107,7 +107,7 @@ export function HomePage({ media }: { media: HomepageSettings }) {
           </div>
         </div>
         <div className="relative order-1 lg:order-2">
-          <div className="relative h-[30rem] overflow-hidden rounded-[2.5rem] border border-[var(--glass-border)] bg-[var(--color-surface)] shadow-[var(--shadow-elevated)] sm:h-[38rem]">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] border border-[var(--glass-border)] bg-[var(--color-surface)] shadow-[var(--shadow-elevated)] sm:aspect-auto sm:h-[38rem] sm:rounded-[2.5rem]">
             <Image
               src={media.hero.src}
               alt={media.hero.alt}
@@ -136,10 +136,10 @@ export function HomePage({ media }: { media: HomepageSettings }) {
             {t.galleryBody}
           </p>
         </div>
-        <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-4 md:items-start">
+        <div className="luna-gallery-scroll -mx-5 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-4 sm:-mx-8 sm:px-8 md:mx-0 md:mt-10 md:grid md:grid-cols-4 md:items-start md:gap-5 md:overflow-visible md:px-0 md:pb-0">
           {media.gallery.map((image, index) => (
             <figure
-              className={`group relative h-56 overflow-hidden rounded-[1.5rem] border border-[var(--glass-border)] bg-[var(--color-background-deep)] shadow-[var(--shadow-card)] sm:h-72 sm:rounded-[2rem] ${index % 2 ? "md:translate-y-8" : ""}`}
+              className={`group relative h-80 w-64 shrink-0 snap-center overflow-hidden rounded-[1.5rem] border border-[var(--glass-border)] bg-[var(--color-background-deep)] shadow-[var(--shadow-card)] sm:h-96 sm:w-72 sm:rounded-[2rem] md:h-72 md:w-auto md:shrink md:snap-none ${index % 2 ? "md:translate-y-8" : ""}`}
               key={`${image.src}-${index}`}
             >
               <Image

@@ -12,13 +12,13 @@ export function PublicBottomNav() {
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
   return (
     <nav
-      className="luna-glass fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 rounded-[1.5rem] border px-2 pb-2 pt-2 shadow-[0_0.75rem_2rem_rgba(25,24,18,0.16)] md:hidden"
+      className="luna-glass fixed inset-x-4 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-40 rounded-full border px-2 pb-2 pt-2 shadow-[0_0.75rem_2rem_rgba(25,24,18,0.16)] md:hidden"
       aria-label={t.appNavigation}
     >
-      <div className="mx-auto grid max-w-md grid-cols-4 gap-1 text-center text-[11px] font-semibold text-[var(--color-text-muted)]">
+      <div className="mx-auto grid max-w-md grid-cols-4 gap-1 text-center text-[10px] font-semibold text-[var(--color-text-muted)]">
         <Link
           href="/"
-          className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl transition-colors ${isActive("/") ? "bg-[var(--color-nav-active-bg)] text-[var(--color-nav-active-text)]" : "hover:bg-[var(--color-background-deep)]"}`}
+          className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-full transition-colors ${isActive("/") ? "bg-[var(--color-nav-active-bg)] text-[var(--color-nav-active-text)] shadow-sm" : "hover:bg-[var(--color-background-deep)]"}`}
         >
           <svg
             aria-hidden="true"
@@ -31,7 +31,7 @@ export function PublicBottomNav() {
         </Link>
         <Link
           href="/menu"
-          className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl transition-colors ${isActive("/menu") ? "bg-[var(--color-nav-active-bg)] text-[var(--color-nav-active-text)]" : "hover:bg-[var(--color-background-deep)]"}`}
+          className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-full transition-colors ${isActive("/menu") ? "bg-[var(--color-nav-active-bg)] text-[var(--color-nav-active-text)] shadow-sm" : "hover:bg-[var(--color-background-deep)]"}`}
         >
           <svg
             aria-hidden="true"
@@ -44,7 +44,7 @@ export function PublicBottomNav() {
         </Link>
         <Link
           href="/order"
-          className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl transition-colors ${isActive("/order") ? "bg-[var(--color-nav-active-bg)] text-[var(--color-nav-active-text)]" : "hover:bg-[var(--color-background-deep)]"}`}
+          className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-full transition-colors ${isActive("/order") ? "bg-[var(--color-nav-active-bg)] text-[var(--color-nav-active-text)] shadow-sm" : "hover:bg-[var(--color-background-deep)]"}`}
         >
           <svg
             aria-hidden="true"
@@ -57,7 +57,7 @@ export function PublicBottomNav() {
         </Link>
         <button
           type="button"
-          className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl hover:bg-[var(--color-background-deep)]"
+          className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-full hover:bg-[var(--color-background-deep)]"
           aria-label={t.accountUnavailable}
         >
           <svg
