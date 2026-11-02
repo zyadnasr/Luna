@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import type { OrderContext } from "@/types/orders";
+import type { OrderErrorCode } from "@/types/orders";
 import { useLocale } from "@/components/ui/locale-provider";
 import { getPublicCopy } from "@/i18n/public";
 import {
@@ -116,7 +117,27 @@ export function CheckoutForm({
         items,
       });
       if (!result.success) {
-        setMessage(result.message);
+        const errorCopy: Partial<Record<OrderErrorCode, string>> = {
+          generic: t.submitError,
+          emptyCart: t.emptyCart,
+          cardUnavailable: t.visaComingSoon,
+          instapayNotConfigured: t.submitError,
+          paymentProofRequired: t.proofHelp,
+          invalidName: t.invalidName,
+          invalidPhone: t.invalidPhone,
+          invalidTableContext: t.submitError,
+          deliveryRequired: t.submitError,
+          invalidQrCode: t.submitError,
+          productUnavailable: t.submitError,
+          cartSelectionUnavailable: t.submitError,
+          insufficientStock: t.stockUnavailable,
+          zoneUnavailable: t.unavailableDelivery,
+          invalidCoupon: t.couponInvalid,
+          createOrderFailed: t.submitError,
+          uploadProofFailed: t.submitError,
+          saveOrderItemsFailed: t.submitError,
+        };
+        setMessage(errorCopy[result.errorCode ?? "generic"] ?? t.submitError);
         return;
       }
       if (!result.orderNumber || !result.lookupToken) {

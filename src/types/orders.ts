@@ -37,9 +37,29 @@ export type OrderInput = {
   items: CartItem[];
   paymentProof?: File;
 };
+export type OrderErrorCode =
+  | "generic"
+  | "emptyCart"
+  | "cardUnavailable"
+  | "instapayNotConfigured"
+  | "paymentProofRequired"
+  | "invalidName"
+  | "invalidPhone"
+  | "invalidTableContext"
+  | "deliveryRequired"
+  | "invalidQrCode"
+  | "productUnavailable"
+  | "cartSelectionUnavailable"
+  | "insufficientStock"
+  | "zoneUnavailable"
+  | "invalidCoupon"
+  | "createOrderFailed"
+  | "uploadProofFailed"
+  | "saveOrderItemsFailed";
 export type OrderResult = {
   success: boolean;
   message: string;
+  errorCode?: OrderErrorCode;
   orderNumber?: string;
   lookupToken?: string;
 };

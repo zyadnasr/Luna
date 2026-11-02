@@ -4,7 +4,7 @@ import { requireRole } from "@/lib/auth/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { notifyTelegram, orderNotification } from "@/lib/orders/telegram";
-import type { OrderInput, OrderResult, OrderStatus } from "@/types/orders";
+import type { OrderErrorCode, OrderInput, OrderResult, OrderStatus } from "@/types/orders";
 import {
   isValidCustomerName,
   isValidEgyptianPhone,
@@ -23,7 +23,34 @@ const transitions: Record<OrderStatus, OrderStatus[]> = {
   cancelled: [],
   rejected: [],
 };
-const fail = (message: string): OrderResult => ({ success: false, message });
+const errorCodeByMessage: Record<string, OrderErrorCode> = {
+  "تعذر إنشاء الطلب حاليًا. حاول مرة أخرى.": "generic",
+  "أضف منتجًا واحدًا على الأقل.": "emptyCart",
+  "الدفع بالفيزا غير متاح حاليًا.": "cardUnavailable",
+  "الدفع عبر Instapay غير مكوّن حاليًا.": "instapayNotConfigured",
+  "إثبات الدفع مطلوب بصيغة PNG أو JPG أو WEBP وحجم أقل من 5 ميجابايت.": "paymentProofRequired",
+  "اكتب اسمًا صحيحًا مكوّنًا من حروف عربية أو إنجليزية فقط.": "invalidName",
+  "أدخل رقم هاتف مصري صحيحًا مكوّنًا من 10 أرقام بعد +20.": "invalidPhone",
+  "سياق الطاولة غير صالح.": "invalidTableContext",
+  "بيانات التوصيل مطلوبة.": "deliveryRequired",
+  "رمز الطاولة غير صالح أو غير نشط.": "invalidQrCode",
+  "أحد المنتجات لم يعد متاحًا.": "productUnavailable",
+  "أحد اختيارات السلة لم يعد متاحًا.": "cartSelectionUnavailable",
+  "المنتج غير متاح بسبب وصفة أو مخزون غير كافٍ.": "insufficientStock",
+  "منطقة التوصيل غير متاحة.": "zoneUnavailable",
+  "كود الخصم غير صالح لهذا الطلب.": "invalidCoupon",
+  "تعذر إنشاء الطلب. حاول مرة أخرى.": "createOrderFailed",
+  "تعذر رفع إثبات الدفع. حاول مرة أخرى.": "uploadProofFailed",
+  "تعذر حفظ تفاصيل الطلب.": "saveOrderItemsFailed",
+};
+const fail = (
+  message: string,
+  errorCode = errorCodeByMessage[message] ?? "generic",
+): OrderResult => ({
+  success: false,
+  message,
+  errorCode,
+});
 
 export async function validatePublicCoupon(input: {
   code: string;
