@@ -10,6 +10,11 @@ import { Select } from "@/components/ui/select";
 import type { OrderContext } from "@/types/orders";
 import { useLocale } from "@/components/ui/locale-provider";
 import { getPublicCopy } from "@/i18n/public";
+import {
+  isValidCustomerName,
+  isValidEgyptianPhone,
+  normalizeEgyptianPhoneInput,
+} from "@/lib/orders/validation";
 export function CheckoutForm({
   zones,
   context,
@@ -40,6 +45,7 @@ export function CheckoutForm({
     payment: "cash" as "cash" | "card",
   });
   const [message, setMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({ name: "", phone: "" });
   const [saving, setSaving] = useState(false);
   const [couponState, setCouponState] = useState<"idle" | "checking" | "applied" | "invalid">(
     "idle",
@@ -52,7 +58,13 @@ export function CheckoutForm({
       > | null;
       if (saved) {
         queueMicrotask(() => {
-          if (!cancelled) setData((current) => ({ ...current, ...saved, payment: "cash" }));
+          if (!cancelled)
+            setData((current) => ({
+              ...current,
+              ...saved,
+              phone: normalizeEgyptianPhoneInput(saved.phone ?? ""),
+              payment: "cash",
+            }));
         });
       }
     } catch {
@@ -80,6 +92,12 @@ export function CheckoutForm({
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (saving || !items.length) return;
+    const nextFieldErrors = {
+      name: isValidCustomerName(data.name) ? "" : t.invalidName,
+      phone: isValidEgyptianPhone(data.phone) ? "" : t.invalidPhone,
+    };
+    setFieldErrors(nextFieldErrors);
+    if (nextFieldErrors.name || nextFieldErrors.phone) return;
     setMessage("");
     setSaving(true);
     try {
@@ -87,7 +105,7 @@ export function CheckoutForm({
         source: context.type === "table" ? "qr_table" : "website",
         context,
         customerName: data.name,
-        customerPhone: data.phone,
+        customerPhone: `+20${data.phone}`,
         deliveryZoneId: data.zone || undefined,
         deliveryAddress: data.address || undefined,
         deliveryLocationUrl: data.location || undefined,
@@ -158,18 +176,64 @@ export function CheckoutForm({
         {t.name}
         <Input
           required
+          autoComplete="name"
           value={data.name}
-          onChange={(event) => setData({ ...data, name: event.target.value })}
+          onChange={(event) => {
+            setData({ ...data, name: event.target.value });
+            if (fieldErrors.name) setFieldErrors({ ...fieldErrors, name: "" });
+          }}
+          onBlur={() =>
+            setFieldErrors({
+              ...fieldErrors,
+              name: isValidCustomerName(data.name) ? "" : t.invalidName,
+            })
+          }
+          aria-invalid={!!fieldErrors.name}
         />
+        {fieldErrors.name ? (
+          <p className="text-xs font-normal text-[var(--color-danger)]" role="alert">
+            {fieldErrors.name}
+          </p>
+        ) : null}
       </label>
       <label className="grid gap-2 text-sm font-semibold">
         {t.phone}
-        <Input
-          required
-          type="tel"
-          value={data.phone}
-          onChange={(event) => setData({ ...data, phone: event.target.value })}
-        />
+        <div className="flex gap-2" dir="ltr">
+          <div
+            aria-label={t.egyptCountry}
+            className="inline-flex min-h-12 shrink-0 items-center gap-1 rounded-[var(--radius-sm)] border border-[var(--color-border-strong)] bg-[var(--color-background-deep)] px-3 text-sm font-semibold"
+          >
+            <span aria-hidden="true">🇪🇬</span>
+            <span>+20</span>
+          </div>
+          <Input
+            required
+            type="tel"
+            inputMode="numeric"
+            autoComplete="tel-national"
+            maxLength={10}
+            pattern="1[0125][0-9]{8}"
+            placeholder="10XXXXXXXX"
+            value={data.phone}
+            onChange={(event) => {
+              setData({ ...data, phone: normalizeEgyptianPhoneInput(event.target.value) });
+              if (fieldErrors.phone) setFieldErrors({ ...fieldErrors, phone: "" });
+            }}
+            onBlur={() =>
+              setFieldErrors({
+                ...fieldErrors,
+                phone: isValidEgyptianPhone(data.phone) ? "" : t.invalidPhone,
+              })
+            }
+            aria-invalid={!!fieldErrors.phone}
+          />
+        </div>
+        <p className="text-xs font-normal text-[var(--color-text-muted)]">{t.egyptPhoneHint}</p>
+        {fieldErrors.phone ? (
+          <p className="text-xs font-normal text-[var(--color-danger)]" role="alert">
+            {fieldErrors.phone}
+          </p>
+        ) : null}
       </label>
       {context.type === "delivery" ? (
         <>

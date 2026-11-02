@@ -5,7 +5,13 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { notifyTelegram, orderNotification } from "@/lib/orders/telegram";
 import type { OrderInput, OrderResult, OrderStatus } from "@/types/orders";
-import { isValidPaymentProof } from "./validation";
+import {
+  isValidCustomerName,
+  isValidEgyptianPhone,
+  isValidPaymentProof,
+  normalizeCustomerName,
+  normalizeEgyptianPhone,
+} from "./validation";
 import { getProductAvailability } from "@/lib/inventory/availability";
 
 const transitions: Record<OrderStatus, OrderStatus[]> = {
@@ -68,8 +74,12 @@ async function createPublicOrderInternal(input: OrderInput): Promise<OrderResult
     if (!isValidPaymentProof(input.paymentProof))
       return fail("إثبات الدفع مطلوب بصيغة PNG أو JPG أو WEBP وحجم أقل من 5 ميجابايت.");
   }
-  if (!input.customerName.trim() || !input.customerPhone.trim())
-    return fail("الاسم ورقم الهاتف مطلوبان.");
+  const normalizedName = normalizeCustomerName(input.customerName);
+  const normalizedPhone = normalizeEgyptianPhone(input.customerPhone);
+  if (!isValidCustomerName(normalizedName))
+    return fail("اكتب اسمًا صحيحًا مكوّنًا من حروف عربية أو إنجليزية فقط.");
+  if (!isValidEgyptianPhone(input.customerPhone))
+    return fail("أدخل رقم هاتف مصري صحيحًا مكوّنًا من 10 أرقام بعد +20.");
   if (
     input.context.type === "table" &&
     (!input.context.qrCode || !input.context.tableId || !input.context.branchId)
@@ -80,7 +90,6 @@ async function createPublicOrderInternal(input: OrderInput): Promise<OrderResult
     (!input.deliveryZoneId || !input.deliveryAddress?.trim())
   )
     return fail("بيانات التوصيل مطلوبة.");
-  const normalizedPhone = input.customerPhone.replace(/[^\d+]/g, "");
   const { data: customerProfile } = await writer
     .from("customer_profiles")
     .select("id, order_count")
@@ -201,7 +210,7 @@ async function createPublicOrderInternal(input: OrderInput): Promise<OrderResult
       order_type: input.context.type,
       branch_id: input.context.branchId ?? null,
       dining_table_id: input.context.tableId ?? null,
-      customer_name: input.customerName.trim(),
+      customer_name: normalizedName,
       customer_phone: normalizedPhone,
       customer_email: input.customerEmail?.trim() || null,
       delivery_zone_id: input.deliveryZoneId ?? null,
@@ -279,7 +288,7 @@ async function createPublicOrderInternal(input: OrderInput): Promise<OrderResult
     {
       id: customerProfile?.id,
       phone: normalizedPhone,
-      name: input.customerName.trim(),
+      name: normalizedName,
       delivery_address: input.deliveryAddress?.trim() || null,
       delivery_location_url: input.deliveryLocationUrl?.trim() || null,
       order_count: (customerProfile?.order_count ?? 0) + 1,
@@ -291,7 +300,7 @@ async function createPublicOrderInternal(input: OrderInput): Promise<OrderResult
   );
   await notifyTelegram(
     orderNotification(order.order_number, input.source, "new", {
-      customerName: input.customerName.trim(),
+      customerName: normalizedName,
       customerPhone: normalizedPhone,
       address: input.deliveryAddress,
       location: input.deliveryLocationUrl,
