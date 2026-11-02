@@ -9,7 +9,7 @@ const copy = {
     "أنشئ تصنيفات القائمة ورتّب ظهورها. لا توجد تصنيفات تجريبية مضافة.":
       "Create menu categories and control their order. No demo categories have been added.",
     الطلبات: "Orders",
-    "عرض ومتابعة الطلبات الحقيقية فقط.": "View and track real orders only.",
+    "عرض ومتابعة الطلبات النشطة فقط.": "View and track active orders only.",
     "طلب يدوي": "Manual order",
     "لا توجد طلبات بعد": "No orders yet",
     "ستظهر هنا الطلبات العامة وطلبات الطاولات والطلبات اليدوية بعد إرسالها.":
@@ -296,7 +296,7 @@ const copy = {
     "أنشئ تصنيفات القائمة ورتّب ظهورها. لا توجد تصنيفات تجريبية مضافة.":
       "Crea le categorie del menu e controllane l'ordine. Non sono state aggiunte categorie demo.",
     الطلبات: "Ordini",
-    "عرض ومتابعة الطلبات الحقيقية فقط.": "Visualizza e monitora solo gli ordini reali.",
+    "عرض ومتابعة الطلبات النشطة فقط.": "Visualizza e monitora solo gli ordini attivi.",
     "طلب يدوي": "Ordine manuale",
     "لا توجد طلبات بعد": "Nessun ordine",
     "ستظهر هنا الطلبات العامة وطلبات الطاولات والطلبات اليدوية بعد إرسالها.":

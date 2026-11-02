@@ -15,6 +15,7 @@ export default async function OrdersPage() {
     .select(
       "id, order_number, source, order_type, status, customer_name, customer_phone, total_egp, payment_status, created_at, dining_tables(table_number)",
     )
+    .neq("status", "delivered")
     .order("created_at", { ascending: false })
     .limit(50);
   const locale = await getServerLocale();
@@ -26,7 +27,7 @@ export default async function OrdersPage() {
           <p className="text-sm font-semibold text-[var(--color-brand-primary)]">{t("التشغيل")}</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight">{t("الطلبات")}</h1>
           <p className="mt-4 text-[var(--color-text-muted)]">
-            {t("عرض ومتابعة الطلبات الحقيقية فقط.")}
+            {t("عرض ومتابعة الطلبات النشطة فقط.")}
           </p>
         </div>
         <Link

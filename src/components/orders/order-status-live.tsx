@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useLocale } from "@/components/ui/locale-provider";
 import { getPublicCopy } from "@/i18n/public";
 import type { OrderStatus } from "@/types/orders";
+import { markPublicOrderDelivered } from "@/lib/orders/actions";
 
 export type PublicOrderStatus = {
   order_number: string;
@@ -29,6 +30,8 @@ export function OrderStatusLive({
   const { locale } = useLocale();
   const t = getPublicCopy(locale);
   const [order, setOrder] = useState(initialOrder);
+  const [confirmingDelivery, setConfirmingDelivery] = useState(false);
+  const [deliveryMessage, setDeliveryMessage] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -105,13 +108,37 @@ export function OrderStatusLive({
             </li>
           );
         })}
-        {order.status === "cancelled" || order.status === "rejected" ? (
+        {order.status === "ready" ? (
+          <li className="grid gap-3 rounded-xl border border-[var(--color-brand-primary)] bg-[rgba(94,118,93,0.08)] p-3">
+            <span>{t.contactCourier}</span>
+            <button
+              type="button"
+              disabled={confirmingDelivery}
+              onClick={async () => {
+                setConfirmingDelivery(true);
+                setDeliveryMessage("");
+                const result = await markPublicOrderDelivered(orderNumber, token);
+                if (result.success) {
+                  setOrder((current) => ({ ...current, status: "delivered" }));
+                  setDeliveryMessage(t.deliveryConfirmed);
+                } else {
+                  setDeliveryMessage(t.deliveryConfirmError);
+                }
+                setConfirmingDelivery(false);
+              }}
+              className="min-h-10 rounded-[var(--radius-pill)] bg-[var(--color-brand-secondary)] px-4 text-sm font-semibold text-[var(--color-on-brand)] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {confirmingDelivery ? t.submitting : t.confirmDelivery}
+            </button>
+            {deliveryMessage ? <span role="status">{deliveryMessage}</span> : null}
+          </li>
+        ) : order.status === "cancelled" || order.status === "rejected" ? (
           <li className="rounded-xl border border-[var(--color-danger)] p-3 text-[var(--color-danger)]">
             {statusLabel}
           </li>
-        ) : (
+        ) : order.status !== "delivered" ? (
           <li className="rounded-xl border border-[var(--color-border)] p-3">{t.contactCourier}</li>
-        )}
+        ) : null}
       </ol>
     </>
   );

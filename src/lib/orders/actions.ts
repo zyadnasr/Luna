@@ -730,3 +730,48 @@ export async function getPublicOrderStatus(orderNumber: string, token: string) {
     .maybeSingle();
   return data;
 }
+
+export async function markPublicOrderDelivered(
+  orderNumber: string,
+  token: string,
+): Promise<OrderResult> {
+  const writer = createServiceClient();
+  const { data: order } = await writer
+    .from("orders")
+    .select("id, order_number, source, status, total_egp")
+    .eq("order_number", orderNumber)
+    .eq("status_lookup_token", token)
+    .maybeSingle();
+  if (!order || order.status !== "ready")
+    return fail("لا يمكن تأكيد الاستلام قبل خروج الطلب للتوصيل.");
+
+  const { error } = await writer
+    .from("orders")
+    .update({ status: "delivered" })
+    .eq("id", order.id)
+    .eq("status", "ready");
+  if (error) return fail("تعذر تأكيد استلام الطلب.");
+
+  await writer.from("order_status_history").insert({
+    order_id: order.id,
+    from_status: "ready",
+    to_status: "delivered",
+    changed_by: null,
+    note: "Customer confirmed delivery",
+  });
+  await writer.from("audit_logs").insert({
+    actor_user_id: null,
+    action: "order.delivered_by_customer",
+    entity_type: "order",
+    entity_id: order.id,
+    metadata: {},
+  });
+  await notifyTelegram(
+    orderNotification(order.order_number, order.source as OrderSource, "delivered", {
+      total: Number(order.total_egp),
+    }),
+  );
+  revalidatePath(`/order/status/${encodeURIComponent(orderNumber)}`);
+  revalidatePath("/admin/orders");
+  return { success: true, message: "تم تأكيد استلام الطلب." };
+}

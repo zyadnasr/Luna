@@ -109,6 +109,9 @@ export const publicCopy = {
     useFullTrackingLink: "استخدم رابط المتابعة الكامل.",
     paymentCash: "الدفع عند الاستلام",
     contactCourier: "سيتواصل معك مندوب التوصيل عند تجهيز الطلب.",
+    confirmDelivery: "أكّد استلام الطلب",
+    deliveryConfirmed: "تم تأكيد استلام الطلب.",
+    deliveryConfirmError: "لا يمكن تأكيد الاستلام قبل خروج الطلب للتوصيل.",
   },
   en: {
     menu: "Menu",
@@ -214,6 +217,9 @@ export const publicCopy = {
     useFullTrackingLink: "Use the complete tracking link.",
     paymentCash: "Cash on delivery",
     contactCourier: "The courier will contact you when your order is ready.",
+    confirmDelivery: "I received my order",
+    deliveryConfirmed: "Order receipt confirmed.",
+    deliveryConfirmError: "You can confirm receipt after the order is out for delivery.",
   },
   it: {
     menu: "Menu",
@@ -318,6 +324,9 @@ export const publicCopy = {
     useFullTrackingLink: "Usa il link completo di tracciamento.",
     paymentCash: "Pagamento alla consegna",
     contactCourier: "Il corriere ti contatterà quando l'ordine sarà pronto.",
+    confirmDelivery: "Ho ricevuto il mio ordine",
+    deliveryConfirmed: "Ricezione dell'ordine confermata.",
+    deliveryConfirmError: "Puoi confermare la ricezione dopo l'uscita in consegna.",
   },
 } satisfies Record<Locale, Record<string, string>>;
 
