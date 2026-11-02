@@ -23,9 +23,19 @@ export default async function ProductsPage() {
           </p>
         </div>
         <Link
-          className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-pill)] bg-[var(--color-brand-secondary)] px-5 text-sm font-semibold text-[var(--color-on-brand)]"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[var(--radius-pill)] bg-[var(--color-brand-secondary)] px-5 text-sm font-semibold text-[var(--color-on-brand)] shadow-[var(--shadow-card)] transition hover:-translate-y-0.5 hover:bg-[var(--color-brand-primary-deep)] active:translate-y-0"
           href="/admin/products/new"
         >
+          <svg
+            className="size-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+          </svg>
           {t("إضافة منتج")}
         </Link>
       </div>
