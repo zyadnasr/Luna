@@ -118,6 +118,46 @@ function formatMoney(value: number, locale: Locale) {
   return `${value.toLocaleString(locale === "ar" ? "ar-EG" : locale === "it" ? "it-IT" : "en-GB")} EGP`;
 }
 
+type SummaryTone = "neutral" | "success" | "danger" | "warning" | "revenue";
+
+function SummaryIcon({ tone }: { tone: SummaryTone }) {
+  const color =
+    tone === "success"
+      ? "var(--color-success)"
+      : tone === "danger"
+        ? "var(--color-danger)"
+        : tone === "warning" || tone === "revenue"
+          ? "var(--color-warning)"
+          : "var(--color-text-muted)";
+  return (
+    <span
+      className="grid size-9 place-items-center rounded-full border border-[var(--color-border)] bg-[var(--color-background-deep)]/40"
+      style={{ color }}
+      aria-hidden="true"
+    >
+      <svg
+        className="size-5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        viewBox="0 0 24 24"
+      >
+        {tone === "success" ? (
+          <path d="m5 12 4 4L19 6" strokeLinecap="round" strokeLinejoin="round" />
+        ) : tone === "danger" ? (
+          <path d="m8 8 8 8M16 8l-8 8" strokeLinecap="round" />
+        ) : tone === "warning" ? (
+          <path d="M12 7v5m0 4h.01M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" strokeLinecap="round" />
+        ) : tone === "revenue" ? (
+          <path d="M4 7h16v10H4zM8 7V5h8v2m-6 5h4" strokeLinecap="round" strokeLinejoin="round" />
+        ) : (
+          <path d="M6 5h12v14H6zM9 9h6m-6 4h6m-6 4h3" strokeLinecap="round" />
+        )}
+      </svg>
+    </span>
+  );
+}
+
 export default async function ReportsPage() {
   await requirePermission("reports.view");
   const locale = await getServerLocale();
@@ -164,120 +204,183 @@ export default async function ReportsPage() {
   const deliveredOrders = orders.filter((order) => order.status === "delivered");
   const activeOrders = counts.new + counts.confirmed + counts.preparing + counts.ready;
   const numberLocale = locale === "ar" ? "ar-EG" : locale;
-  const summary = [
-    { label: labels.totalOrders, value: orders.length.toLocaleString(numberLocale) },
-    { label: labels.delivered, value: counts.delivered.toLocaleString(numberLocale) },
-    { label: labels.rejected, value: counts.rejected.toLocaleString(numberLocale) },
-    { label: labels.cancelled, value: counts.cancelled.toLocaleString(numberLocale) },
-    { label: labels.active, value: activeOrders.toLocaleString(numberLocale) },
-    { label: labels.revenue, value: formatMoney(totalRevenue, locale) },
+  const summary: { label: string; value: string; tone: SummaryTone }[] = [
+    {
+      label: labels.totalOrders,
+      value: orders.length.toLocaleString(numberLocale),
+      tone: "neutral",
+    },
+    {
+      label: labels.delivered,
+      value: counts.delivered.toLocaleString(numberLocale),
+      tone: "success",
+    },
+    { label: labels.rejected, value: counts.rejected.toLocaleString(numberLocale), tone: "danger" },
+    {
+      label: labels.cancelled,
+      value: counts.cancelled.toLocaleString(numberLocale),
+      tone: "neutral",
+    },
+    { label: labels.active, value: activeOrders.toLocaleString(numberLocale), tone: "warning" },
+    { label: labels.revenue, value: formatMoney(totalRevenue, locale), tone: "revenue" },
   ];
 
   return (
-    <section>
-      <div className="border-b border-[var(--color-border)] pb-8">
-        <p className="text-sm font-semibold text-[var(--color-brand-primary)]">{labels.eyebrow}</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight">{labels.title}</h1>
-        <p className="mt-4 text-[var(--color-text-muted)]">{labels.description}</p>
+    <section className="mx-auto max-w-6xl pb-12">
+      <div className="flex flex-wrap items-end justify-between gap-5 border-b border-[var(--color-border)] pb-8">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-brand-primary)]">
+            {labels.eyebrow}
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
+            {labels.title}
+          </h1>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--color-text-muted)] sm:text-base">
+            {labels.description}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 rounded-[var(--radius-pill)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 py-2 text-xs font-semibold text-[var(--color-text-muted)]">
+          <span className="size-1.5 rounded-full bg-[var(--color-success)]" aria-hidden="true" />
+          {orders.length.toLocaleString(numberLocale)}
+        </div>
       </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {summary.map((item) => (
           <div
-            className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5"
+            className={`group rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)] transition duration-200 hover:-translate-y-0.5 hover:border-[var(--color-border-strong)] ${item.tone === "revenue" ? "xl:col-span-1" : ""}`}
             key={item.label}
           >
-            <p className="text-sm text-[var(--color-text-muted)]">{item.label}</p>
-            <p className="mt-3 text-2xl font-semibold">{item.value}</p>
+            <div className="flex items-start justify-between gap-4">
+              <p className="text-sm text-[var(--color-text-muted)] transition group-hover:text-[var(--color-text-primary)]">
+                {item.label}
+              </p>
+              <SummaryIcon tone={item.tone} />
+            </div>
+            <p
+              className={`mt-5 font-semibold tracking-[-0.03em] ${item.tone === "revenue" ? "text-3xl" : "text-2xl"}`}
+            >
+              {item.value}
+            </p>
           </div>
         ))}
       </div>
 
-      <div className="mt-10">
-        <h2 className="text-2xl font-semibold">{labels.daily}</h2>
-        <p className="mt-2 text-sm text-[var(--color-text-muted)]">{labels.dailyDescription}</p>
-        <div className="mt-5 overflow-x-auto rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)]">
+      <section className="mt-12">
+        <div className="mb-5">
+          <h2 className="text-xl font-semibold tracking-[-0.025em]">{labels.daily}</h2>
+          <p className="mt-2 text-sm text-[var(--color-text-muted)]">{labels.dailyDescription}</p>
+        </div>
+        <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]">
           {daily.length === 0 ? (
             <p className="p-6 text-[var(--color-text-muted)]">{labels.noOrders}</p>
           ) : (
-            <table className="w-full min-w-[980px] text-sm">
-              <thead>
-                <tr>
-                  <th className="px-4 py-4 text-start">{labels.date}</th>
-                  <th className="px-4 py-4 text-start">{labels.total}</th>
-                  {statuses.map((status) => (
-                    <th className="px-4 py-4 text-start" key={status}>
-                      {t.orders.status[status]}
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[980px] text-sm">
+                <thead className="bg-[var(--color-background-deep)]/30 text-xs text-[var(--color-text-muted)]">
+                  <tr>
+                    <th className="border-b border-[var(--color-border)] px-4 py-4 text-start font-semibold">
+                      {labels.date}
                     </th>
-                  ))}
-                  <th className="px-4 py-4 text-start">{labels.revenueColumn}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {daily.map((row) => (
-                  <tr className="border-t border-[var(--color-border)]" key={row.date}>
-                    <td className="px-4 py-4 font-medium">{formatDate(row.date, locale)}</td>
-                    <td className="px-4 py-4">{row.total}</td>
+                    <th className="border-b border-[var(--color-border)] px-4 py-4 text-start font-semibold">
+                      {labels.total}
+                    </th>
                     {statuses.map((status) => (
-                      <td className="px-4 py-4" key={status}>
-                        {row[status]}
-                      </td>
+                      <th
+                        className="border-b border-[var(--color-border)] px-4 py-4 text-start font-semibold"
+                        key={status}
+                      >
+                        {t.orders.status[status]}
+                      </th>
                     ))}
-                    <td className="px-4 py-4">{formatMoney(row.revenue, locale)}</td>
+                    <th className="border-b border-[var(--color-border)] px-4 py-4 text-start font-semibold">
+                      {labels.revenueColumn}
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {daily.map((row) => (
+                    <tr
+                      className="border-b border-[var(--color-border)] last:border-0 transition hover:bg-[var(--color-background-deep)]/25"
+                      key={row.date}
+                    >
+                      <td className="px-4 py-4 font-medium">{formatDate(row.date, locale)}</td>
+                      <td className="px-4 py-4">{row.total}</td>
+                      {statuses.map((status) => (
+                        <td className="px-4 py-4 text-[var(--color-text-muted)]" key={status}>
+                          {row[status]}
+                        </td>
+                      ))}
+                      <td className="px-4 py-4 font-semibold">
+                        {formatMoney(row.revenue, locale)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
-      </div>
+      </section>
 
-      <div className="mt-10">
-        <h2 className="text-2xl font-semibold">{labels.deliveredOrders}</h2>
-        <p className="mt-2 text-sm text-[var(--color-text-muted)]">{labels.deliveredDescription}</p>
-        <div className="mt-5 overflow-x-auto rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)]">
+      <section className="mt-12">
+        <div className="mb-5">
+          <h2 className="text-xl font-semibold tracking-[-0.025em]">{labels.deliveredOrders}</h2>
+          <p className="mt-2 text-sm text-[var(--color-text-muted)]">
+            {labels.deliveredDescription}
+          </p>
+        </div>
+        <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]">
           {deliveredOrders.length === 0 ? (
             <p className="p-6 text-[var(--color-text-muted)]">{labels.noDelivered}</p>
           ) : (
-            <table className="w-full min-w-[700px] text-sm">
-              <thead>
-                <tr>
-                  {[
-                    labels.order,
-                    labels.customer,
-                    labels.status,
-                    labels.revenueColumn,
-                    labels.date,
-                  ].map((heading) => (
-                    <th className="px-4 py-4 text-start" key={heading}>
-                      {heading}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {deliveredOrders.map((order) => (
-                  <tr className="border-t border-[var(--color-border)]" key={order.order_number}>
-                    <td className="px-4 py-4 font-semibold">{order.order_number}</td>
-                    <td className="px-4 py-4">{order.customer_name ?? "-"}</td>
-                    <td className="px-4 py-4">
-                      <StatusBadge status={statusBadge("delivered")}>
-                        {t.orders.status.delivered}
-                      </StatusBadge>
-                    </td>
-                    <td className="px-4 py-4">
-                      {formatMoney(Number(order.total_egp) || 0, locale)}
-                    </td>
-                    <td className="px-4 py-4 text-xs text-[var(--color-text-muted)]">
-                      {new Date(order.created_at).toLocaleString(numberLocale)}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[700px] text-sm">
+                <thead className="bg-[var(--color-background-deep)]/30 text-xs text-[var(--color-text-muted)]">
+                  <tr>
+                    {[
+                      labels.order,
+                      labels.customer,
+                      labels.status,
+                      labels.revenueColumn,
+                      labels.date,
+                    ].map((heading) => (
+                      <th
+                        className="border-b border-[var(--color-border)] px-4 py-4 text-start font-semibold"
+                        key={heading}
+                      >
+                        {heading}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {deliveredOrders.map((order) => (
+                    <tr
+                      className="border-b border-[var(--color-border)] last:border-0 transition hover:bg-[var(--color-background-deep)]/25"
+                      key={order.order_number}
+                    >
+                      <td className="px-4 py-4 font-semibold">{order.order_number}</td>
+                      <td className="px-4 py-4">{order.customer_name ?? "-"}</td>
+                      <td className="px-4 py-4">
+                        <StatusBadge status={statusBadge("delivered")}>
+                          {t.orders.status.delivered}
+                        </StatusBadge>
+                      </td>
+                      <td className="px-4 py-4">
+                        {formatMoney(Number(order.total_egp) || 0, locale)}
+                      </td>
+                      <td className="px-4 py-4 text-xs text-[var(--color-text-muted)]">
+                        {new Date(order.created_at).toLocaleString(numberLocale)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
-      </div>
+      </section>
     </section>
   );
 }
