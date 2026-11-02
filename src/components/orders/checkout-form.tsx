@@ -287,7 +287,9 @@ export function CheckoutForm({
           {message}
         </p>
       ) : null}
-      <Button disabled={saving || !items.length}>{saving ? t.submitting : t.submit}</Button>
+      <Button type="submit" disabled={saving || !items.length}>
+        {saving ? t.submitting : t.submit}
+      </Button>
     </form>
   );
 }
