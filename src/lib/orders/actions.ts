@@ -709,8 +709,8 @@ export async function updateOrderStatus(
 }
 
 export async function getPublicOrderStatus(orderNumber: string, token: string) {
-  const supabase = await createClient();
-  const { data } = await supabase
+  const reader = createServiceClient();
+  const { data } = await reader
     .from("orders")
     .select(
       "order_number, order_type, status, payment_method, payment_status, created_at, dining_tables(table_number)",

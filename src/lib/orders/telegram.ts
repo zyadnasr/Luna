@@ -9,11 +9,14 @@ export async function notifyTelegram(message: string) {
     return;
   }
   try {
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ chat_id: chatId, text: message }),
     });
+    if (!response.ok) {
+      console.warn(`Telegram notification failed with HTTP ${response.status}.`);
+    }
   } catch {
     console.warn("Telegram notification failed; order flow continues.");
   }
