@@ -6,7 +6,7 @@ import { getPaymentProofUrl } from "@/lib/orders/actions";
 import { PaymentReview } from "@/components/orders/payment-review";
 import { OrderActivity } from "@/components/orders/order-activity";
 import { PaymentTimeline } from "@/components/orders/payment-timeline";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { OrderStatusBadgeLive } from "@/components/orders/order-status-badge-live";
 import { getServerLocale } from "@/i18n/server";
 import { translateAdminText } from "@/i18n/admin-text";
 import { getTranslations } from "@/i18n/translations";
@@ -30,13 +30,6 @@ function InfoRow({
       <span className="col-span-2 min-w-0 text-[var(--color-text-primary)]">{children}</span>
     </div>
   );
-}
-
-function orderStatusTone(status: string) {
-  if (status === "delivered") return "success" as const;
-  if (status === "rejected" || status === "cancelled") return "danger" as const;
-  if (status === "new") return "warning" as const;
-  return "info" as const;
 }
 
 export default async function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -86,9 +79,11 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
             })}
           </p>
         </div>
-        <StatusBadge status={orderStatusTone(order.status)}>
-          {translations.orders.status[order.status] ?? order.status}
-        </StatusBadge>
+        <OrderStatusBadgeLive
+          initialStatus={order.status}
+          orderNumber={order.order_number}
+          token={order.status_lookup_token}
+        />
       </header>
 
       <div className="grid items-start gap-6 lg:grid-cols-12">
@@ -165,7 +160,12 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
         </div>
 
         <article className="flex flex-col rounded-[var(--radius-lg)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-soft)] sm:p-7 lg:col-span-7">
-          <StatusTransition id={order.id} status={order.status} />
+          <StatusTransition
+            id={order.id}
+            orderNumber={order.order_number}
+            status={order.status}
+            token={order.status_lookup_token}
+          />
         </article>
       </div>
 

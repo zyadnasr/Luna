@@ -668,7 +668,13 @@ export async function updateOrderStatus(
     .select("id, status, order_number, status_lookup_token, source, total_egp")
     .eq("id", id)
     .single();
-  if (!current || !transitions[current.status as OrderStatus].includes(status))
+  if (!current) return fail("الطلب غير موجود.");
+  if (current.status === status) {
+    revalidatePath("/admin/orders");
+    revalidatePath(`/admin/orders/${id}`);
+    return { success: true, message: "تم تحديث الحالة." };
+  }
+  if (!transitions[current.status as OrderStatus].includes(status))
     return fail("انتقال الحالة غير مسموح.");
   if (status === "confirmed") {
     const { data: warehouse } = await supabase

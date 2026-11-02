@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { updateOrderStatus } from "@/lib/orders/actions";
 import type { OrderStatus } from "@/types/orders";
 import { useLocale } from "@/components/ui/locale-provider";
@@ -88,7 +88,17 @@ function statusTone(status: OrderStatus) {
   return "border-[var(--color-info)]/30 bg-[var(--color-info)]/10 text-[var(--color-info)]";
 }
 
-export function StatusTransition({ id, status }: { id: string; status: OrderStatus }) {
+export function StatusTransition({
+  id,
+  status,
+  orderNumber,
+  token,
+}: {
+  id: string;
+  status: OrderStatus;
+  orderNumber: string;
+  token: string;
+}) {
   const { locale } = useLocale();
   const t = getTranslations(locale);
   const labels = copy[locale];
@@ -97,6 +107,34 @@ export function StatusTransition({ id, status }: { id: string; status: OrderStat
   const [isPending, startTransition] = useTransition();
   const currentIndex = flow.indexOf(value);
   const availableActions = transitions[value] ?? [];
+
+  useEffect(() => {
+    let active = true;
+    let refreshing = false;
+    const refresh = async () => {
+      if (refreshing || document.visibilityState === "hidden") return;
+      refreshing = true;
+      try {
+        const response = await fetch(
+          `/api/order-status/${encodeURIComponent(orderNumber)}?token=${encodeURIComponent(token)}`,
+          { cache: "no-store" },
+        );
+        if (response.ok && active) {
+          const payload = (await response.json()) as { status: OrderStatus };
+          setValue(payload.status);
+        }
+      } catch {
+        // Keep the current state if a refresh temporarily fails.
+      } finally {
+        refreshing = false;
+      }
+    };
+    const interval = window.setInterval(refresh, 5000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [orderNumber, token]);
 
   function save(next: OrderStatus) {
     setMessage("");
