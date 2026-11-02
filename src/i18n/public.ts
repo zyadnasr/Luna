@@ -112,6 +112,9 @@ export const publicCopy = {
     confirmDelivery: "أكّد استلام الطلب",
     deliveryConfirmed: "تم تأكيد استلام الطلب.",
     deliveryConfirmError: "لا يمكن تأكيد الاستلام قبل خروج الطلب للتوصيل.",
+    notifications: "الإشعارات",
+    newOrderNotification: "تم استلام طلبك",
+    orderStatusNotification: "تحديث حالة الطلب",
   },
   en: {
     menu: "Menu",
@@ -220,6 +223,9 @@ export const publicCopy = {
     confirmDelivery: "I received my order",
     deliveryConfirmed: "Order receipt confirmed.",
     deliveryConfirmError: "You can confirm receipt after the order is out for delivery.",
+    notifications: "Notifications",
+    newOrderNotification: "Your order was received",
+    orderStatusNotification: "Order status updated",
   },
   it: {
     menu: "Menu",
@@ -327,6 +333,9 @@ export const publicCopy = {
     confirmDelivery: "Ho ricevuto il mio ordine",
     deliveryConfirmed: "Ricezione dell'ordine confermata.",
     deliveryConfirmError: "Puoi confermare la ricezione dopo l'uscita in consegna.",
+    notifications: "Notifiche",
+    newOrderNotification: "Il tuo ordine è stato ricevuto",
+    orderStatusNotification: "Stato dell'ordine aggiornato",
   },
 } satisfies Record<Locale, Record<string, string>>;
 

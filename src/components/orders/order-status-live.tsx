@@ -16,6 +16,13 @@ export type PublicOrderStatus = {
   dining_tables?: Array<{ table_number: string }> | null;
 };
 
+type PublicOrderNotification = {
+  id: string;
+  kind: "order_created" | "order_status_changed";
+  payload: { orderNumber?: string; status?: OrderStatus };
+  createdAt: string;
+};
+
 const statusSteps: OrderStatus[] = ["new", "confirmed", "preparing", "ready", "delivered"];
 
 export function OrderStatusLive({
@@ -32,6 +39,7 @@ export function OrderStatusLive({
   const [order, setOrder] = useState(initialOrder);
   const [confirmingDelivery, setConfirmingDelivery] = useState(false);
   const [deliveryMessage, setDeliveryMessage] = useState("");
+  const [notifications, setNotifications] = useState<PublicOrderNotification[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -40,11 +48,20 @@ export function OrderStatusLive({
       if (refreshing || document.visibilityState === "hidden") return;
       refreshing = true;
       try {
-        const response = await fetch(
-          `/api/order-status/${encodeURIComponent(orderNumber)}?token=${encodeURIComponent(token)}`,
-          { cache: "no-store" },
-        );
-        if (response.ok && active) setOrder((await response.json()) as PublicOrderStatus);
+        const [statusResponse, notificationsResponse] = await Promise.all([
+          fetch(
+            `/api/order-status/${encodeURIComponent(orderNumber)}?token=${encodeURIComponent(token)}`,
+            { cache: "no-store" },
+          ),
+          fetch(
+            `/api/order-notifications/${encodeURIComponent(orderNumber)}?token=${encodeURIComponent(token)}`,
+            { cache: "no-store" },
+          ),
+        ]);
+        if (statusResponse.ok && active)
+          setOrder((await statusResponse.json()) as PublicOrderStatus);
+        if (notificationsResponse.ok && active)
+          setNotifications((await notificationsResponse.json()) as PublicOrderNotification[]);
       } catch {
         // Keep showing the last known order status if a refresh temporarily fails.
       } finally {
@@ -86,6 +103,52 @@ export function OrderStatusLive({
             : t.deliveryOrder}
         </p>
       </div>
+      {notifications.length ? (
+        <section
+          className="mt-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4"
+          aria-label={t.notifications}
+        >
+          <h2 className="font-semibold">{t.notifications}</h2>
+          <div className="mt-3 grid gap-2">
+            {notifications.slice(0, 5).map((notification) => {
+              const notificationStatus = notification.payload.status;
+              const notificationStatusLabel = notificationStatus
+                ? (
+                    {
+                      new: t.pendingReview,
+                      confirmed: t.confirmed,
+                      preparing: t.preparing,
+                      ready: t.ready,
+                      delivered: t.delivered,
+                      cancelled: t.cancelled,
+                      rejected: t.rejected,
+                    } as Record<OrderStatus, string>
+                  )[notificationStatus]
+                : "";
+              return (
+                <div
+                  className="rounded-lg border border-[var(--color-border)] p-3 text-sm"
+                  key={notification.id}
+                >
+                  <p className="font-medium">
+                    {notification.kind === "order_created"
+                      ? t.newOrderNotification
+                      : t.orderStatusNotification}
+                  </p>
+                  {notificationStatusLabel ? (
+                    <p className="mt-1 text-[var(--color-text-muted)]">{notificationStatusLabel}</p>
+                  ) : null}
+                  <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+                    {new Date(notification.createdAt).toLocaleString(
+                      locale === "ar" ? "ar-EG" : locale,
+                    )}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
       <ol className="mt-7 grid gap-3 text-sm">
         {statusSteps.map((step, index) => {
           const reached = currentStep >= index;

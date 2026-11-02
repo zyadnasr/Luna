@@ -17,6 +17,7 @@ import {
 } from "./validation";
 import { getProductAvailability } from "@/lib/inventory/availability";
 import type { OrderSource } from "@/types/domain";
+import { createOrderNotifications } from "@/lib/notifications/server";
 
 const transitions: Record<OrderStatus, OrderStatus[]> = {
   new: ["confirmed", "rejected", "cancelled"],
@@ -305,6 +306,13 @@ async function createPublicOrderInternal(input: OrderInput): Promise<OrderResult
   await writer
     .from("order_status_history")
     .insert({ order_id: order.id, to_status: "new", note: "Public order created" });
+  await createOrderNotifications({
+    orderId: order.id,
+    orderNumber: order.order_number,
+    trackingToken: order.status_lookup_token,
+    status: "new",
+    kind: "order_created",
+  });
   await writer.from("audit_logs").insert({
     actor_user_id: null,
     action: "order.created",
@@ -626,6 +634,13 @@ export async function createManualOrder(input: {
     changed_by: user.id,
     note: "Manual external order",
   });
+  await createOrderNotifications({
+    orderId: order.id,
+    orderNumber: order.order_number,
+    trackingToken: order.status_lookup_token,
+    status: "new",
+    kind: "order_created",
+  });
   await writer.from("audit_logs").insert({
     actor_user_id: user.id,
     action: "order.manual_created",
@@ -652,7 +667,7 @@ export async function updateOrderStatus(
   const supabase = await createClient();
   const { data: current } = await supabase
     .from("orders")
-    .select("status, order_number, source, total_egp")
+    .select("id, status, order_number, status_lookup_token, source, total_egp")
     .eq("id", id)
     .single();
   if (!current || !transitions[current.status as OrderStatus].includes(status))
@@ -700,6 +715,13 @@ export async function updateOrderStatus(
     to_status: status,
     changed_by: user.id,
     note: note || null,
+  });
+  await createOrderNotifications({
+    orderId: current.id,
+    orderNumber: current.order_number,
+    trackingToken: current.status_lookup_token,
+    status,
+    kind: "order_status_changed",
   });
   await supabase.from("audit_logs").insert({
     actor_user_id: user.id,
@@ -758,6 +780,13 @@ export async function markPublicOrderDelivered(
     to_status: "delivered",
     changed_by: null,
     note: "Customer confirmed delivery",
+  });
+  await createOrderNotifications({
+    orderId: order.id,
+    orderNumber: order.order_number,
+    trackingToken: token,
+    status: "delivered",
+    kind: "order_status_changed",
   });
   await writer.from("audit_logs").insert({
     actor_user_id: null,

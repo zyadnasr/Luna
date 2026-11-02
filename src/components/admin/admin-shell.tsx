@@ -8,6 +8,8 @@ import { signOut } from "@/lib/auth/actions";
 import type { Profile, UserRole } from "@/types/domain";
 import { LogoMark } from "@/components/ui/logo-mark";
 import { useLocale } from "@/components/ui/locale-provider";
+import { AdminNotifications } from "@/components/admin/admin-notifications";
+import type { StoredNotification } from "@/lib/notifications/server";
 
 const navigation = [
   { group: "الرئيسية", items: [{ label: "نظرة عامة", href: "/admin" }] },
@@ -108,11 +110,13 @@ export function AdminShell({
   user,
   profile,
   roles,
+  initialNotifications,
 }: {
   children: ReactNode;
   user: User;
   profile: Profile;
   roles: UserRole[];
+  initialNotifications: StoredNotification[];
 }) {
   const { locale } = useLocale();
   const pathname = usePathname();
@@ -173,6 +177,7 @@ export function AdminShell({
             <p className="mt-1 font-semibold">{profile.display_name ?? user.email}</p>
           </div>
           <div className="flex items-center gap-3">
+            <AdminNotifications initialNotifications={initialNotifications} />
             <span className="hidden rounded-[var(--radius-pill)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-semibold text-[var(--color-text-primary)] sm:inline-flex">
               {roles
                 .map((role) => (locale === "ar" ? roleLabels[role] : adminLabels[locale][role]))
