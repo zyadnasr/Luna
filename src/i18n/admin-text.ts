@@ -107,6 +107,16 @@ const copy = {
     "نص الإعلان يجب ألا يتجاوز 180 حرفًا.": "The announcement must be 180 characters or fewer.",
     "تعذر حفظ شريط الإعلان.": "Unable to save the announcement bar.",
     "تم حفظ شريط الإعلان.": "Announcement bar saved.",
+    "صور الصفحة الرئيسية": "Homepage images",
+    "عدّل رابط صورة الهيرو وصور الجاليري. استخدم رابطًا عامًا أو مسارًا من assets.":
+      "Edit the hero and gallery image URLs. Use a public URL or a path from assets.",
+    "صورة الهيرو": "Hero image",
+    "صورة الجاليري": "Gallery image",
+    "حفظ صور الصفحة": "Save homepage images",
+    "أدخل روابط صور صحيحة ووصفًا مختصرًا لكل صورة.":
+      "Enter valid image URLs and a short description for every image.",
+    "تعذر حفظ صور الصفحة الرئيسية.": "Unable to save homepage images.",
+    "تم حفظ صور الصفحة الرئيسية.": "Homepage images saved.",
     "تحكم في هويتك ورسائلك العامة وإعدادات الدفع من مكان واحد.":
       "Control your identity, public messages, and payment settings in one place.",
     مساحتك: "Your workspace",
@@ -436,6 +446,16 @@ const copy = {
     "نص الإعلان يجب ألا يتجاوز 180 حرفًا.": "L'annuncio deve contenere al massimo 180 caratteri.",
     "تعذر حفظ شريط الإعلان.": "Impossibile salvare la barra annunci.",
     "تم حفظ شريط الإعلان.": "Barra annunci salvata.",
+    "صور الصفحة الرئيسية": "Immagini della home",
+    "عدّل رابط صورة الهيرو وصور الجاليري. استخدم رابطًا عامًا أو مسارًا من assets.":
+      "Modifica gli URL dell'hero e della galleria. Usa un URL pubblico o un percorso assets.",
+    "صورة الهيرو": "Immagine hero",
+    "صورة الجاليري": "Immagine galleria",
+    "حفظ صور الصفحة": "Salva immagini home",
+    "أدخل روابط صور صحيحة ووصفًا مختصرًا لكل صورة.":
+      "Inserisci URL validi e una descrizione breve per ogni immagine.",
+    "تعذر حفظ صور الصفحة الرئيسية.": "Impossibile salvare le immagini della home.",
+    "تم حفظ صور الصفحة الرئيسية.": "Immagini della home salvate.",
     "تحكم في هويتك ورسائلك العامة وإعدادات الدفع من مكان واحد.":
       "Gestisci identità, messaggi pubblici e pagamenti in un unico posto.",
     مساحتك: "Il tuo spazio",

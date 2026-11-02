@@ -6,13 +6,16 @@ import { AnnouncementSettingsForm } from "@/components/admin/announcement-settin
 import { getServerLocale } from "@/i18n/server";
 import { translateAdminText } from "@/i18n/admin-text";
 import { getAnnouncementSettings } from "@/lib/site/announcement";
+import { getHomepageSettings } from "@/lib/site/homepage";
+import { HomepageMediaForm } from "@/components/admin/homepage-media-form";
 export const dynamic = "force-dynamic";
 export default async function SettingsPage() {
   const user = await requireAuth();
-  const [profile, isOwner, announcement] = await Promise.all([
+  const [profile, isOwner, announcement, homepageMedia] = await Promise.all([
     getCurrentProfile(user.id),
     hasRole("owner"),
     getAnnouncementSettings(),
+    getHomepageSettings(),
   ]);
   const locale = await getServerLocale();
   const t = (value: string) => translateAdminText(locale, value);
@@ -44,6 +47,7 @@ export default async function SettingsPage() {
               {t("التواصل مع العملاء")}
             </p>
             <AnnouncementSettingsForm initial={announcement} />
+            <HomepageMediaForm initial={homepageMedia} />
           </div>
         ) : null}
       </div>
