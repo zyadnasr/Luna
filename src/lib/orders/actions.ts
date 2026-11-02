@@ -806,3 +806,70 @@ export async function markPublicOrderDelivered(
   revalidatePath("/admin/orders");
   return { success: true, message: "تم تأكيد استلام الطلب." };
 }
+
+export async function cancelPublicOrder(orderNumber: string, token: string): Promise<OrderResult> {
+  const writer = createServiceClient();
+  const { data: order } = await writer
+    .from("orders")
+    .select("id, order_number, source, status, total_egp")
+    .eq("order_number", orderNumber)
+    .eq("status_lookup_token", token)
+    .maybeSingle();
+  const cancellableStatuses: OrderStatus[] = ["new", "confirmed", "preparing"];
+  if (!order || !cancellableStatuses.includes(order.status as OrderStatus)) {
+    return fail("لا يمكن إلغاء الطلب بعد خروجه للتوصيل أو إغلاقه.");
+  }
+
+  const { data: consumed } = await writer
+    .from("stock_movements")
+    .select("id")
+    .eq("reference_type", "order")
+    .eq("reference_id", order.id)
+    .eq("movement_type", "consumption")
+    .limit(1);
+  if (consumed?.length) {
+    const { error: restoreError } = await writer.rpc("restore_cancelled_order", {
+      order_id_input: order.id,
+    });
+    if (restoreError) return fail("تعذر استعادة مخزون الطلب.");
+  }
+
+  const { data: updated, error } = await writer
+    .from("orders")
+    .update({ status: "cancelled" })
+    .eq("id", order.id)
+    .eq("status", order.status)
+    .select("id")
+    .maybeSingle();
+  if (error || !updated) return fail("تعذر إلغاء الطلب.");
+
+  await writer.from("order_status_history").insert({
+    order_id: order.id,
+    from_status: order.status,
+    to_status: "cancelled",
+    changed_by: null,
+    note: "Customer cancelled order",
+  });
+  await createOrderNotifications({
+    orderId: order.id,
+    orderNumber: order.order_number,
+    status: "cancelled",
+    kind: "order_status_changed",
+  });
+  await writer.from("audit_logs").insert({
+    actor_user_id: null,
+    action: "order.cancelled_by_customer",
+    entity_type: "order",
+    entity_id: order.id,
+    metadata: {},
+  });
+  await notifyTelegram(
+    orderNotification(order.order_number, order.source as OrderSource, "cancelled", {
+      total: Number(order.total_egp),
+    }),
+  );
+  revalidatePath(`/order/status/${encodeURIComponent(orderNumber)}`);
+  revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${order.id}`);
+  return { success: true, message: "تم إلغاء الطلب." };
+}

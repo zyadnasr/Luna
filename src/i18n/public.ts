@@ -112,6 +112,12 @@ export const publicCopy = {
     confirmDelivery: "أكّد استلام الطلب",
     deliveryConfirmed: "تم تأكيد استلام الطلب.",
     deliveryConfirmError: "لا يمكن تأكيد الاستلام قبل خروج الطلب للتوصيل.",
+    cancelOrder: "إلغاء الطلب",
+    cancelOrderQuestion: "هل أنت متأكد من إلغاء الطلب؟",
+    confirmCancel: "نعم، ألغِ الطلب",
+    keepOrder: "الاحتفاظ بالطلب",
+    cancellationConfirmed: "تم إلغاء الطلب.",
+    cancellationError: "لا يمكن إلغاء الطلب بعد خروجه للتوصيل.",
   },
   en: {
     menu: "Menu",
@@ -220,6 +226,12 @@ export const publicCopy = {
     confirmDelivery: "I received my order",
     deliveryConfirmed: "Order receipt confirmed.",
     deliveryConfirmError: "You can confirm receipt after the order is out for delivery.",
+    cancelOrder: "Cancel order",
+    cancelOrderQuestion: "Are you sure you want to cancel this order?",
+    confirmCancel: "Yes, cancel order",
+    keepOrder: "Keep order",
+    cancellationConfirmed: "Order cancelled.",
+    cancellationError: "This order can no longer be cancelled.",
   },
   it: {
     menu: "Menu",
@@ -327,6 +339,12 @@ export const publicCopy = {
     confirmDelivery: "Ho ricevuto il mio ordine",
     deliveryConfirmed: "Ricezione dell'ordine confermata.",
     deliveryConfirmError: "Puoi confermare la ricezione dopo l'uscita in consegna.",
+    cancelOrder: "Annulla ordine",
+    cancelOrderQuestion: "Vuoi davvero annullare questo ordine?",
+    confirmCancel: "Sì, annulla ordine",
+    keepOrder: "Mantieni ordine",
+    cancellationConfirmed: "Ordine annullato.",
+    cancellationError: "Questo ordine non può più essere annullato.",
   },
 } satisfies Record<Locale, Record<string, string>>;
 

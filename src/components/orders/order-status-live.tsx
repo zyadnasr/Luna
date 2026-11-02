@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocale } from "@/components/ui/locale-provider";
 import { getPublicCopy } from "@/i18n/public";
 import type { OrderStatus } from "@/types/orders";
-import { markPublicOrderDelivered } from "@/lib/orders/actions";
+import { cancelPublicOrder, markPublicOrderDelivered } from "@/lib/orders/actions";
 
 export type PublicOrderStatus = {
   order_number: string;
@@ -46,6 +46,8 @@ export function OrderStatusLive({
   const [order, setOrder] = useState(initialOrder);
   const [confirmingDelivery, setConfirmingDelivery] = useState(false);
   const [deliveryMessage, setDeliveryMessage] = useState("");
+  const [confirmingCancellation, setConfirmingCancellation] = useState(false);
+  const [showCancellationPrompt, setShowCancellationPrompt] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -92,6 +94,7 @@ export function OrderStatusLive({
   } as Record<(typeof statusSteps)[number], string>;
   const currentStep = statusSteps.indexOf(order.status);
   const isException = order.status === "cancelled" || order.status === "rejected";
+  const canCancel = ["new", "confirmed", "preparing"].includes(order.status);
   const tone = statusTone(order.status);
   const statusTimes = useMemo(
     () => new Map<OrderStatus, string>([["new", order.created_at]]),
@@ -245,11 +248,57 @@ export function OrderStatusLive({
                   {deliveryMessage}
                 </span>
               ) : null}
+              {canCancel ? (
+                <CancellationAction
+                  confirming={confirmingCancellation}
+                  open={showCancellationPrompt}
+                  onOpen={() => setShowCancellationPrompt(true)}
+                  onKeep={() => setShowCancellationPrompt(false)}
+                  onConfirm={async () => {
+                    setConfirmingCancellation(true);
+                    const result = await cancelPublicOrder(orderNumber, token);
+                    if (result.success) {
+                      setOrder((current) => ({ ...current, status: "cancelled" }));
+                      setDeliveryMessage(t.cancellationConfirmed);
+                      setShowCancellationPrompt(false);
+                    } else {
+                      setDeliveryMessage(t.cancellationError);
+                    }
+                    setConfirmingCancellation(false);
+                  }}
+                  labels={t}
+                />
+              ) : null}
             </div>
           ) : order.status === "delivered" ? (
             t.deliveryConfirmed
+          ) : order.status === "cancelled" ? (
+            t.cancellationConfirmed
           ) : (
-            t.contactCourier
+            <div className="grid gap-3">
+              <span>{t.contactCourier}</span>
+              {canCancel ? (
+                <CancellationAction
+                  confirming={confirmingCancellation}
+                  open={showCancellationPrompt}
+                  onOpen={() => setShowCancellationPrompt(true)}
+                  onKeep={() => setShowCancellationPrompt(false)}
+                  onConfirm={async () => {
+                    setConfirmingCancellation(true);
+                    const result = await cancelPublicOrder(orderNumber, token);
+                    if (result.success) {
+                      setOrder((current) => ({ ...current, status: "cancelled" }));
+                      setDeliveryMessage(t.cancellationConfirmed);
+                      setShowCancellationPrompt(false);
+                    } else {
+                      setDeliveryMessage(t.cancellationError);
+                    }
+                    setConfirmingCancellation(false);
+                  }}
+                  labels={t}
+                />
+              ) : null}
+            </div>
           )}
         </div>
         <a
@@ -258,6 +307,58 @@ export function OrderStatusLive({
         >
           {t.menu}
         </a>
+      </div>
+    </div>
+  );
+}
+
+function CancellationAction({
+  confirming,
+  open,
+  onOpen,
+  onKeep,
+  onConfirm,
+  labels,
+}: {
+  confirming: boolean;
+  open: boolean;
+  onOpen: () => void;
+  onKeep: () => void;
+  onConfirm: () => void;
+  labels: ReturnType<typeof getPublicCopy>;
+}) {
+  if (!open) {
+    return (
+      <button
+        type="button"
+        disabled={confirming}
+        onClick={onOpen}
+        className="min-h-10 w-fit rounded-[var(--radius-pill)] border border-[var(--color-danger-border)] bg-[var(--color-danger-soft)] px-4 text-sm font-semibold text-[var(--color-danger)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {labels.cancelOrder}
+      </button>
+    );
+  }
+  return (
+    <div className="grid gap-2 rounded-[var(--radius-md)] border border-[var(--color-danger-border)] bg-[var(--color-danger-soft)] p-3 text-[var(--color-danger)]">
+      <span className="text-xs font-semibold">{labels.cancelOrderQuestion}</span>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          disabled={confirming}
+          onClick={onConfirm}
+          className="min-h-9 rounded-[var(--radius-pill)] bg-[var(--color-danger)] px-3 text-xs font-semibold text-[var(--color-on-brand)] disabled:opacity-60"
+        >
+          {confirming ? labels.submitting : labels.confirmCancel}
+        </button>
+        <button
+          type="button"
+          disabled={confirming}
+          onClick={onKeep}
+          className="min-h-9 rounded-[var(--radius-pill)] border border-current px-3 text-xs font-semibold disabled:opacity-60"
+        >
+          {labels.keepOrder}
+        </button>
       </div>
     </div>
   );
