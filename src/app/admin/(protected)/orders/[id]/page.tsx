@@ -91,7 +91,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
         </StatusBadge>
       </header>
 
-      <div className="grid items-stretch gap-6 lg:grid-cols-12">
+      <div className="grid items-start gap-6 lg:grid-cols-12">
         <div className="space-y-6 lg:col-span-5">
           <article className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)] sm:p-6">
             <h2 className="flex items-center gap-2 text-lg font-bold">
@@ -164,7 +164,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
           </article>
         </div>
 
-        <article className="flex min-h-[32rem] flex-col rounded-[var(--radius-lg)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-soft)] sm:p-7 lg:col-span-7">
+        <article className="flex flex-col rounded-[var(--radius-lg)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-soft)] sm:p-7 lg:col-span-7">
           <StatusTransition id={order.id} status={order.status} />
         </article>
       </div>

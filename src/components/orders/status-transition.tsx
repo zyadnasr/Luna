@@ -108,7 +108,7 @@ export function StatusTransition({ id, status }: { id: string; status: OrderStat
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex flex-col">
       <div>
         <h2 className="text-xl font-bold tracking-tight">{labels.title}</h2>
         <p className="mt-2 max-w-md text-sm leading-6 text-[var(--color-text-muted)]">
@@ -162,7 +162,7 @@ export function StatusTransition({ id, status }: { id: string; status: OrderStat
           </div>
         </div>
       )}
-      <div className="mt-auto border-t border-[var(--color-border)] pt-6">
+      <div className="mt-8 border-t border-[var(--color-border)] pt-6">
         <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
           {labels.actions}
         </h3>
