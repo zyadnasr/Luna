@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useRef, useState } from "react";
 import { signOut } from "@/lib/auth/actions";
 import type { Profile, UserRole } from "@/types/domain";
 import { LogoMark } from "@/components/ui/logo-mark";
@@ -122,6 +123,19 @@ export function AdminShell({
   const pathname = usePathname();
   const translate = (value: string) =>
     locale === "ar" ? value : (adminLabels[locale][value as keyof typeof adminLabels.en] ?? value);
+  const isArabic = locale === "ar";
+  const sidebarPlacement = isArabic ? "right-0 border-l" : "left-0 border-r";
+  const collapsedTransform = isArabic ? "translate-x-full" : "-translate-x-full";
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const openSidebar = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setSidebarOpen(true);
+  };
+  const closeSidebar = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setSidebarOpen(false), 120);
+  };
   const isActive = (href: string) => {
     if (href === "/admin") return pathname === "/admin";
     const hasMoreSpecificMatch = navigation
@@ -136,41 +150,60 @@ export function AdminShell({
   };
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
-      <aside className="fixed end-0 top-[4.75rem] z-30 hidden h-[calc(100dvh-4.75rem)] w-72 overflow-y-auto border-s border-[var(--color-border)] bg-[var(--color-surface-glass)] px-5 py-6 shadow-[var(--shadow-inset)] backdrop-blur-[var(--blur-glass)] lg:block">
-        <Link href="/admin" className="flex items-center gap-3">
-          <span className="grid size-11 place-items-center rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)]">
-            <LogoMark size={34} />
-          </span>
-          <span>
-            <span className="block text-sm font-semibold">Luna Healthy</span>
-            <span className="mt-0.5 block text-xs text-[var(--color-text-muted)]">
-              {translate("مساحة الإدارة")}
+      <div
+        className={`pointer-events-none fixed ${sidebarPlacement.split(" ")[0]} top-[9.75rem] z-30 hidden h-[calc(100dvh-9.75rem)] w-72 lg:block`}
+      >
+        <button
+          aria-expanded={sidebarOpen}
+          aria-label={translate("فتح التنقل الإداري")}
+          className={`pointer-events-auto absolute top-5 ${isArabic ? "right-3" : "left-3"} grid size-11 place-items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface-glass)] shadow-[var(--shadow-card)] backdrop-blur-[var(--blur-glass)] transition duration-200 hover:scale-105 hover:border-[var(--color-brand-primary)] focus:outline-none focus:ring-4 focus:ring-[var(--color-focus-ring)]`}
+          onClick={() => setSidebarOpen((open) => !open)}
+          onPointerEnter={openSidebar}
+          onPointerLeave={closeSidebar}
+          type="button"
+        >
+          <LogoMark size={30} />
+        </button>
+        <aside
+          className={`pointer-events-auto absolute inset-y-0 ${sidebarPlacement} w-72 overflow-y-auto border-[var(--color-border)] bg-[var(--color-surface-glass)] px-5 py-6 shadow-[var(--shadow-inset)] backdrop-blur-[var(--blur-glass)] transition-transform duration-300 ease-out ${sidebarOpen ? "translate-x-0" : collapsedTransform}`}
+          onPointerEnter={openSidebar}
+          onPointerLeave={closeSidebar}
+        >
+          <Link href="/admin" className="flex items-center gap-3">
+            <span className="grid size-11 place-items-center rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)]">
+              <LogoMark size={34} />
             </span>
-          </span>
-        </Link>
-        <nav className="mt-10 grid gap-7" aria-label="التنقل الإداري">
-          {navigation.map((section) => (
-            <div key={section.group}>
-              <p className="mb-2 px-3 text-[0.68rem] font-semibold tracking-[0.12em] text-[var(--color-text-muted)]">
-                {translate(section.group)}
-              </p>
-              <div className="grid gap-1">
-                {section.items.map((item) => (
-                  <Link
-                    aria-current={isActive(item.href) ? "page" : undefined}
-                    className={`rounded-[var(--radius-sm)] px-3 py-2.5 text-sm transition duration-200 ${isActive(item.href) ? "bg-[var(--color-nav-active-bg)] font-semibold text-[var(--color-nav-active-text)] shadow-[var(--shadow-card)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-nav-active-bg)] hover:text-[var(--color-nav-active-text)]"}`}
-                    href={item.href}
-                    key={item.href}
-                  >
-                    {translate(item.label)}
-                  </Link>
-                ))}
+            <span>
+              <span className="block text-sm font-semibold">Luna Healthy</span>
+              <span className="mt-0.5 block text-xs text-[var(--color-text-muted)]">
+                {translate("مساحة الإدارة")}
+              </span>
+            </span>
+          </Link>
+          <nav className="mt-10 grid gap-7" aria-label="التنقل الإداري">
+            {navigation.map((section) => (
+              <div key={section.group}>
+                <p className="mb-2 px-3 text-[0.68rem] font-semibold tracking-[0.12em] text-[var(--color-text-muted)]">
+                  {translate(section.group)}
+                </p>
+                <div className="grid gap-1">
+                  {section.items.map((item) => (
+                    <Link
+                      aria-current={isActive(item.href) ? "page" : undefined}
+                      className={`rounded-[var(--radius-sm)] px-3 py-2.5 text-sm transition duration-200 ${isActive(item.href) ? "bg-[var(--color-nav-active-bg)] font-semibold text-[var(--color-nav-active-text)] shadow-[var(--shadow-card)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-nav-active-bg)] hover:text-[var(--color-nav-active-text)]"}`}
+                      href={item.href}
+                      key={item.href}
+                    >
+                      {translate(item.label)}
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-        </nav>
-      </aside>
-      <div className="lg:pe-72">
+            ))}
+          </nav>
+        </aside>
+      </div>
+      <div>
         <header className="sticky top-0 z-20 flex min-h-20 items-center justify-between gap-4 border-b border-[var(--color-border)] bg-[var(--color-surface-glass)] px-5 shadow-[var(--shadow-inset)] backdrop-blur-[var(--blur-glass)] sm:px-8">
           <div>
             <p className="text-xs text-[var(--color-text-muted)]">{translate("مساحة الإدارة")}</p>

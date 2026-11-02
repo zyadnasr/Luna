@@ -20,7 +20,7 @@ export function HomepageMediaForm({ initial }: { initial: HomepageSettings }) {
   return (
     <form
       encType="multipart/form-data"
-      className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6"
+      className="grid gap-5"
       action={async (formData) => {
         setSaving(true);
         const result = await saveHomepageMedia(formData);
@@ -35,7 +35,7 @@ export function HomepageMediaForm({ initial }: { initial: HomepageSettings }) {
         </p>
       </div>
 
-      <div className="mt-6 grid gap-5">
+      <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
         <MediaField
           label={t("صورة الهيرو")}
           fileName="hero_file"
@@ -85,7 +85,7 @@ export function HomepageMediaForm({ initial }: { initial: HomepageSettings }) {
           {message}
         </p>
       ) : null}
-      <Button className="mt-5" type="submit" disabled={saving}>
+      <Button className="mt-5 self-start" type="submit" disabled={saving}>
         {saving ? t("جارٍ الحفظ...") : t("رفع وحفظ صور الصفحة")}
       </Button>
     </form>
@@ -116,10 +116,10 @@ function MediaField({
   onFileChange: (value: string) => void;
 }) {
   return (
-    <fieldset className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] p-4">
+    <fieldset className="grid min-w-0 gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] p-4">
       <legend className="px-1 text-sm font-semibold">{label}</legend>
-      <div className="grid gap-3 sm:grid-cols-[7rem_minmax(0,1fr)]">
-        <div className="relative aspect-square overflow-hidden rounded-[var(--radius-sm)] bg-[var(--color-background-deep)]">
+      <div className="grid min-w-0 gap-3">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-sm)] bg-[var(--color-background-deep)]">
           <Image
             src={preview}
             alt={alt || label}
@@ -140,7 +140,7 @@ function MediaField({
                 const file = event.target.files?.[0];
                 if (file) onFileChange(URL.createObjectURL(file));
               }}
-              className="cursor-pointer p-2 text-xs file:me-3 file:rounded-full file:border-0 file:bg-[var(--color-brand-secondary)] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[var(--color-on-brand)]"
+              className="min-w-0 cursor-pointer overflow-hidden text-ellipsis p-2 text-xs file:me-3 file:rounded-full file:border-0 file:bg-[var(--color-brand-secondary)] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[var(--color-on-brand)]"
             />
           </label>
           <label className="grid gap-1 text-xs font-semibold text-[var(--color-text-muted)]">

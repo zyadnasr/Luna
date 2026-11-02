@@ -15,7 +15,7 @@ export function Footer() {
   const copy = footerCopy[locale];
   return (
     <footer className="mt-16 border-t border-[var(--color-border)] bg-[var(--color-background-deep)]">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-10 pb-[calc(var(--public-bottom-nav-space)+1rem)] sm:px-8 md:flex-row md:items-end md:justify-between md:pb-10 lg:pe-72">
+      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-10 pb-[calc(var(--public-bottom-nav-space)+1rem)] sm:px-8 md:flex-row md:items-end md:justify-between md:pb-10">
         <div>
           <div className="flex items-center gap-3">
             <LogoMark size={34} />

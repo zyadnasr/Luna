@@ -16,7 +16,7 @@ export function ProfileNameForm({ initial }: { initial: string }) {
 
   return (
     <form
-      className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6"
+      className="grid gap-5"
       action={async () => {
         setSaving(true);
         const result = await updateDisplayName(value);
@@ -41,7 +41,7 @@ export function ProfileNameForm({ initial }: { initial: string }) {
           {message}
         </p>
       ) : null}
-      <Button className="mt-5" type="submit" disabled={saving}>
+      <Button className="mt-5 self-start" type="submit" disabled={saving}>
         {saving ? t("جارٍ الحفظ...") : t("حفظ")}
       </Button>
     </form>

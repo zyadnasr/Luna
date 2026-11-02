@@ -17,7 +17,7 @@ export function AnnouncementSettingsForm({ initial }: { initial: AnnouncementSet
 
   return (
     <form
-      className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6"
+      className="grid gap-5"
       action={async () => {
         setSaving(true);
         const result = await saveAnnouncementSettings(settings);
@@ -42,7 +42,7 @@ export function AnnouncementSettingsForm({ initial }: { initial: AnnouncementSet
           {t("إظهار الشريط")}
         </label>
       </div>
-      <div className="mt-6 grid gap-4">
+      <div className="grid gap-4">
         {(
           [
             ["ar", "النص العربي"],
@@ -66,7 +66,7 @@ export function AnnouncementSettingsForm({ initial }: { initial: AnnouncementSet
           {message}
         </p>
       ) : null}
-      <Button className="mt-5" type="submit" disabled={saving}>
+      <Button className="mt-5 self-start" type="submit" disabled={saving}>
         {saving ? t("جارٍ الحفظ...") : t("حفظ")}
       </Button>
     </form>

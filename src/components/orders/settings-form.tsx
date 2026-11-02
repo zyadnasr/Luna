@@ -13,7 +13,7 @@ export function SettingsForm({ initial }: { initial: string }) {
   const [saving, setSaving] = useState(false);
   return (
     <form
-      className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6"
+      className="grid gap-5"
       action={async () => {
         setSaving(true);
         setMessage((await saveInstapayNumber(value)).message);
@@ -42,7 +42,7 @@ export function SettingsForm({ initial }: { initial: string }) {
           {message}
         </p>
       ) : null}
-      <Button className="mt-5" disabled={saving}>
+      <Button className="mt-5 self-start" disabled={saving}>
         {saving
           ? locale === "ar"
             ? "جارٍ الحفظ..."

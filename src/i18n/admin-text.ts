@@ -3,6 +3,27 @@ import type { Locale } from "@/config/site";
 const copy = {
   en: {
     الإدارة: "Administration",
+    "فتح التنقل الإداري": "Open admin navigation",
+    عام: "General",
+    التواصل: "Communications",
+    "الصور والجاليري": "Media & gallery",
+    "أقسام الإعدادات": "Settings sections",
+    "هوية مساحة الإدارة وإعدادات الدفع.": "Workspace identity and payment settings.",
+    "الرسائل التي تظهر لزوار الموقع.": "Messages shown to public site visitors.",
+    "صور الهيرو والجاليري في الصفحة الرئيسية.": "Hero and gallery images on the homepage.",
+    "هويتك في لوحة الإدارة": "Your workspace identity",
+    "الإعداد الأساسي الذي يظهر لفريق التشغيل داخل مساحة الإدارة.":
+      "The basic identity shown to the operations team in the admin workspace.",
+    "تكامل Instapay": "Instapay integration",
+    "تحكم في رقم الدفع الذي يظهر أثناء إتمام الطلبات.":
+      "Control the payment number shown during checkout.",
+    "رسائل الموقع": "Site messages",
+    "إدارة الشريط الإعلاني والنصوص التي يراها العملاء على الواجهة العامة.":
+      "Manage the announcement bar and the messages customers see on the public site.",
+    "محتوى الصفحة الرئيسية": "Homepage content",
+    "ارفع صور الهيرو والجاليري من جهازك وعدّل النص البديل لكل صورة.":
+      "Upload hero and gallery images from your device and edit each alt text.",
+    "مساحة العمل": "Workspace",
     التشغيل: "Operations",
     "المنتجات والمخزون": "Products & inventory",
     التصنيفات: "Categories",
@@ -345,6 +366,27 @@ const copy = {
   },
   it: {
     الإدارة: "Amministrazione",
+    "فتح التنقل الإداري": "Apri la navigazione admin",
+    عام: "Generale",
+    التواصل: "Comunicazioni",
+    "الصور والجاليري": "Media e galleria",
+    "أقسام الإعدادات": "Sezioni impostazioni",
+    "هوية مساحة الإدارة وإعدادات الدفع.": "Identità dell'area e impostazioni di pagamento.",
+    "الرسائل التي تظهر لزوار الموقع.": "Messaggi mostrati ai visitatori del sito.",
+    "صور الهيرو والجاليري في الصفحة الرئيسية.": "Immagini hero e galleria nella home.",
+    "هويتك في لوحة الإدارة": "Identità dell'area di lavoro",
+    "الإعداد الأساسي الذي يظهر لفريق التشغيل داخل مساحة الإدارة.":
+      "L'identità di base mostrata al team operativo nell'area di amministrazione.",
+    "تكامل Instapay": "Integrazione Instapay",
+    "تحكم في رقم الدفع الذي يظهر أثناء إتمام الطلبات.":
+      "Gestisci il numero di pagamento mostrato durante il checkout.",
+    "رسائل الموقع": "Messaggi del sito",
+    "إدارة الشريط الإعلاني والنصوص التي يراها العملاء على الواجهة العامة.":
+      "Gestisci il banner e i messaggi visibili ai clienti sul sito pubblico.",
+    "محتوى الصفحة الرئيسية": "Contenuti della home",
+    "ارفع صور الهيرو والجاليري من جهازك وعدّل النص البديل لكل صورة.":
+      "Carica immagini hero e galleria dal dispositivo e modifica il testo alternativo.",
+    "مساحة العمل": "Area di lavoro",
     التشغيل: "Operazioni",
     "المنتجات والمخزون": "Prodotti e inventario",
     التصنيفات: "Categorie",
