@@ -4,6 +4,7 @@ const copy = {
   en: {
     الإدارة: "Administration",
     "فتح التنقل الإداري": "Open admin navigation",
+    "إدارة الوصول": "Access management",
     عام: "General",
     التواصل: "Communications",
     "الصور والجاليري": "Media & gallery",
@@ -367,6 +368,7 @@ const copy = {
   it: {
     الإدارة: "Amministrazione",
     "فتح التنقل الإداري": "Apri la navigazione admin",
+    "إدارة الوصول": "Gestione degli accessi",
     عام: "Generale",
     التواصل: "Comunicazioni",
     "الصور والجاليري": "Media e galleria",

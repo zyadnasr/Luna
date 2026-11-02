@@ -55,19 +55,23 @@ export function UsersManager({ initialUsers }: { initialUsers: ManagedUser[] }) 
   }
 
   return (
-    <div className="mt-10 grid max-w-6xl gap-8 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:items-start">
+    <div className="mx-auto mt-8 grid max-w-6xl gap-6 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:items-start">
       <form
-        className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6"
+        className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]"
         action={invite}
       >
-        <p className="text-xs font-semibold tracking-[0.12em] text-[var(--color-text-muted)]">
-          {t("دعوة جديدة")}
-        </p>
-        <h2 className="mt-2 text-xl font-semibold">{t("أضف مستخدمًا بصلاحيات محددة")}</h2>
-        <p className="mt-2 text-sm leading-6 text-[var(--color-text-muted)]">
-          {t("ستصل للمستخدم رسالة دعوة ليكمل إنشاء كلمة المرور بنفسه.")}
-        </p>
-        <div className="mt-6 grid gap-4">
+        <div className="border-b border-[var(--color-border)] bg-[var(--color-background-deep)]/30 px-6 py-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-brand-primary)]">
+            {t("دعوة جديدة")}
+          </p>
+          <h2 className="mt-2 text-xl font-semibold tracking-[-0.02em]">
+            {t("أضف مستخدمًا بصلاحيات محددة")}
+          </h2>
+        </div>
+        <div className="grid gap-5 p-6">
+          <p className="text-sm leading-6 text-[var(--color-text-muted)]">
+            {t("ستصل للمستخدم رسالة دعوة ليكمل إنشاء كلمة المرور بنفسه.")}
+          </p>
           <label className="grid gap-2 text-sm font-semibold">
             {t("الاسم الظاهر")}
             <Input
@@ -90,37 +94,47 @@ export function UsersManager({ initialUsers }: { initialUsers: ManagedUser[] }) 
             <div className="grid gap-2 sm:grid-cols-2">
               {managedRoles.map((role) => (
                 <label
-                  className="flex items-center gap-2 rounded-[var(--radius-sm)] border border-[var(--color-border)] px-3 py-2 text-sm"
+                  className={`flex cursor-pointer items-center justify-between gap-3 rounded-[var(--radius-sm)] border px-3 py-2.5 text-sm transition ${roles.includes(role) ? "border-[var(--color-brand-primary)] bg-[var(--color-success-soft)] text-[var(--color-text-primary)]" : "border-[var(--color-border)] bg-[var(--color-background-deep)]/25 text-[var(--color-text-secondary)] hover:border-[var(--color-border-strong)]"}`}
                   key={role}
                 >
                   <input
                     type="checkbox"
                     checked={roles.includes(role)}
                     onChange={() => toggleRole(role, roles, setRoles)}
-                    className="size-4 accent-[var(--color-brand-primary)]"
+                    className="sr-only"
                   />
-                  {t(roleLabels[role])}
+                  <span>{t(roleLabels[role])}</span>
+                  <span className="text-xs text-[var(--color-brand-primary)]">
+                    {roles.includes(role) ? "✓" : "+"}
+                  </span>
                 </label>
               ))}
             </div>
           </fieldset>
+          {message ? (
+            <p className="text-sm" role="status">
+              {message}
+            </p>
+          ) : null}
+          <Button className="self-start" type="submit" disabled={busy}>
+            {busy ? t("جارٍ الإرسال...") : t("إرسال الدعوة")}
+          </Button>
         </div>
-        {message ? (
-          <p className="mt-4 text-sm" role="status">
-            {message}
-          </p>
-        ) : null}
-        <Button className="mt-6" type="submit" disabled={busy}>
-          {busy ? t("جارٍ الإرسال...") : t("إرسال الدعوة")}
-        </Button>
       </form>
 
-      <section className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)]">
-        <div className="border-b border-[var(--color-border)] px-6 py-5">
-          <p className="text-xs font-semibold tracking-[0.12em] text-[var(--color-text-muted)]">
-            {t("الوصول الحالي")}
-          </p>
-          <h2 className="mt-2 text-xl font-semibold">{t("المستخدمون والصلاحيات")}</h2>
+      <section className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]">
+        <div className="flex items-center justify-between gap-4 border-b border-[var(--color-border)] bg-[var(--color-background-deep)]/30 px-6 py-5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-brand-primary)]">
+              {t("الوصول الحالي")}
+            </p>
+            <h2 className="mt-2 text-xl font-semibold tracking-[-0.02em]">
+              {t("المستخدمون والصلاحيات")}
+            </h2>
+          </div>
+          <span className="shrink-0 rounded-[var(--radius-pill)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1 text-xs font-semibold text-[var(--color-text-secondary)]">
+            {users.length}
+          </span>
         </div>
         <div className="divide-y divide-[var(--color-border)]">
           {users.length ? (
@@ -158,36 +172,46 @@ function ManagedUserRow({ user, t }: { user: ManagedUser; t: (value: string) => 
     setDeleteBusy(false);
   }
   return (
-    <div className="px-6 py-5">
+    <div className="p-6 transition-colors hover:bg-[var(--color-background-deep)]/20">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="font-semibold">{user.displayName}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-semibold">{user.displayName}</p>
+            <span className="inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] border border-[var(--color-success-border)] bg-[var(--color-success-soft)] px-2 py-1 text-[0.68rem] font-semibold text-[var(--color-success)]">
+              <span
+                className="size-1.5 rounded-full bg-[var(--color-success)]"
+                aria-hidden="true"
+              />
+              {user.lastSignInAt ? t("نشط") : t("لم يسجل الدخول بعد")}
+            </span>
+          </div>
           <p className="mt-1 text-sm text-[var(--color-text-muted)]">{user.email}</p>
         </div>
-        <span className="text-xs text-[var(--color-text-muted)]">
-          {user.lastSignInAt ? t("نشط") : t("لم يسجل الدخول بعد")}
-        </span>
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        {managedRoles.map((role) => (
-          <label className="flex items-center gap-1.5 text-xs" key={role}>
-            <input
-              type="checkbox"
-              checked={roles.includes(role)}
-              onChange={() =>
+        {managedRoles.map((role) => {
+          const selected = roles.includes(role);
+          return (
+            <button
+              aria-pressed={selected}
+              className={`inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] border px-3 py-1.5 text-xs font-semibold transition ${selected ? "border-[var(--color-text-primary)] bg-[var(--color-text-primary)] text-[var(--color-background)]" : "border-[var(--color-border)] bg-[var(--color-background-deep)]/25 text-[var(--color-text-secondary)] hover:border-[var(--color-brand-primary)] hover:text-[var(--color-text-primary)]"}`}
+              key={role}
+              onClick={() =>
                 setRoles((current) =>
                   current.includes(role)
                     ? current.filter((item) => item !== role)
                     : [...current, role],
                 )
               }
-              className="size-3.5 accent-[var(--color-brand-primary)]"
-            />
-            {t(roleLabels[role])}
-          </label>
-        ))}
+              type="button"
+            >
+              {selected ? "✓" : null}
+              {t(roleLabels[role])}
+            </button>
+          );
+        })}
       </div>
-      <div className="mt-4 flex items-center gap-3">
+      <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-[var(--color-border)] pt-4">
         <Button
           type="button"
           variant="secondary"
