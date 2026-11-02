@@ -63,6 +63,8 @@ export function ProductForm({
   );
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const [activeTranslationLocale, setActiveTranslationLocale] =
+    useState<(typeof locales)[number]["code"]>("ar");
   const updateTranslation = (
     locale: ProductFormData["translations"][number]["locale"],
     key: "name" | "description" | "ingredients_text" | "allergens_text",
@@ -83,10 +85,12 @@ export function ProductForm({
     if (result.success && !form.id) router.push("/admin/products");
   }
   return (
-    <form onSubmit={submit} className="grid gap-8">
-      <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-card)]">
-        <h2 className="text-xl font-semibold">{t("المعلومات الأساسية")}</h2>
-        <div className="mt-6 grid gap-6 md:grid-cols-2">
+    <form onSubmit={submit} className="grid gap-6">
+      <section className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]">
+        <div className="border-b border-[var(--color-border)] bg-[var(--color-background-deep)]/25 px-6 py-5">
+          <h2 className="text-xl font-semibold tracking-[-0.025em]">{t("المعلومات الأساسية")}</h2>
+        </div>
+        <div className="grid gap-6 p-6 md:grid-cols-2">
           <label className="grid gap-2 text-sm font-semibold">
             {t("التصنيف")}
             <Select
@@ -145,48 +149,68 @@ export function ProductForm({
               </option>
             </Select>
           </label>
-          <label className="flex items-center gap-3 self-end text-sm font-semibold">
+          <label className="flex min-h-12 cursor-pointer items-center gap-3 self-end text-sm font-semibold">
             <input
               type="checkbox"
+              className="peer sr-only"
               checked={form.is_active}
               onChange={(event) => setForm({ ...form, is_active: event.target.checked })}
             />{" "}
+            <span className="relative h-6 w-11 rounded-full bg-[var(--color-background-deep)] transition peer-checked:bg-[var(--color-brand-primary)] peer-focus:ring-2 peer-focus:ring-[var(--color-focus-ring)]">
+              <span className="absolute start-0.5 top-0.5 size-5 rounded-full bg-[var(--color-text-muted)] shadow-sm transition peer-checked:translate-x-5 peer-checked:bg-[var(--color-background)]" />
+            </span>
             {t("المنتج نشط")}
           </label>
         </div>
       </section>
-      {locales.map((locale) => {
-        const translation =
-          form.translations.find((item) => item.locale === locale.code) ??
-          blankTranslation(locale.code);
-        return (
-          <section
-            className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-card)]"
-            key={locale.code}
-          >
-            <div className="flex items-baseline justify-between gap-4">
-              <h2 className="text-xl font-semibold">
-                {t("معلومات")} {locale.label}
-              </h2>
-              <span className="text-xs text-[var(--color-text-muted)]">
-                {locale.code === "ar" ? t("مطلوب") : t("اختياري")}
-              </span>
-            </div>
-            <div className="mt-6 grid gap-5">
+      <section className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]">
+        <div
+          className="flex overflow-x-auto border-b border-[var(--color-border)]"
+          role="tablist"
+          aria-label={t("الترجمات")}
+        >
+          {locales.map((item) => (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTranslationLocale === item.code}
+              className={`min-w-32 flex-1 border-b-2 px-5 py-4 text-sm font-semibold transition ${activeTranslationLocale === item.code ? "border-[var(--color-brand-primary)] text-[var(--color-brand-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"}`}
+              key={item.code}
+              onClick={() => setActiveTranslationLocale(item.code)}
+            >
+              {item.label}
+              {item.code === "ar" ? (
+                <span className="ms-2 rounded px-1.5 py-0.5 text-[0.6rem] uppercase tracking-wide text-[var(--color-danger)]">
+                  {t("مطلوب")}
+                </span>
+              ) : null}
+            </button>
+          ))}
+        </div>
+        {(() => {
+          const translation =
+            form.translations.find((item) => item.locale === activeTranslationLocale) ??
+            blankTranslation(activeTranslationLocale);
+          return (
+            <div className="grid gap-5 p-6">
               <label className="grid gap-2 text-sm font-semibold">
                 {t("اسم المنتج")}
                 <Input
-                  required={locale.code === "ar"}
+                  dir={activeTranslationLocale === "ar" ? "rtl" : "ltr"}
+                  required={activeTranslationLocale === "ar"}
                   value={translation.name}
-                  onChange={(event) => updateTranslation(locale.code, "name", event.target.value)}
+                  onChange={(event) =>
+                    updateTranslation(activeTranslationLocale, "name", event.target.value)
+                  }
                 />
               </label>
               <label className="grid gap-2 text-sm font-semibold">
                 {t("الوصف")}
                 <Textarea
+                  dir={activeTranslationLocale === "ar" ? "rtl" : "ltr"}
                   value={translation.description}
                   onChange={(event) =>
-                    updateTranslation(locale.code, "description", event.target.value)
+                    updateTranslation(activeTranslationLocale, "description", event.target.value)
                   }
                 />
               </label>
@@ -194,26 +218,36 @@ export function ProductForm({
                 <label className="grid gap-2 text-sm font-semibold">
                   {t("المكونات")}
                   <Textarea
+                    dir={activeTranslationLocale === "ar" ? "rtl" : "ltr"}
                     value={translation.ingredients_text}
                     onChange={(event) =>
-                      updateTranslation(locale.code, "ingredients_text", event.target.value)
+                      updateTranslation(
+                        activeTranslationLocale,
+                        "ingredients_text",
+                        event.target.value,
+                      )
                     }
                   />
                 </label>
                 <label className="grid gap-2 text-sm font-semibold">
                   {t("مسببات الحساسية")}
                   <Textarea
+                    dir={activeTranslationLocale === "ar" ? "rtl" : "ltr"}
                     value={translation.allergens_text}
                     onChange={(event) =>
-                      updateTranslation(locale.code, "allergens_text", event.target.value)
+                      updateTranslation(
+                        activeTranslationLocale,
+                        "allergens_text",
+                        event.target.value,
+                      )
                     }
                   />
                 </label>
               </div>
             </div>
-          </section>
-        );
-      })}
+          );
+        })()}
+      </section>
       <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-card)]">
         <div className="flex items-center justify-between gap-4">
           <div>
