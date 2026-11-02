@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth/server";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 
 export type HomepageImage = {
   src: string;
@@ -53,27 +54,45 @@ export async function getHomepageSettings(): Promise<HomepageSettings> {
   };
 }
 
-function isValidImageSource(src: string) {
-  return src.startsWith("/") || src.startsWith("https://") || src.startsWith("http://");
-}
+const maxImageSize = 5 * 1024 * 1024;
+const allowedImageTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
 
-export async function saveHomepageSettings(settings: HomepageSettings) {
+export async function saveHomepageMedia(formData: FormData) {
   const user = await requireRole("owner");
   const supabase = await createClient();
-  const images = [settings.hero, ...settings.gallery].map((image) => ({
-    src: image.src.trim(),
-    alt: image.alt.trim(),
-  }));
-  if (
-    images.some(
-      (image) =>
-        !isValidImageSource(image.src) ||
-        !image.alt ||
-        image.src.length > 500 ||
-        image.alt.length > 160,
-    )
-  ) {
-    return { success: false, message: "أدخل روابط صور صحيحة ووصفًا مختصرًا لكل صورة." };
+  const service = createServiceClient();
+  const current = await getHomepageSettings();
+  const entries = [
+    { fileKey: "hero_file", altKey: "hero_alt", current: current.hero },
+    ...current.gallery.map((image, index) => ({
+      fileKey: `gallery_${index}_file`,
+      altKey: `gallery_${index}_alt`,
+      current: image,
+    })),
+  ];
+  const images: HomepageImage[] = [];
+
+  for (const entry of entries) {
+    const alt = String(formData.get(entry.altKey) ?? "").trim();
+    if (!alt || alt.length > 160) {
+      return { success: false, message: "اكتب وصفًا مختصرًا وصحيحًا لكل صورة." };
+    }
+
+    const value = formData.get(entry.fileKey);
+    const file = value instanceof File && value.size > 0 ? value : null;
+    let src = entry.current.src;
+    if (file) {
+      if (!allowedImageTypes.has(file.type) || file.size > maxImageSize) {
+        return { success: false, message: "استخدم PNG أو JPG أو WEBP بحجم أقل من 5 ميجابايت." };
+      }
+      const path = `homepage/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "-")}`;
+      const { error: uploadError } = await service.storage
+        .from("homepage-media")
+        .upload(path, file, { cacheControl: "31536000", contentType: file.type, upsert: false });
+      if (uploadError) return { success: false, message: "تعذر رفع إحدى الصور." };
+      src = service.storage.from("homepage-media").getPublicUrl(path).data.publicUrl;
+    }
+    images.push({ src, alt });
   }
 
   const value: HomepageSettings = {

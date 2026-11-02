@@ -108,13 +108,17 @@ const copy = {
     "تعذر حفظ شريط الإعلان.": "Unable to save the announcement bar.",
     "تم حفظ شريط الإعلان.": "Announcement bar saved.",
     "صور الصفحة الرئيسية": "Homepage images",
-    "عدّل رابط صورة الهيرو وصور الجاليري. استخدم رابطًا عامًا أو مسارًا من assets.":
-      "Edit the hero and gallery image URLs. Use a public URL or a path from assets.",
+    "ارفع صورة الهيرو وأربع صور للجاليري من جهازك. التعديل متاح للمالك فقط.":
+      "Upload the hero and four gallery images from your device. Only the owner can edit them.",
     "صورة الهيرو": "Hero image",
     "صورة الجاليري": "Gallery image",
-    "حفظ صور الصفحة": "Save homepage images",
-    "أدخل روابط صور صحيحة ووصفًا مختصرًا لكل صورة.":
-      "Enter valid image URLs and a short description for every image.",
+    "اختيار صورة": "Choose image",
+    "النص البديل": "Alt text",
+    "PNG أو JPG أو WEBP · بحد أقصى 5 ميجابايت": "PNG, JPG, or WEBP · 5 MB max",
+    "رفع وحفظ صور الصفحة": "Upload and save homepage images",
+    "اكتب وصفًا مختصرًا وصحيحًا لكل صورة.": "Enter a short, valid description for every image.",
+    "استخدم PNG أو JPG أو WEBP بحجم أقل من 5 ميجابايت.": "Use PNG, JPG, or WEBP files up to 5 MB.",
+    "تعذر رفع إحدى الصور.": "Unable to upload one of the images.",
     "تعذر حفظ صور الصفحة الرئيسية.": "Unable to save homepage images.",
     "تم حفظ صور الصفحة الرئيسية.": "Homepage images saved.",
     "تحكم في هويتك ورسائلك العامة وإعدادات الدفع من مكان واحد.":
@@ -447,13 +451,18 @@ const copy = {
     "تعذر حفظ شريط الإعلان.": "Impossibile salvare la barra annunci.",
     "تم حفظ شريط الإعلان.": "Barra annunci salvata.",
     "صور الصفحة الرئيسية": "Immagini della home",
-    "عدّل رابط صورة الهيرو وصور الجاليري. استخدم رابطًا عامًا أو مسارًا من assets.":
-      "Modifica gli URL dell'hero e della galleria. Usa un URL pubblico o un percorso assets.",
+    "ارفع صورة الهيرو وأربع صور للجاليري من جهازك. التعديل متاح للمالك فقط.":
+      "Carica l'hero e quattro immagini della galleria dal dispositivo. Solo il proprietario può modificarle.",
     "صورة الهيرو": "Immagine hero",
     "صورة الجاليري": "Immagine galleria",
-    "حفظ صور الصفحة": "Salva immagini home",
-    "أدخل روابط صور صحيحة ووصفًا مختصرًا لكل صورة.":
-      "Inserisci URL validi e una descrizione breve per ogni immagine.",
+    "اختيار صورة": "Scegli immagine",
+    "النص البديل": "Testo alternativo",
+    "PNG أو JPG أو WEBP · بحد أقصى 5 ميجابايت": "PNG, JPG o WEBP · massimo 5 MB",
+    "رفع وحفظ صور الصفحة": "Carica e salva immagini home",
+    "اكتب وصفًا مختصرًا وصحيحًا لكل صورة.":
+      "Inserisci una descrizione breve e valida per ogni immagine.",
+    "استخدم PNG أو JPG أو WEBP بحجم أقل من 5 ميجابايت.": "Usa file PNG, JPG o WEBP fino a 5 MB.",
+    "تعذر رفع إحدى الصور.": "Impossibile caricare una delle immagini.",
     "تعذر حفظ صور الصفحة الرئيسية.": "Impossibile salvare le immagini della home.",
     "تم حفظ صور الصفحة الرئيسية.": "Immagini della home salvate.",
     "تحكم في هويتك ورسائلك العامة وإعدادات الدفع من مكان واحد.":
