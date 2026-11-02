@@ -18,7 +18,7 @@ export default async function OrderStatusPage({
   const order = token ? await getPublicOrderStatus(orderNumber, token) : null;
   return (
     <PageContainer>
-      <div className="mx-auto max-w-xl rounded-[1.5rem] border border-[var(--color-border)] bg-[var(--color-surface)] p-7 shadow-[var(--shadow-card)]">
+      <div className="luna-glass mx-auto max-w-xl rounded-[1.75rem] border p-6 shadow-[var(--shadow-card)] sm:p-8">
         {order ? (
           <OrderStatusLive
             orderNumber={orderNumber}

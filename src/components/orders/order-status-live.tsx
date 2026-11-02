@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocale } from "@/components/ui/locale-provider";
 import { getPublicCopy } from "@/i18n/public";
 import type { OrderStatus } from "@/types/orders";
@@ -24,6 +24,20 @@ type PublicOrderNotification = {
 };
 
 const statusSteps: OrderStatus[] = ["new", "confirmed", "preparing", "ready", "delivered"];
+
+function formatDate(value: string, locale: string) {
+  return new Date(value).toLocaleString(locale === "ar" ? "ar-EG" : locale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
+function statusTone(status: OrderStatus) {
+  if (status === "delivered") return "var(--color-success)";
+  if (status === "cancelled" || status === "rejected") return "var(--color-danger)";
+  if (status === "new") return "var(--color-warning)";
+  return "var(--color-brand-primary)";
+}
 
 export function OrderStatusLive({
   orderNumber,
@@ -58,12 +72,14 @@ export function OrderStatusLive({
             { cache: "no-store" },
           ),
         ]);
-        if (statusResponse.ok && active)
+        if (statusResponse.ok && active) {
           setOrder((await statusResponse.json()) as PublicOrderStatus);
-        if (notificationsResponse.ok && active)
+        }
+        if (notificationsResponse.ok && active) {
           setNotifications((await notificationsResponse.json()) as PublicOrderNotification[]);
+        }
       } catch {
-        // Keep showing the last known order status if a refresh temporarily fails.
+        // Keep showing the last known state if a refresh temporarily fails.
       } finally {
         refreshing = false;
       }
@@ -75,134 +91,230 @@ export function OrderStatusLive({
     };
   }, [orderNumber, token]);
 
+  const statusLabels = {
+    new: t.pendingReview,
+    confirmed: t.confirmed,
+    preparing: t.preparing,
+    ready: t.ready,
+    delivered: t.delivered,
+    cancelled: t.cancelled,
+    rejected: t.rejected,
+  } as Record<OrderStatus, string>;
+  const stepLabels = {
+    new: t.received,
+    confirmed: t.confirmed,
+    preparing: t.preparing,
+    ready: t.ready,
+    delivered: t.delivered,
+  } as Record<(typeof statusSteps)[number], string>;
   const currentStep = statusSteps.indexOf(order.status);
-  const statusLabel = (
-    {
-      new: t.pendingReview,
-      confirmed: t.confirmed,
-      preparing: t.preparing,
-      ready: t.ready,
-      delivered: t.delivered,
-      cancelled: t.cancelled,
-      rejected: t.rejected,
-    } as Record<OrderStatus, string>
-  )[order.status];
+  const isException = order.status === "cancelled" || order.status === "rejected";
+  const tone = statusTone(order.status);
+  const statusTimes = useMemo(() => {
+    const times = new Map<OrderStatus, string>();
+    times.set("new", order.created_at);
+    notifications.forEach((notification) => {
+      if (notification.payload.status)
+        times.set(notification.payload.status, notification.createdAt);
+    });
+    return times;
+  }, [notifications, order.created_at]);
 
   return (
-    <>
-      <h1 className="text-3xl font-semibold">
-        {t.order} {order.order_number}
-      </h1>
-      <div className="mt-6 rounded-xl bg-[var(--color-background-deep)] p-4">
-        <p className="text-sm text-[var(--color-text-muted)]">{t.pendingReview}</p>
-        <p className="mt-1 text-2xl font-bold">{statusLabel}</p>
-        <p className="mt-3 text-sm text-[var(--color-text-muted)]">
-          {t.payment}: {order.payment_method === "cash" ? t.paymentCash : order.payment_status} ·{" "}
+    <div className="space-y-7">
+      <header className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-brand-primary)]">
+            {t.deliveryOrder}
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+            {order.order_number}
+          </h1>
+        </div>
+        <span
+          className="mt-1 inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold"
+          style={{
+            borderColor: `color-mix(in srgb, ${tone} 38%, transparent)`,
+            background: `color-mix(in srgb, ${tone} 12%, transparent)`,
+            color: tone,
+          }}
+        >
+          <span className="h-2 w-2 rounded-full" style={{ background: tone }} aria-hidden="true" />
+          {statusLabels[order.status]}
+        </span>
+      </header>
+
+      <section
+        className="rounded-[1.35rem] border p-5 shadow-[var(--shadow-card)] sm:p-6"
+        style={{
+          borderColor: `color-mix(in srgb, ${tone} 22%, var(--glass-border))`,
+          background: `color-mix(in srgb, ${tone} 9%, var(--color-surface))`,
+        }}
+        aria-live="polite"
+      >
+        <div className="flex items-center gap-3">
+          <span className="relative flex h-3 w-3" aria-hidden="true">
+            <span
+              className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60"
+              style={{ background: tone }}
+            />
+            <span
+              className="relative inline-flex h-3 w-3 rounded-full"
+              style={{ background: tone }}
+            />
+          </span>
+          <h2 className="text-lg font-semibold tracking-tight">{statusLabels[order.status]}</h2>
+        </div>
+        <p className="mt-2 text-sm text-[var(--color-text-muted)]">
+          {t.payment}: {order.payment_method === "cash" ? t.paymentCash : order.payment_status}
+          <span className="mx-2 opacity-50">·</span>
           {order.order_type === "table"
             ? `${t.order} ${order.dining_tables?.[0]?.table_number ?? ""}`
             : t.deliveryOrder}
         </p>
-      </div>
-      {notifications.length ? (
+      </section>
+
+      {isException ? (
         <section
-          className="mt-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4"
-          aria-label={t.notifications}
+          className="rounded-[1.25rem] border p-4 text-sm"
+          style={{
+            borderColor: `color-mix(in srgb, ${tone} 34%, transparent)`,
+            color: tone,
+            background: `color-mix(in srgb, ${tone} 8%, transparent)`,
+          }}
         >
-          <h2 className="font-semibold">{t.notifications}</h2>
-          <div className="mt-3 grid gap-2">
-            {notifications.slice(0, 5).map((notification) => {
-              const notificationStatus = notification.payload.status;
-              const notificationStatusLabel = notificationStatus
-                ? (
-                    {
-                      new: t.pendingReview,
-                      confirmed: t.confirmed,
-                      preparing: t.preparing,
-                      ready: t.ready,
-                      delivered: t.delivered,
-                      cancelled: t.cancelled,
-                      rejected: t.rejected,
-                    } as Record<OrderStatus, string>
-                  )[notificationStatus]
-                : "";
+          <p className="font-semibold">{statusLabels[order.status]}</p>
+          <p className="mt-1 text-[var(--color-text-muted)]">{t.trackingHint}</p>
+        </section>
+      ) : (
+        <section aria-label={t.trackingHint}>
+          <div className="relative space-y-6">
+            <div
+              className="absolute inset-inline-start-[0.7rem] top-3 bottom-3 w-px bg-[var(--color-border)]"
+              aria-hidden="true"
+            />
+            {statusSteps.map((step, index) => {
+              const reached = currentStep >= index;
+              const completed = currentStep > index;
+              const active = currentStep === index;
+              const timestamp = statusTimes.get(step);
               return (
-                <div
-                  className="rounded-lg border border-[var(--color-border)] p-3 text-sm"
-                  key={notification.id}
-                >
-                  <p className="font-medium">
-                    {notification.kind === "order_created"
-                      ? t.newOrderNotification
-                      : t.orderStatusNotification}
-                  </p>
-                  {notificationStatusLabel ? (
-                    <p className="mt-1 text-[var(--color-text-muted)]">{notificationStatusLabel}</p>
-                  ) : null}
-                  <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                    {new Date(notification.createdAt).toLocaleString(
-                      locale === "ar" ? "ar-EG" : locale,
-                    )}
-                  </p>
+                <div className="relative z-10 flex items-start gap-4" key={step}>
+                  <div
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 bg-[var(--color-surface)] text-xs font-bold transition-all duration-300"
+                    style={{
+                      borderColor: reached ? tone : "var(--color-border)",
+                      background: completed ? tone : "var(--color-surface)",
+                      color: completed
+                        ? "var(--color-on-brand)"
+                        : active
+                          ? tone
+                          : "var(--color-text-muted)",
+                      boxShadow: active
+                        ? `0 0 0 5px color-mix(in srgb, ${tone} 14%, transparent)`
+                        : undefined,
+                    }}
+                    aria-hidden="true"
+                  >
+                    {completed ? "✓" : active ? "•" : ""}
+                  </div>
+                  <div className="min-w-0 flex-1 pb-0.5">
+                    <p
+                      className={`text-sm ${reached ? "font-semibold" : "font-medium text-[var(--color-text-muted)]"}`}
+                      style={active ? { color: tone } : undefined}
+                    >
+                      {stepLabels[step]}
+                    </p>
+                    {timestamp ? (
+                      <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+                        {formatDate(timestamp, locale)}
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
               );
             })}
           </div>
         </section>
+      )}
+
+      {notifications.length ? (
+        <section
+          className="rounded-[1.25rem] border border-[var(--glass-border)] bg-[var(--color-surface-glass)] p-4"
+          aria-label={t.notifications}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold">{t.notifications}</h2>
+            <span className="text-xs text-[var(--color-text-muted)]">{notifications.length}</span>
+          </div>
+          <div className="mt-3 grid gap-2">
+            {notifications.slice(0, 5).map((notification) => (
+              <div
+                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm"
+                key={notification.id}
+              >
+                <p className="font-medium">
+                  {notification.kind === "order_created"
+                    ? t.newOrderNotification
+                    : t.orderStatusNotification}
+                </p>
+                {notification.payload.status ? (
+                  <p className="mt-1 text-[var(--color-text-muted)]">
+                    {statusLabels[notification.payload.status]}
+                  </p>
+                ) : null}
+                <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+                  {formatDate(notification.createdAt, locale)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
       ) : null}
-      <ol className="mt-7 grid gap-3 text-sm">
-        {statusSteps.map((step, index) => {
-          const reached = currentStep >= index;
-          const label = (
-            {
-              new: t.received,
-              confirmed: t.confirmed,
-              preparing: t.preparing,
-              ready: t.ready,
-              delivered: t.delivered,
-            } as Record<string, string>
-          )[step];
-          return (
-            <li
-              className={`rounded-xl border p-3 ${reached ? "border-[var(--color-success)] bg-[rgba(94,118,93,0.08)]" : "border-[var(--color-border)]"}`}
-              key={step}
-            >
-              {reached ? "✓ " : ""}
-              {label}
-            </li>
-          );
-        })}
-        {order.status === "ready" ? (
-          <li className="grid gap-3 rounded-xl border border-[var(--color-brand-primary)] bg-[rgba(94,118,93,0.08)] p-3">
-            <span>{t.contactCourier}</span>
-            <button
-              type="button"
-              disabled={confirmingDelivery}
-              onClick={async () => {
-                setConfirmingDelivery(true);
-                setDeliveryMessage("");
-                const result = await markPublicOrderDelivered(orderNumber, token);
-                if (result.success) {
-                  setOrder((current) => ({ ...current, status: "delivered" }));
-                  setDeliveryMessage(t.deliveryConfirmed);
-                } else {
-                  setDeliveryMessage(t.deliveryConfirmError);
-                }
-                setConfirmingDelivery(false);
-              }}
-              className="min-h-10 rounded-[var(--radius-pill)] bg-[var(--color-brand-secondary)] px-4 text-sm font-semibold text-[var(--color-on-brand)] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {confirmingDelivery ? t.submitting : t.confirmDelivery}
-            </button>
-            {deliveryMessage ? <span role="status">{deliveryMessage}</span> : null}
-          </li>
-        ) : order.status === "cancelled" || order.status === "rejected" ? (
-          <li className="rounded-xl border border-[var(--color-danger)] p-3 text-[var(--color-danger)]">
-            {statusLabel}
-          </li>
-        ) : order.status !== "delivered" ? (
-          <li className="rounded-xl border border-[var(--color-border)] p-3">{t.contactCourier}</li>
-        ) : null}
-      </ol>
-    </>
+
+      <div className="flex items-end justify-between gap-4 border-t border-[var(--color-border)] pt-6">
+        <div className="min-w-0 text-sm leading-relaxed text-[var(--color-text-muted)]">
+          {order.status === "ready" ? (
+            <div className="grid gap-3">
+              <span>{t.contactCourier}</span>
+              <button
+                type="button"
+                disabled={confirmingDelivery}
+                onClick={async () => {
+                  setConfirmingDelivery(true);
+                  setDeliveryMessage("");
+                  const result = await markPublicOrderDelivered(orderNumber, token);
+                  if (result.success) {
+                    setOrder((current) => ({ ...current, status: "delivered" }));
+                    setDeliveryMessage(t.deliveryConfirmed);
+                  } else {
+                    setDeliveryMessage(t.deliveryConfirmError);
+                  }
+                  setConfirmingDelivery(false);
+                }}
+                className="min-h-10 w-fit rounded-[var(--radius-pill)] bg-[var(--color-brand-secondary)] px-4 text-sm font-semibold text-[var(--color-on-brand)] transition hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {confirmingDelivery ? t.submitting : t.confirmDelivery}
+              </button>
+              {deliveryMessage ? (
+                <span className="text-xs text-[var(--color-success)]" role="status">
+                  {deliveryMessage}
+                </span>
+              ) : null}
+            </div>
+          ) : order.status === "delivered" ? (
+            t.deliveryConfirmed
+          ) : (
+            t.contactCourier
+          )}
+        </div>
+        <a
+          className="shrink-0 text-sm font-semibold text-[var(--color-text-primary)] underline decoration-[var(--color-brand-primary)] underline-offset-4 transition hover:text-[var(--color-brand-primary)]"
+          href="/menu"
+        >
+          {t.menu}
+        </a>
+      </div>
+    </div>
   );
 }
