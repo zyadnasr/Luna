@@ -74,22 +74,22 @@ export function HomePage({ media }: { media: HomepageSettings }) {
 
   return (
     <PageContainer className="max-w-7xl !px-5 sm:!px-8">
-      <section className="grid items-center gap-8 py-3 sm:py-14 md:gap-16 md:py-20 lg:grid-cols-[0.9fr_1.1fr]">
+      <section className="grid items-center gap-6 py-4 sm:gap-8 sm:py-14 md:gap-16 md:py-20 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="order-2 max-w-xl lg:order-1 lg:pe-8">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-brand-primary)]">
             {t.eyebrow}
           </p>
-          <h1 className="mt-5 max-w-2xl text-[clamp(2.8rem,7vw,5.5rem)] font-bold leading-[0.98] tracking-[-0.06em]">
+          <h1 className="mt-4 max-w-2xl font-serif text-[clamp(2.55rem,11vw,5.5rem)] font-semibold leading-[1.02] tracking-[-0.045em] sm:mt-5 sm:text-[clamp(2.8rem,7vw,5.5rem)] sm:leading-[0.98] sm:tracking-[-0.06em]">
             {t.title}
             <br />
             <span className="font-serif font-semibold italic text-[var(--color-brand-primary)]">
               {t.titleAccent}
             </span>
           </h1>
-          <p className="mt-7 max-w-md text-base font-medium leading-8 text-[var(--color-text-secondary)] sm:text-lg">
+          <p className="mt-5 max-w-[20rem] pe-4 text-[0.95rem] font-medium leading-7 text-[var(--color-text-secondary)] sm:mt-7 sm:max-w-md sm:pe-0 sm:text-lg sm:leading-8">
             {t.description}
           </p>
-          <div className="mt-8 hidden flex-wrap items-center gap-3 md:flex">
+          <div className="mt-7 flex flex-wrap items-center gap-3 sm:mt-8">
             <Link
               href="/menu"
               className="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-pill)] bg-[var(--color-brand-secondary)] px-7 text-sm font-semibold text-[var(--color-on-brand)] shadow-[var(--shadow-soft)] transition duration-200 hover:-translate-y-0.5 hover:bg-[var(--color-brand-primary-deep)]"
@@ -107,7 +107,7 @@ export function HomePage({ media }: { media: HomepageSettings }) {
           </div>
         </div>
         <div className="relative order-1 lg:order-2">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] border border-[var(--glass-border)] bg-[var(--color-surface)] shadow-[var(--shadow-elevated)] sm:aspect-auto sm:h-[38rem] sm:rounded-[2.5rem]">
+          <div className="relative aspect-[4/3] max-h-[22rem] overflow-hidden rounded-[1.75rem] border border-[var(--glass-border)] bg-[var(--color-surface)] shadow-[var(--shadow-elevated)] sm:aspect-auto sm:h-[38rem] sm:max-h-none sm:rounded-[2.5rem]">
             <Image
               src={media.hero.src}
               alt={media.hero.alt}
