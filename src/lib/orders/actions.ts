@@ -15,7 +15,7 @@ import {
   normalizeDeliveryAddress,
   normalizeEgyptianPhone,
 } from "./validation";
-import { getProductAvailability } from "@/lib/inventory/availability";
+import { getProductAvailability, RECIPE_AVAILABILITY_ENABLED } from "@/lib/inventory/availability";
 import type { OrderSource } from "@/types/domain";
 import { createOrderNotifications } from "@/lib/notifications/server";
 
@@ -685,7 +685,7 @@ export async function updateOrderStatus(
   }
   if (!transitions[current.status as OrderStatus].includes(status))
     return fail("انتقال الحالة غير مسموح.");
-  if (status === "confirmed") {
+  if (status === "confirmed" && RECIPE_AVAILABILITY_ENABLED) {
     const { data: warehouse } = await supabase
       .from("warehouses")
       .select("id")

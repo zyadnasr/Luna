@@ -1,5 +1,9 @@
 import { createServiceClient } from "@/lib/supabase/service";
 
+// Recipes and stock checks are intentionally disabled while the catalog is being tested.
+// Keep the implementation below so the inventory gate can be re-enabled in one place later.
+export const RECIPE_AVAILABILITY_ENABLED = false;
+
 export async function getProductAvailability(
   productId: string,
   priceId: string,
@@ -27,6 +31,7 @@ export async function getProductAvailability(
     (price.valid_until && new Date(price.valid_until) <= new Date())
   )
     return { available: false, reason: "price_unavailable" as const };
+  if (!RECIPE_AVAILABILITY_ENABLED) return { available: true as const };
   const { data: recipe } = await supabase
     .from("recipes")
     .select("id, product_price_id, recipe_items(inventory_item_id, quantity)")

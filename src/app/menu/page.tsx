@@ -103,7 +103,9 @@ export default async function MenuPage() {
                             {translation?.name ?? t.menu}
                           </h3>
                           {!productAvailable ? (
-                            <StatusBadge status="warning">{t.unavailable}</StatusBadge>
+                            <span className="shrink-0 rounded-full border border-[var(--color-warning)]/30 px-2 py-1 text-[10px] font-semibold leading-none text-[var(--color-warning)]">
+                              {t.unavailable}
+                            </span>
                           ) : (
                             <StatusBadge status="success">{t.available}</StatusBadge>
                           )}
