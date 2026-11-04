@@ -93,10 +93,15 @@ export function ProductForm({ categories, initial, productMeta }: Props) {
   async function submit(event: FormEvent) {
     event.preventDefault();
     setSaving(true);
-    const result = await saveProduct(form);
-    setMessage(result.message);
-    setSaving(false);
-    if (result.success && !form.id) router.push("/admin/products");
+    try {
+      const result = await saveProduct(form);
+      setMessage(t(result.message));
+      if (result.success && !form.id) router.push("/admin/products");
+    } catch {
+      setMessage(t("تعذر حفظ المنتج. حاول مرة أخرى."));
+    } finally {
+      setSaving(false);
+    }
   }
   const title = form.translations.find((item) => item.locale === "ar")?.name || t("منتج جديد");
   const formatDate = (value?: string) =>
