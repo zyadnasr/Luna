@@ -304,15 +304,11 @@ export function ProductForm({ categories, initial, productMeta }: Props) {
                         onChange={(event) => updatePrice(index, { price_egp: event.target.value })}
                       />
                       <Input
-                        aria-label={
-                          locale === "ar"
-                            ? "السعر الأصلي قبل الخصم"
-                            : "Original price before discount"
-                        }
+                        aria-label={t("السعر الأصلي قبل الخصم")}
                         type="number"
                         min="0.01"
                         step="0.01"
-                        placeholder={locale === "ar" ? "اختياري" : "Optional"}
+                        placeholder={t("اختياري")}
                         value={price.compare_at_price_egp ?? ""}
                         onChange={(event) =>
                           updatePrice(index, { compare_at_price_egp: event.target.value })
