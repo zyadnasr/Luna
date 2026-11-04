@@ -10,9 +10,12 @@ export type HomepageImage = {
   alt: string;
 };
 
+export type GalleryArrangement = "row" | "coverflow" | "grid" | "barrel" | "helix" | "sphere";
+
 export type HomepageSettings = {
   hero: HomepageImage;
-  gallery: [HomepageImage, HomepageImage, HomepageImage, HomepageImage];
+  gallery: HomepageImage[];
+  galleryArrangement: GalleryArrangement;
 };
 
 const defaultHomepageSettings: HomepageSettings = {
@@ -23,6 +26,7 @@ const defaultHomepageSettings: HomepageSettings = {
     { src: "/assets/cookies-cutout.png", alt: "Luna cookies" },
     { src: "/assets/menu-en.jpeg", alt: "Luna baking details" },
   ],
+  galleryArrangement: "coverflow",
 };
 
 function readImage(value: unknown, fallback: HomepageImage): HomepageImage {
@@ -46,11 +50,26 @@ export async function getHomepageSettings(): Promise<HomepageSettings> {
 
   const value = data.value as Record<string, unknown>;
   const gallery = Array.isArray(value.gallery) ? value.gallery : [];
+  const configuredGallery = gallery
+    .map((image, index) =>
+      readImage(
+        image,
+        defaultHomepageSettings.gallery[index] ?? defaultHomepageSettings.gallery[0],
+      ),
+    )
+    .filter((image) => image.src.trim());
+  const galleryArrangement = value.galleryArrangement;
   return {
     hero: readImage(value.hero, defaultHomepageSettings.hero),
-    gallery: [0, 1, 2, 3].map((index) =>
-      readImage(gallery[index], defaultHomepageSettings.gallery[index]),
-    ) as HomepageSettings["gallery"],
+    gallery: configuredGallery.length ? configuredGallery : defaultHomepageSettings.gallery,
+    galleryArrangement:
+      galleryArrangement === "row" ||
+      galleryArrangement === "grid" ||
+      galleryArrangement === "barrel" ||
+      galleryArrangement === "helix" ||
+      galleryArrangement === "sphere"
+        ? galleryArrangement
+        : "coverflow",
   };
 }
 
@@ -62,25 +81,42 @@ export async function saveHomepageMedia(formData: FormData) {
   const supabase = await createClient();
   const service = createServiceClient();
   const current = await getHomepageSettings();
+  const requestedGalleryCount = Math.min(
+    Math.max(Number(formData.get("gallery_count") ?? current.gallery.length), 1),
+    12,
+  );
   const entries = [
-    { fileKey: "hero_file", altKey: "hero_alt", current: current.hero },
-    ...current.gallery.map((image, index) => ({
+    { fileKey: "hero_file", altKey: "hero_alt", current: current.hero, required: true },
+    ...Array.from({ length: requestedGalleryCount }, (_, index) => ({
       fileKey: `gallery_${index}_file`,
       altKey: `gallery_${index}_alt`,
-      current: image,
+      current: current.gallery[index] ?? null,
+      required: false,
     })),
   ];
   const images: HomepageImage[] = [];
+  const galleryArrangement = String(formData.get("gallery_arrangement") ?? "coverflow");
 
   for (const entry of entries) {
-    const alt = String(formData.get(entry.altKey) ?? "").trim();
-    if (!alt || alt.length > 160) {
+    const submittedAlt = String(formData.get(entry.altKey) ?? "").trim();
+    const value = formData.get(entry.fileKey);
+    const file = value instanceof File && value.size > 0 ? value : null;
+    const generatedAlt = file
+      ? file.name
+          .replace(/\.[^.]+$/, "")
+          .replace(/[-_]+/g, " ")
+          .trim()
+      : "";
+    const alt = submittedAlt || entry.current?.alt || generatedAlt;
+    if (entry.required && (!alt || alt.length > 160)) {
+      return { success: false, message: "اكتب وصفًا مختصرًا وصحيحًا لكل صورة." };
+    }
+    if (!entry.required && !entry.current && !file) continue;
+    if (file && (!alt || alt.length > 160)) {
       return { success: false, message: "اكتب وصفًا مختصرًا وصحيحًا لكل صورة." };
     }
 
-    const value = formData.get(entry.fileKey);
-    const file = value instanceof File && value.size > 0 ? value : null;
-    let src = entry.current.src;
+    let src = entry.current?.src ?? "";
     if (file) {
       if (!allowedImageTypes.has(file.type) || file.size > maxImageSize) {
         return { success: false, message: "استخدم PNG أو JPG أو WEBP بحجم أقل من 5 ميجابايت." };
@@ -97,7 +133,15 @@ export async function saveHomepageMedia(formData: FormData) {
 
   const value: HomepageSettings = {
     hero: images[0],
-    gallery: images.slice(1) as HomepageSettings["gallery"],
+    gallery: images.slice(1),
+    galleryArrangement:
+      galleryArrangement === "row" ||
+      galleryArrangement === "grid" ||
+      galleryArrangement === "barrel" ||
+      galleryArrangement === "helix" ||
+      galleryArrangement === "sphere"
+        ? galleryArrangement
+        : "coverflow",
   };
   const { error } = await supabase.from("app_settings").upsert(
     {

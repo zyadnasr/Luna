@@ -14,6 +14,7 @@ export function HomepageMediaForm({ initial }: { initial: HomepageSettings }) {
   const initialImages = [initial.hero, ...initial.gallery];
   const [previews, setPreviews] = useState(initialImages.map((image) => image.src));
   const [alts, setAlts] = useState(initialImages.map((image) => image.alt));
+  const [galleryCount, setGalleryCount] = useState(Math.max(1, initial.gallery.length));
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -31,9 +32,26 @@ export function HomepageMediaForm({ initial }: { initial: HomepageSettings }) {
       <div>
         <h2 className="text-lg font-semibold">{t("صور الصفحة الرئيسية")}</h2>
         <p className="mt-1 text-sm leading-6 text-[var(--color-text-muted)]">
-          {t("ارفع صورة الهيرو وأربع صور للجاليري من جهازك. التعديل متاح للمالك فقط.")}
+          {t("ارفع صورة الهيرو وأضف صور الجاليري من جهازك. التعديل متاح للمالك فقط.")}
         </p>
       </div>
+
+      <input name="gallery_count" type="hidden" value={galleryCount} />
+      <label className="grid max-w-sm gap-2 text-sm font-semibold">
+        {t("ترتيب الجاليري")}
+        <select
+          className="h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background-deep)] px-3 text-sm"
+          defaultValue={initial.galleryArrangement}
+          name="gallery_arrangement"
+        >
+          <option value="coverflow">{t("Coverflow سينمائي")}</option>
+          <option value="row">{t("صف أفقي")}</option>
+          <option value="grid">{t("شبكة")}</option>
+          <option value="barrel">{t("برميل")}</option>
+          <option value="helix">{t("حلزون")}</option>
+          <option value="sphere">{t("دائرة")}</option>
+        </select>
+      </label>
 
       <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
         <MediaField
@@ -52,7 +70,7 @@ export function HomepageMediaForm({ initial }: { initial: HomepageSettings }) {
             setPreviews((current) => current.map((item, index) => (index === 0 ? value : item)))
           }
         />
-        {initial.gallery.map((_, index) => {
+        {Array.from({ length: galleryCount }, (_, index) => {
           const itemIndex = index + 1;
           return (
             <MediaField
@@ -60,11 +78,11 @@ export function HomepageMediaForm({ initial }: { initial: HomepageSettings }) {
               label={`${t("صورة الجاليري")} ${index + 1}`}
               fileName={`gallery_${index}_file`}
               altName={`gallery_${index}_alt`}
-              alt={alts[itemIndex]}
+              alt={alts[itemIndex] ?? ""}
               chooseLabel={t("اختيار صورة")}
               altLabel={t("النص البديل")}
               fileHelp={t("PNG أو JPG أو WEBP · بحد أقصى 5 ميجابايت")}
-              preview={previews[itemIndex]}
+              preview={previews[itemIndex] ?? ""}
               onAltChange={(value) =>
                 setAlts((current) =>
                   current.map((item, currentIndex) => (currentIndex === itemIndex ? value : item)),
@@ -79,6 +97,21 @@ export function HomepageMediaForm({ initial }: { initial: HomepageSettings }) {
           );
         })}
       </div>
+
+      {galleryCount < 12 ? (
+        <Button
+          className="justify-self-start"
+          onClick={() => {
+            setGalleryCount((count) => count + 1);
+            setPreviews((current) => [...current, ""]);
+            setAlts((current) => [...current, ""]);
+          }}
+          type="button"
+          variant="secondary"
+        >
+          {t("إضافة صورة للجاليري")}
+        </Button>
+      ) : null}
 
       {message ? (
         <p className="mt-4 text-sm" role="status">
@@ -120,14 +153,20 @@ function MediaField({
       <legend className="px-1 text-sm font-semibold">{label}</legend>
       <div className="grid min-w-0 gap-3">
         <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-sm)] bg-[var(--color-background-deep)]">
-          <Image
-            src={preview}
-            alt={alt || label}
-            fill
-            unoptimized
-            sizes="112px"
-            className="object-cover"
-          />
+          {preview ? (
+            <Image
+              src={preview}
+              alt={alt || label}
+              fill
+              unoptimized
+              sizes="112px"
+              className="object-cover"
+            />
+          ) : (
+            <div className="grid size-full place-items-center p-4 text-center text-xs text-[var(--color-text-muted)]">
+              {chooseLabel}
+            </div>
+          )}
         </div>
         <div className="grid content-start gap-3">
           <label className="grid gap-1 text-xs font-semibold text-[var(--color-text-muted)]">

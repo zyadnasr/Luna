@@ -13,6 +13,10 @@
 * {
   box-sizing: border-box;
 }
+html,
+body {
+  overflow-x: hidden;
+}
 html {
   scroll-behavior: smooth;
 }
@@ -52,7 +56,7 @@ body::before {
   -webkit-backdrop-filter: blur(32px) saturate(175%);
   backdrop-filter: blur(32px) saturate(175%);
   isolation: isolate;
-  overflow: hidden;
+  overflow: clip;
 }
 .catalog-product-row {
   animation: catalog-product-row-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -63,6 +67,146 @@ body::before {
 }
 .luna-gallery-scroll::-webkit-scrollbar {
   display: none;
+}
+.luna-gallery-coverflow {
+  position: relative;
+  isolation: isolate;
+  min-height: 23rem;
+  margin-inline: calc(50% - 50vw);
+  overflow: hidden;
+  perspective: 90rem;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none;
+}
+.luna-gallery-coverflow::before {
+  position: absolute;
+  inset: 12% 18% 10%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-brand-primary) 18%, transparent),
+    transparent 68%
+  );
+  content: "";
+  filter: blur(1.5rem);
+}
+.luna-gallery-coverflow__track {
+  position: relative;
+  min-height: 20rem;
+  transform-style: preserve-3d;
+}
+.luna-gallery-coverflow__card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(12rem, 56vw, 18rem);
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  border-radius: 1.5rem;
+  background: var(--color-surface);
+  box-shadow:
+    0 1.5rem 3.5rem rgba(25, 24, 18, 0.34),
+    inset 0 1px 0 var(--glass-highlight);
+  cursor: grab;
+  transform-origin: center;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  transition:
+    transform 650ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 450ms ease,
+    filter 450ms ease;
+  will-change: transform, opacity;
+}
+.luna-gallery-coverflow__card img {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+.luna-gallery-coverflow__card:active {
+  cursor: grabbing;
+}
+.luna-gallery-coverflow__card::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.16),
+    transparent 36%,
+    rgba(25, 24, 18, 0.25)
+  );
+  content: "";
+  pointer-events: none;
+}
+.luna-gallery-coverflow__card.is-active {
+  box-shadow:
+    0 2rem 4rem rgba(25, 24, 18, 0.42),
+    inset 0 1px 0 var(--glass-highlight);
+}
+.luna-gallery-coverflow__controls {
+  position: absolute;
+  bottom: 1.25rem;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-glass);
+  box-shadow: var(--shadow-card);
+  color: var(--color-text-secondary);
+  transform: translateX(-50%);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+.luna-gallery-coverflow__controls button {
+  display: grid;
+  width: 0.42rem;
+  height: 0.42rem;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-text-primary) 42%, transparent);
+  transition:
+    background-color 220ms ease,
+    transform 220ms ease,
+    width 220ms ease;
+}
+.luna-gallery-coverflow__controls button:hover {
+  background: var(--color-text-primary);
+  transform: scale(1.05);
+}
+.luna-gallery-coverflow__controls button.is-active {
+  width: 1.15rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-text-primary);
+}
+@media (min-width: 640px) {
+  .luna-gallery-coverflow {
+    min-height: 31rem;
+  }
+  .luna-gallery-coverflow__track {
+    min-height: 28rem;
+  }
+  .luna-gallery-coverflow__card {
+    width: clamp(13rem, 27vw, 20rem);
+    border-radius: 1.75rem;
+  }
+}
+@media (min-width: 1024px) {
+  .luna-gallery-coverflow {
+    min-height: 38rem;
+  }
+  .luna-gallery-coverflow__track {
+    min-height: 35rem;
+  }
+  .luna-gallery-coverflow__card {
+    width: clamp(14rem, 20vw, 22rem);
+  }
 }
 .luna-menu-card {
   position: relative;

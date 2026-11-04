@@ -7,7 +7,9 @@ import { createServiceClient } from "@/lib/supabase/service";
 export async function createCoupon(formData: FormData) {
   const user = await requireRole("owner");
   const writer = createServiceClient();
-  const code = String(formData.get("code") ?? "").trim().toUpperCase();
+  const code = String(formData.get("code") ?? "")
+    .trim()
+    .toUpperCase();
   const name = String(formData.get("name") ?? "").trim();
   const discountPercent = Number(formData.get("discount_percent") ?? 0);
   const maxUsesRaw = String(formData.get("max_uses") ?? "").trim();
@@ -28,7 +30,9 @@ export async function createCoupon(formData: FormData) {
     .single();
   if (error || !coupon) return;
   if (productIds.length)
-    await writer.from("coupon_products").insert(productIds.map((product_id) => ({ coupon_id: coupon.id, product_id })));
+    await writer
+      .from("coupon_products")
+      .insert(productIds.map((product_id) => ({ coupon_id: coupon.id, product_id })));
   await writer.from("audit_logs").insert({
     actor_user_id: user.id,
     action: "coupon.created",

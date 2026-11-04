@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { PageContainer } from "@/components/ui/page-container";
 import { useLocale } from "@/components/ui/locale-provider";
+import { GalleryArrangementSwitcher } from "@/components/home/gallery-arrangement-switcher";
 import type { HomepageSettings } from "@/lib/site/homepage";
 
 const copy = {
@@ -136,23 +137,11 @@ export function HomePage({ media }: { media: HomepageSettings }) {
             {t.galleryBody}
           </p>
         </div>
-        <div className="luna-gallery-scroll -mx-5 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-4 sm:-mx-8 sm:px-8 md:mx-0 md:mt-10 md:grid md:grid-cols-4 md:items-start md:gap-5 md:overflow-visible md:px-0 md:pb-0">
-          {media.gallery.map((image, index) => (
-            <figure
-              className={`group relative h-80 w-64 shrink-0 snap-center overflow-hidden rounded-[1.5rem] border border-[var(--glass-border)] bg-[var(--color-background-deep)] shadow-[var(--shadow-card)] sm:h-96 sm:w-72 sm:rounded-[2rem] md:h-72 md:w-auto md:shrink md:snap-none ${index % 2 ? "md:translate-y-8" : ""}`}
-              key={`${image.src}-${index}`}
-            >
-              <Image
-                src={image.src}
-                alt={image.alt}
-                fill
-                unoptimized
-                sizes="(max-width: 640px) 50vw, 25vw"
-                className="object-cover transition duration-700 group-hover:scale-105"
-              />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[rgba(25,24,18,0.16)] to-transparent opacity-0 transition group-hover:opacity-100" />
-            </figure>
-          ))}
+        <div className="mt-8 sm:mt-10">
+          <GalleryArrangementSwitcher
+            images={media.gallery}
+            arrangement={media.galleryArrangement}
+          />
         </div>
       </section>
 
