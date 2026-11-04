@@ -197,6 +197,15 @@ async function createPublicOrderInternal(input: OrderInput): Promise<OrderResult
       line_total_egp: line,
     });
   }
+  const { data: minimumOrderSetting } = await writer
+    .from("app_settings")
+    .select("value")
+    .eq("key", "minimum_order_egp")
+    .eq("is_public", true)
+    .maybeSingle();
+  const minimumOrder = Number(minimumOrderSetting?.value ?? 90);
+  if (Number.isFinite(minimumOrder) && subtotal < minimumOrder)
+    return fail(`الحد الأدنى للطلب هو ${minimumOrder} ج.م.`, "minimumOrderNotMet");
   let deliveryFee = 0;
   if (input.context.type === "delivery") {
     const { data: zone } = await supabase

@@ -5,7 +5,13 @@ import { useCart } from "./cart-provider";
 import { useLocale } from "@/components/ui/locale-provider";
 import { getPublicCopy, localizePriceLabel } from "@/i18n/public";
 
-export function CheckoutSummary({ deliveryFee }: { deliveryFee: number | null }) {
+export function CheckoutSummary({
+  deliveryFee,
+  minimumOrderEgp,
+}: {
+  deliveryFee: number | null;
+  minimumOrderEgp: number;
+}) {
   const { items, setQuantity, remove, clear } = useCart();
   const { locale } = useLocale();
   const t = getPublicCopy(locale);
@@ -90,6 +96,9 @@ export function CheckoutSummary({ deliveryFee }: { deliveryFee: number | null })
                   {subtotal.toLocaleString(numberLocale)} {t.egp}
                 </span>
               </div>
+              <p className="text-xs text-[var(--color-text-muted)]">
+                {t.minimumOrder}: {minimumOrderEgp.toLocaleString(numberLocale)} {t.egp}
+              </p>
               <div className="flex items-center justify-between text-[var(--color-text-muted)]">
                 <span>{t.deliveryFee}</span>
                 <span>

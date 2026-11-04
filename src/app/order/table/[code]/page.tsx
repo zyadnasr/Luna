@@ -5,9 +5,13 @@ import { PageContainer } from "@/components/ui/page-container";
 import { MenuOrderControls } from "@/components/orders/menu-order-controls";
 import { CheckoutForm } from "@/components/orders/checkout-form";
 import { CartDrawer } from "@/components/orders/cart-drawer";
+import { getServerLocale } from "@/i18n/server";
+import { getPublicCopy } from "@/i18n/public";
 export const dynamic = "force-dynamic";
 export default async function TableOrderPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
+  const locale = await getServerLocale();
+  const t = getPublicCopy(locale);
   const supabase = await createClient();
   const { data: rawQr } = await supabase
     .from("qr_codes")
@@ -59,7 +63,17 @@ export default async function TableOrderPage({ params }: { params: Promise<{ cod
                         className="luna-product-card luna-menu-card luna-glass min-w-0 rounded-[1.15rem] border p-3 sm:rounded-[1.25rem] sm:p-4"
                         key={product.id}
                       >
-                        <div className="luna-product-card__media" aria-hidden="true" />
+                        <div className="luna-product-card__media relative" aria-hidden="true">
+                          {prices.some(
+                            (price) =>
+                              price.compare_at_price_egp &&
+                              price.compare_at_price_egp > price.price_egp,
+                          ) ? (
+                            <span className="absolute end-3 top-3 rounded-full bg-[#b86f6a] px-2.5 py-1 text-[10px] font-bold text-white shadow-sm">
+                              {t.discountBadge}
+                            </span>
+                          ) : null}
+                        </div>
                         <div className="luna-product-card__content">
                           <h3 className="line-clamp-3 text-base font-semibold leading-6 sm:text-xl sm:leading-7">
                             {translation?.name}

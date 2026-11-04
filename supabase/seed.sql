@@ -44,6 +44,8 @@ values
   ('business_open_time', 'null'::jsonb, 'Reserved for a future configured opening time.', false),
   ('business_close_time', 'null'::jsonb, 'Reserved for a future configured closing time.', false),
   ('default_delivery_fee', 'null'::jsonb, 'Reserved for a future configured delivery fee.', false),
+  ('minimum_order_egp', '90'::jsonb, 'Minimum subtotal required for public orders.', true),
+  ('available_payment_methods', '["cash", "visa", "mastercard"]'::jsonb, 'Payment methods advertised by the business.', true),
   ('instapay_display_number', 'null'::jsonb, 'Reserved; no real payment identifier is stored.', false),
   ('expiry_alert_days', 'null'::jsonb, 'Reserved for future inventory configuration.', false)
 on conflict (key) do nothing;

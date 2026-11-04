@@ -55,6 +55,7 @@ export type OrderErrorCode =
   | "insufficientStock"
   | "zoneUnavailable"
   | "invalidCoupon"
+  | "minimumOrderNotMet"
   | "createOrderFailed"
   | "uploadProofFailed"
   | "saveOrderItemsFailed";
@@ -73,6 +74,7 @@ export type OrderProductReference = {
     id: string;
     label: string | null;
     price_egp: number;
+    compare_at_price_egp?: number | null;
     is_active: boolean;
     valid_until: string | null;
   }>;

@@ -68,6 +68,7 @@ export type ProductPrice = Timestamped & {
   id: string;
   product_id: string;
   price_egp: number;
+  compare_at_price_egp?: number | null;
   label: string | null;
   is_active: boolean;
   valid_from: string;

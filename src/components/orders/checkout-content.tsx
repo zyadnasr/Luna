@@ -14,7 +14,13 @@ type DeliveryZone = {
   delivery_fee_egp: number;
 };
 
-export function CheckoutContent({ zones }: { zones: DeliveryZone[] }) {
+export function CheckoutContent({
+  zones,
+  minimumOrderEgp,
+}: {
+  zones: DeliveryZone[];
+  minimumOrderEgp: number;
+}) {
   const [deliveryFee, setDeliveryFee] = useState<number | null>(null);
   const { locale } = useLocale();
   const t = getPublicCopy(locale);
@@ -27,13 +33,14 @@ export function CheckoutContent({ zones }: { zones: DeliveryZone[] }) {
         <p className="mt-4 text-[var(--color-text-muted)]">{t.recheck}</p>
       </header>
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-start">
-        <CheckoutSummary deliveryFee={deliveryFee} />
+        <CheckoutSummary deliveryFee={deliveryFee} minimumOrderEgp={minimumOrderEgp} />
         <section className="rounded-[1.5rem] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)] sm:p-7">
           <h2 className="text-xl font-semibold">{t.deliveryData}</h2>
           <div className="mt-5">
             <CheckoutForm
               zones={zones}
               context={{ type: "delivery" }}
+              minimumOrderEgp={minimumOrderEgp}
               onDeliveryFeeChange={setDeliveryFee}
             />
           </div>

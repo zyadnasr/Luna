@@ -23,6 +23,13 @@ export async function saveProduct(form: ProductFormData): Promise<ActionResult> 
     if (Number(price.price_egp) <= 0)
       return { success: false, message: "يجب أن يكون السعر أكبر من صفر." };
     if (
+      price.compare_at_price_egp !== null &&
+      price.compare_at_price_egp !== undefined &&
+      price.compare_at_price_egp !== "" &&
+      Number(price.compare_at_price_egp) < Number(price.price_egp)
+    )
+      return { success: false, message: "السعر الأصلي لا يمكن أن يكون أقل من سعر البيع." };
+    if (
       price.valid_until &&
       price.valid_from &&
       new Date(price.valid_until) < new Date(price.valid_from)
@@ -70,6 +77,12 @@ export async function saveProduct(form: ProductFormData): Promise<ActionResult> 
       product_id: productId,
       label: price.label.trim() || null,
       price_egp: Number(price.price_egp),
+      compare_at_price_egp:
+        price.compare_at_price_egp === null ||
+        price.compare_at_price_egp === undefined ||
+        price.compare_at_price_egp === ""
+          ? null
+          : Number(price.compare_at_price_egp),
       is_active: price.is_active,
       valid_from: price.valid_from || new Date().toISOString(),
       valid_until: price.valid_until || null,
@@ -83,19 +96,6 @@ export async function saveProduct(form: ProductFormData): Promise<ActionResult> 
       entity_type: "product_price",
       entity_id: productId,
       metadata: { count: priceRows.length },
-    });
-  }
-  await supabase.from("nutrition_facts").delete().eq("product_id", productId);
-  const nutrition = form.nutrition;
-  const hasNutrition = Object.values(nutrition).some((value) => value !== null && value !== "");
-  if (hasNutrition) {
-    await supabase.from("nutrition_facts").insert({ ...nutrition, product_id: productId });
-    await supabase.from("audit_logs").insert({
-      actor_user_id: user.id,
-      action: "nutrition.updated",
-      entity_type: "nutrition_facts",
-      entity_id: productId,
-      metadata: {},
     });
   }
   await supabase.from("audit_logs").insert({

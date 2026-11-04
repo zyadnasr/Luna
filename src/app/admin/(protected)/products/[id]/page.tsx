@@ -3,7 +3,6 @@ import { requirePermission } from "@/lib/auth/server";
 import { getCategories, getProduct } from "@/lib/catalog/queries";
 import { ProductForm } from "@/components/catalog/product-form";
 import { getServerLocale } from "@/i18n/server";
-import { translateAdminText } from "@/i18n/admin-text";
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   await requirePermission("catalog.manage");
@@ -11,23 +10,9 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   const [product, categories] = await Promise.all([getProduct(id), getCategories(true)]);
   if (!product) notFound();
   const locale = await getServerLocale();
-  const t = (value: string) => translateAdminText(locale, value);
   const nutrition = product.nutrition_facts;
   return (
     <section>
-      <div className="mb-8 border-b border-[var(--color-border)] pb-8">
-        <p className="text-sm font-semibold text-[var(--color-brand-primary)]">{t("المنتجات")}</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight">
-          {locale === "ar"
-            ? "تعديل المنتج"
-            : locale === "it"
-              ? "Modifica prodotto"
-              : "Edit product"}
-        </h1>
-        <p className="mt-4 text-[var(--color-text-muted)]">
-          {t("حدّث المعلومات من المصدر، ولا تعتمد على بيانات غير مؤكدة.")}
-        </p>
-      </div>
       <ProductForm
         categories={categories.map((category) => ({
           id: category.id,
@@ -46,6 +31,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
             id: price.id,
             label: price.label ?? "",
             price_egp: price.price_egp,
+            compare_at_price_egp: price.compare_at_price_egp ?? "",
             is_active: price.is_active,
             valid_from: price.valid_from.slice(0, 16),
             valid_until: price.valid_until?.slice(0, 16) ?? "",
@@ -80,6 +66,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
                 notes: "",
               },
         }}
+        productMeta={{ createdAt: product.created_at, updatedAt: product.updated_at }}
       />
     </section>
   );

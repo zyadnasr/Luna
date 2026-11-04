@@ -86,7 +86,17 @@ export default async function MenuPage() {
                       className="luna-product-card luna-menu-card luna-glass min-w-0 rounded-[1.15rem] border p-3 transition hover:-translate-y-0.5 sm:rounded-[1.25rem] sm:p-4"
                       key={product.id}
                     >
-                      <div className="luna-product-card__media" aria-hidden="true" />
+                      <div className="luna-product-card__media relative" aria-hidden="true">
+                        {productPrices.some(
+                          (price) =>
+                            price.compare_at_price_egp &&
+                            price.compare_at_price_egp > price.price_egp,
+                        ) ? (
+                          <span className="absolute end-3 top-3 rounded-full bg-[#b86f6a] px-2.5 py-1 text-[10px] font-bold text-white shadow-sm">
+                            {t.discountBadge}
+                          </span>
+                        ) : null}
+                      </div>
                       <div className="luna-product-card__content">
                         <div className="flex items-start justify-between gap-2">
                           <h3 className="line-clamp-3 min-w-0 text-base font-semibold leading-6 sm:text-xl sm:leading-7">
@@ -114,11 +124,22 @@ export default async function MenuPage() {
                                   <span className="min-w-0 truncate text-[var(--color-text-muted)]">
                                     {localizePriceLabel(price.label, locale) || t.price}
                                   </span>
-                                  <span className="shrink-0 font-semibold tabular-nums">
-                                    {price.price_egp.toLocaleString(
-                                      locale === "ar" ? "ar-EG" : "en-EG",
-                                    )}{" "}
-                                    {t.egp}
+                                  <span className="flex shrink-0 items-baseline gap-2 font-semibold tabular-nums">
+                                    {price.compare_at_price_egp &&
+                                    price.compare_at_price_egp > price.price_egp ? (
+                                      <span className="text-[var(--color-text-muted)] line-through">
+                                        {price.compare_at_price_egp.toLocaleString(
+                                          locale === "ar" ? "ar-EG" : "en-EG",
+                                        )}{" "}
+                                        {t.egp}
+                                      </span>
+                                    ) : null}
+                                    <span>
+                                      {price.price_egp.toLocaleString(
+                                        locale === "ar" ? "ar-EG" : "en-EG",
+                                      )}{" "}
+                                      {t.egp}
+                                    </span>
                                   </span>
                                 </div>
                               ))}

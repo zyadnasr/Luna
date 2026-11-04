@@ -70,6 +70,7 @@ export type ProductFormData = {
     id?: string;
     label: string;
     price_egp: number | string;
+    compare_at_price_egp?: number | string | null;
     is_active: boolean;
     valid_from: string;
     valid_until: string;

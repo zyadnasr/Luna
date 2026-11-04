@@ -26,6 +26,7 @@ const customerStorageTtlMs = 30 * 24 * 60 * 60 * 1000;
 export function CheckoutForm({
   zones,
   context,
+  minimumOrderEgp,
   onDeliveryFeeChange,
 }: {
   zones: Array<{
@@ -36,12 +37,14 @@ export function CheckoutForm({
     delivery_fee_egp: number;
   }>;
   context: OrderContext;
+  minimumOrderEgp?: number;
   onDeliveryFeeChange?: (fee: number | null) => void;
 }) {
   const router = useRouter();
   const { locale } = useLocale();
   const t = getPublicCopy(locale);
   const { items, clear } = useCart();
+  const minimumOrder = minimumOrderEgp ?? 90;
   const [data, setData] = useState({
     name: "",
     phone: "",
@@ -160,6 +163,7 @@ export function CheckoutForm({
           insufficientStock: t.stockUnavailable,
           zoneUnavailable: t.unavailableDelivery,
           invalidCoupon: t.couponInvalid,
+          minimumOrderNotMet: `${t.minimumOrder}: ${minimumOrder.toLocaleString(locale === "ar" ? "ar-EG" : "en-EG")} ${t.egp}`,
           createOrderFailed: t.submitError,
           uploadProofFailed: t.submitError,
           saveOrderItemsFailed: t.submitError,
@@ -410,8 +414,8 @@ export function CheckoutForm({
             onChange={() => setData({ ...data, payment: "card" })}
           />{" "}
           <span>
-            <span>{t.visa}</span>
-            <span className="ms-2 block text-xs font-normal">({t.visaComingSoon})</span>
+            <span>{t.visa} / Mastercard</span>
+            <span className="ms-2 block text-xs font-normal">({t.cardPaymentsComingSoon})</span>
           </span>
         </label>
       </fieldset>
