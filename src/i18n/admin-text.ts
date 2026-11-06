@@ -53,6 +53,9 @@ const copy = {
     "تعذر قراءة الأسعار الحالية.": "Unable to read the current prices.",
     "تعذر حفظ الأسعار.": "Unable to save prices.",
     "تعذر حفظ المنتج. حاول مرة أخرى.": "Unable to save the product. Please try again.",
+    "حجم كل صورة يجب ألا يتجاوز 5 ميجابايت.": "Each image must be 5 MB or smaller.",
+    "إجمالي حجم الصور كبير جدًا. ارفع صورًا أقل أو صورًا مضغوطة، بحد أقصى 3.75 ميجابايت في المرة الواحدة.":
+      "The combined image upload is too large. Upload fewer or compressed images, up to 3.75 MB at a time.",
     website: "Website",
     qr_table: "Table QR",
     talabat: "Talabat",
@@ -470,6 +473,9 @@ const copy = {
     "تعذر قراءة الأسعار الحالية.": "Impossibile leggere i prezzi attuali.",
     "تعذر حفظ الأسعار.": "Impossibile salvare i prezzi.",
     "تعذر حفظ المنتج. حاول مرة أخرى.": "Impossibile salvare il prodotto. Riprova.",
+    "حجم كل صورة يجب ألا يتجاوز 5 ميجابايت.": "Ogni immagine deve essere di massimo 5 MB.",
+    "إجمالي حجم الصور كبير جدًا. ارفع صورًا أقل أو صورًا مضغوطة، بحد أقصى 3.75 ميجابايت في المرة الواحدة.":
+      "Il caricamento complessivo è troppo grande. Carica meno immagini o immagini compresse, fino a 3,75 MB alla volta.",
     website: "Sito",
     qr_table: "QR tavolo",
     talabat: "Talabat",

@@ -8,6 +8,9 @@ import { useLocale } from "@/components/ui/locale-provider";
 import { translateAdminText } from "@/i18n/admin-text";
 import { saveHomepageMedia, type HomepageSettings } from "@/lib/site/homepage";
 
+const maxClientUploadSize = 3.75 * 1024 * 1024;
+const maxClientFileSize = 5 * 1024 * 1024;
+
 export function HomepageMediaForm({ initial }: { initial: HomepageSettings }) {
   const { locale } = useLocale();
   const t = (value: string) => translateAdminText(locale, value);
@@ -16,14 +19,39 @@ export function HomepageMediaForm({ initial }: { initial: HomepageSettings }) {
   const [alts, setAlts] = useState(initialImages.map((image) => image.alt));
   const [galleryCount, setGalleryCount] = useState(Math.max(1, initial.gallery.length));
   const [message, setMessage] = useState("");
+  const [uploadError, setUploadError] = useState("");
   const [saving, setSaving] = useState(false);
 
   return (
     <form
       encType="multipart/form-data"
       className="grid gap-5"
+      onSubmit={(event) => {
+        const files = Array.from(new FormData(event.currentTarget).values()).filter(
+          (value): value is File => value instanceof File && value.size > 0,
+        );
+        const oversizedFile = files.find((file) => file.size > maxClientFileSize);
+        const totalSize = files.reduce((total, file) => total + file.size, 0);
+
+        if (oversizedFile) {
+          event.preventDefault();
+          setUploadError(t("حجم كل صورة يجب ألا يتجاوز 5 ميجابايت."));
+          return;
+        }
+
+        if (totalSize > maxClientUploadSize) {
+          event.preventDefault();
+          setUploadError(
+            t("إجمالي حجم الصور كبير جدًا. ارفع صورًا أقل أو صورًا مضغوطة، بحد أقصى 3.75 ميجابايت في المرة الواحدة."),
+          );
+          return;
+        }
+
+        setUploadError("");
+      }}
       action={async (formData) => {
         setSaving(true);
+        setUploadError("");
         const result = await saveHomepageMedia(formData);
         setMessage(t(result.message));
         setSaving(false);
@@ -116,6 +144,11 @@ export function HomepageMediaForm({ initial }: { initial: HomepageSettings }) {
       {message ? (
         <p className="mt-4 text-sm" role="status">
           {message}
+        </p>
+      ) : null}
+      {uploadError ? (
+        <p className="mt-4 text-sm text-red-300" role="alert">
+          {uploadError}
         </p>
       ) : null}
       <Button className="mt-5 self-start" type="submit" disabled={saving}>
