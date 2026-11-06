@@ -7,8 +7,15 @@ import { MenuOrderControls } from "@/components/orders/menu-order-controls";
 import { getServerLocale } from "@/i18n/server";
 import { getPublicCopy, localizePriceLabel } from "@/i18n/public";
 import { getProductAvailability } from "@/lib/inventory/availability";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Menu | Healthy Cookies & Desserts",
+  description:
+    "Browse Luna Healthy's menu of cookies, biscuits and healthy desserts. Order for delivery across Cairo.",
+  alternates: { canonical: "/menu" },
+};
 
 export default async function MenuPage() {
   const [{ products }, categories, locale] = await Promise.all([
