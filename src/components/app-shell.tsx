@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Footer } from "./footer";
 import { PublicHeader } from "./public-header";
-import { PublicBottomNav } from "./public-bottom-nav";
 import { AnnouncementBar } from "./announcement-bar";
 import { getAnnouncementSettings } from "@/lib/site/announcement";
 
@@ -14,10 +13,9 @@ export async function AppShell({ children }: { children: ReactNode }) {
       </a>
       <AnnouncementBar settings={announcement} />
       <PublicHeader />
-      <main id="main-content" className="flex-1 pb-[var(--public-bottom-nav-space)] md:pb-0">
+      <main id="main-content" className="flex-1">
         {children}
       </main>
-      <PublicBottomNav />
       <Footer />
     </div>
   );

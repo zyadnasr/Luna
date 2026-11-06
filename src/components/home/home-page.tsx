@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { PageContainer } from "@/components/ui/page-container";
 import { useLocale } from "@/components/ui/locale-provider";
 import { GalleryArrangementSwitcher } from "@/components/home/gallery-arrangement-switcher";
+import { ScrollExpandHero } from "@/components/home/scroll-expand-hero";
 import type { HomepageSettings } from "@/lib/site/homepage";
 
 const copy = {
@@ -15,6 +15,7 @@ const copy = {
     description: "كوكيز صحية تُحضّر بعناية. اطلبها من المنيو أو دعنا نوصلها إليك داخل القاهرة.",
     browse: "تصفح المنيو",
     story: "اكتشف قصتنا",
+    scrollHint: "مرر لاستكشاف المزيد",
     galleryLabel: "من مطبخ Luna",
     galleryTitle: "تفاصيل صغيرة، مزاج أهدأ.",
     galleryBody: "لقطات من تشكيلتنا اليومية، جاهزة تختار منها اللي يناسب يومك.",
@@ -35,6 +36,7 @@ const copy = {
       "Carefully made healthy cookies. Order from the menu or let us deliver across Cairo.",
     browse: "Browse menu",
     story: "Our story",
+    scrollHint: "Scroll to explore",
     galleryLabel: "Inside Luna",
     galleryTitle: "Small details, calmer moods.",
     galleryBody: "A few glimpses from our daily collection, ready for your kind of day.",
@@ -55,6 +57,7 @@ const copy = {
       "Biscotti sani preparati con cura. Ordina dal menu o lasciaci consegnare al Cairo.",
     browse: "Apri il menu",
     story: "La nostra storia",
+    scrollHint: "Scorri per esplorare",
     galleryLabel: "Dentro Luna",
     galleryTitle: "Piccoli dettagli, giornate più leggere.",
     galleryBody: "Uno sguardo alla nostra collezione quotidiana, pronta per la tua giornata.",
@@ -74,53 +77,49 @@ export function HomePage({ media }: { media: HomepageSettings }) {
   const t = copy[locale];
 
   return (
-    <PageContainer className="max-w-7xl !px-5 sm:!px-8">
-      <section className="grid items-center gap-6 py-4 sm:gap-8 sm:py-14 md:gap-16 md:py-20 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="order-2 max-w-xl lg:order-1 lg:pe-8">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-brand-primary)]">
-            {t.eyebrow}
-          </p>
-          <h1 className="mt-4 max-w-2xl font-serif text-[clamp(2.55rem,11vw,5.5rem)] font-semibold leading-[1.02] tracking-[-0.045em] sm:mt-5 sm:text-[clamp(2.8rem,7vw,5.5rem)] sm:leading-[0.98] sm:tracking-[-0.06em]">
-            {t.title}
-            <br />
-            <span className="font-serif font-semibold italic text-[var(--color-brand-primary)]">
-              {t.titleAccent}
-            </span>
-          </h1>
-          <p className="mt-5 max-w-[20rem] pe-4 text-[0.95rem] font-medium leading-7 text-[var(--color-text-secondary)] sm:mt-7 sm:max-w-md sm:pe-0 sm:text-lg sm:leading-8">
-            {t.description}
-          </p>
-          <div className="mt-7 flex flex-wrap items-center gap-3 sm:mt-8">
-            <Link
-              href="/menu"
-              className="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-pill)] bg-[var(--color-brand-secondary)] px-7 text-sm font-semibold text-[var(--color-on-brand)] shadow-[var(--shadow-soft)] transition duration-200 hover:-translate-y-0.5 hover:bg-[var(--color-brand-primary-deep)]"
-            >
-              {t.browse}
-            </Link>
-            <Link
-              href="https://wa.me/201551612195"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-pill)] border border-[var(--color-border-strong)] bg-[var(--color-surface-glass)] px-7 text-sm font-semibold text-[var(--color-text-secondary)] transition duration-200 hover:-translate-y-0.5 hover:border-[var(--color-brand-primary)]"
-            >
-              {t.story}
-            </Link>
+    <PageContainer className="max-w-7xl !px-5 !pt-0 !pb-0 sm:!px-8">
+      <section className="py-0 sm:py-4">
+        <ScrollExpandHero
+          src={media.hero.src}
+          alt={media.hero.alt}
+          scrollHint={t.scrollHint}
+          title={
+            <div className="max-w-4xl text-center">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/75">
+                {t.eyebrow}
+              </p>
+              <h1 className="mt-4 font-serif text-[clamp(2.55rem,10vw,6.5rem)] font-semibold leading-[0.98] tracking-[-0.045em] text-white drop-shadow-[0_0.2rem_1.5rem_rgba(0,0,0,0.35)]">
+                {t.title}
+                <br />
+                <span className="font-serif font-semibold italic text-[var(--color-brand-primary)]">
+                  {t.titleAccent}
+                </span>
+              </h1>
+            </div>
+          }
+        >
+          <div className="max-w-3xl text-center">
+            <p className="mx-auto mt-5 max-w-xl text-[0.95rem] font-medium leading-7 text-white/80 sm:text-lg sm:leading-8">
+              {t.description}
+            </p>
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-3 sm:mt-8">
+              <Link
+                href="/menu"
+                className="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-pill)] bg-[var(--color-brand-secondary)] px-7 text-sm font-semibold text-[var(--color-on-brand)] shadow-[var(--shadow-soft)] transition duration-200 hover:-translate-y-0.5 hover:bg-[var(--color-brand-primary-deep)]"
+              >
+                {t.browse}
+              </Link>
+              <Link
+                href="https://wa.me/201551612195"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-pill)] border border-white/45 bg-black/15 px-7 text-sm font-semibold text-white backdrop-blur-sm transition duration-200 hover:-translate-y-0.5 hover:border-white"
+              >
+                {t.story}
+              </Link>
+            </div>
           </div>
-        </div>
-        <div className="relative order-1 lg:order-2">
-          <div className="relative aspect-[4/3] max-h-[22rem] overflow-hidden rounded-[1.75rem] border border-[var(--glass-border)] bg-[var(--color-surface)] shadow-[var(--shadow-elevated)] sm:aspect-auto sm:h-[38rem] sm:max-h-none sm:rounded-[2.5rem]">
-            <Image
-              src={media.hero.src}
-              alt={media.hero.alt}
-              fill
-              priority
-              unoptimized
-              sizes="(max-width: 1024px) 100vw, 55vw"
-              className="object-cover transition duration-700 hover:scale-105"
-            />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[rgba(25,24,18,0.24)] to-transparent" />
-          </div>
-        </div>
+        </ScrollExpandHero>
       </section>
 
       <section className="border-t border-[var(--color-border)] py-16 sm:py-24">

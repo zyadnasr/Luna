@@ -60,7 +60,6 @@
   --breakpoint-xl: 1280px;
   --motion-fast: 180ms;
   --motion-standard: 260ms;
-  --public-bottom-nav-space: calc(6.25rem + env(safe-area-inset-bottom));
 }
 
 :root.dark {

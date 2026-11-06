@@ -14,7 +14,10 @@ export function AnnouncementBar({ settings }: { settings: AnnouncementSettings }
   if (!message) return null;
 
   return (
-    <div className="relative z-50 flex min-h-10 items-center justify-center bg-[var(--announcement-bg)] px-12 py-2 text-center text-xs font-semibold text-[var(--announcement-text)] sm:text-sm">
+    <div
+      data-announcement-bar="true"
+      className="relative z-50 flex min-h-10 items-center justify-center bg-[var(--announcement-bg)] px-12 py-2 text-center text-xs font-semibold text-[var(--announcement-text)] sm:text-sm"
+    >
       <p>{message}</p>
       <button
         type="button"

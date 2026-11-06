@@ -15,7 +15,9 @@
 }
 html,
 body {
-  overflow-x: hidden;
+  /* `hidden` creates an overflow container in Chromium, which prevents the
+     sticky hero stage from remaining attached to the document viewport. */
+  overflow-x: clip;
 }
 html {
   scroll-behavior: smooth;
@@ -57,6 +59,130 @@ body::before {
   backdrop-filter: blur(32px) saturate(175%);
   isolation: isolate;
   overflow: clip;
+}
+.public-header {
+  position: fixed;
+  inset-inline: 0;
+  top: var(--public-header-offset, 0px);
+  border-color: var(--glass-border);
+  transition:
+    top 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    inset-inline 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-radius 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 700ms ease;
+}
+.public-header--resting {
+  border-inline-color: transparent;
+  border-top-color: transparent;
+  border-bottom-color: var(--color-border);
+  border-radius: 0;
+}
+.public-header--scrolled {
+  top: clamp(1rem, 2.6vw, 1.5rem);
+  inset-inline: clamp(0.5rem, 1.8vw, 1.75rem);
+  border-radius: 1.5rem;
+  box-shadow:
+    0 1rem 2.5rem rgba(25, 24, 18, 0.2),
+    var(--glass-shadow),
+    inset 0 1px 0 var(--glass-highlight);
+}
+.scroll-expand-hero {
+  position: relative;
+  /* Keep a real scroll track behind the sticky stage. The first viewport is
+     used for the pinned hero and the remaining track is used only to drive
+     the expansion progress. */
+  height: 220svh;
+  min-height: 220svh;
+  margin-inline: calc(50% - 50vw);
+  width: 100vw;
+  /* Keep the sticky stage attached to the document viewport. Clipping this
+     ancestor creates a containment boundary in some browsers and lets the
+     page continue scrolling instead of pinning the hero during expansion. */
+  overflow: visible;
+}
+.scroll-expand-hero__stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  min-height: 34rem;
+  overflow: hidden;
+  background: transparent;
+  --scroll-expand-progress: 0;
+  --scroll-expand-top: 21%;
+  --scroll-expand-side: 29%;
+  --scroll-expand-radius: 2rem;
+  --scroll-expand-zoom: 1;
+}
+.scroll-expand-hero__frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--color-surface);
+  clip-path: inset(var(--scroll-expand-top) var(--scroll-expand-side) round var(--scroll-expand-radius));
+  box-shadow: var(--shadow-elevated);
+  transform: scale(1);
+  transform-origin: center;
+  will-change: clip-path, transform;
+}
+.scroll-expand-hero__frame img {
+  transform: scale(var(--scroll-expand-zoom));
+  transform-origin: center;
+  will-change: transform;
+}
+.scroll-expand-hero__scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(25, 24, 18, 0.9),
+    rgba(25, 24, 18, 0.38) 48%,
+    rgba(25, 24, 18, 0.52)
+  );
+  opacity: 0;
+  transition: opacity 120ms linear;
+}
+.scroll-expand-hero__title {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  text-align: center;
+  will-change: opacity, transform;
+}
+.scroll-expand-hero__content {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  text-align: center;
+  opacity: 0;
+  transform: translate3d(0, 24px, 0);
+  will-change: opacity, transform;
+  pointer-events: none;
+}
+.scroll-expand-hero__content a,
+.scroll-expand-hero__content button {
+  pointer-events: auto;
+}
+.scroll-expand-hero__hint {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  margin: 0;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(249, 248, 244, 0.65);
+  pointer-events: none;
 }
 .catalog-product-row {
   animation: catalog-product-row-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -186,6 +312,12 @@ body::before {
   background: var(--color-text-primary);
 }
 @media (min-width: 640px) {
+  .scroll-expand-hero__stage {
+    min-height: 40rem;
+  }
+  .scroll-expand-hero__frame {
+    clip-path: inset(var(--scroll-expand-top) var(--scroll-expand-side) round var(--scroll-expand-radius));
+  }
   .luna-gallery-coverflow {
     min-height: 31rem;
   }

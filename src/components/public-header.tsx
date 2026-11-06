@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState, type CSSProperties } from "react";
 import { LogoMark } from "./ui/logo-mark";
 import { CartDrawer } from "./orders/cart-drawer";
 import { ThemeToggle } from "./ui/theme-toggle";
@@ -10,8 +11,11 @@ import type { Locale } from "@/config/site";
 import { getPublicCopy } from "@/i18n/public";
 
 export function PublicHeader() {
+  const pathname = usePathname();
   const { locale, setLocale } = useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [announcementHeight, setAnnouncementHeight] = useState(0);
   const closeMenu = () => setMenuOpen(false);
   const t = getPublicCopy(locale);
   useEffect(() => {
@@ -22,13 +26,39 @@ export function PublicHeader() {
     document.addEventListener("keydown", closeOnEscape);
     return () => document.removeEventListener("keydown", closeOnEscape);
   }, [menuOpen]);
+  useEffect(() => {
+    const updateAnnouncementHeight = () => {
+      const announcement = document.querySelector<HTMLElement>("[data-announcement-bar]");
+      setAnnouncementHeight(announcement?.getBoundingClientRect().height ?? 0);
+    };
+    const observer = new MutationObserver(updateAnnouncementHeight);
+    updateAnnouncementHeight();
+    observer.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener("resize", updateAnnouncementHeight);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateAnnouncementHeight);
+    };
+  }, []);
+  useEffect(() => {
+    const updateScrollState = () => setIsScrolled(window.scrollY > 12);
+    updateScrollState();
+    window.addEventListener("scroll", updateScrollState, { passive: true });
+    return () => window.removeEventListener("scroll", updateScrollState);
+  }, []);
   const languageLabels: Array<{ code: Locale; label: string }> = [
     { code: "ar", label: "ع" },
     { code: "en", label: "EN" },
     { code: "it", label: "IT" },
   ];
+  if (pathname?.startsWith("/admin")) return null;
   return (
-    <header className="luna-glass sticky top-0 z-40 border-b">
+    <>
+      <div aria-hidden="true" className="h-[4.75rem]" />
+      <header
+        style={{ "--public-header-offset": `${announcementHeight}px` } as CSSProperties}
+        className={`public-header luna-glass z-40 border ${isScrolled ? "public-header--scrolled" : "public-header--resting"}`}
+      >
       <div className="relative mx-auto flex min-h-[4.75rem] max-w-7xl items-center justify-between px-4 sm:px-8">
         <Link
           href="/"
@@ -149,6 +179,7 @@ export function PublicHeader() {
           </nav>
         </div>
       ) : null}
-    </header>
+      </header>
+    </>
   );
 }
