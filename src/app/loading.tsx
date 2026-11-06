@@ -1,12 +1,21 @@
-export default function Loading() {
+import { getServerLocale } from "@/i18n/server";
+
+const loadingLabels = {
+  ar: "جارٍ تجهيز الصفحة...",
+  en: "Preparing the page...",
+  it: "Preparazione della pagina...",
+} as const;
+
+export default async function Loading() {
+  const locale = await getServerLocale();
+
   return (
-    <main className="mx-auto flex min-h-[60vh] max-w-7xl items-center justify-center px-5 py-16">
-      <div className="flex items-center gap-3 text-sm text-[var(--color-text-muted)]" role="status">
-        <span
-          className="size-3 animate-pulse rounded-full bg-[var(--color-brand-primary)]"
-          aria-hidden="true"
-        />
-        جارٍ تجهيز الصفحة...
+    <main className="min-h-[60vh]" dir={locale === "ar" ? "rtl" : "ltr"}>
+      <div className="luna-page-loader" role="status" aria-label={loadingLabels[locale]}>
+        <span className="luna-page-loader__track" aria-hidden="true">
+          <span className="luna-page-loader__bar" />
+        </span>
+        <span className="sr-only">{loadingLabels[locale]}</span>
       </div>
     </main>
   );

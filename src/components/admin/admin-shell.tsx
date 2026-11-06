@@ -151,7 +151,7 @@ export function AdminShell({
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
       <div
-        className={`pointer-events-none fixed ${sidebarPlacement.split(" ")[0]} top-[9.75rem] z-30 hidden h-[calc(100dvh-9.75rem)] w-72 lg:block`}
+        className={`pointer-events-none fixed ${sidebarPlacement.split(" ")[0]} top-20 bottom-0 z-30 hidden w-72 lg:block`}
       >
         <button
           aria-expanded={sidebarOpen}

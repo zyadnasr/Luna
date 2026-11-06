@@ -29,6 +29,47 @@ body {
   font-family: Tahoma, "Segoe UI", Arial, sans-serif;
   text-rendering: optimizeLegibility;
 }
+.luna-page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.luna-page-loader__track {
+  position: absolute;
+  width: min(12rem, 42vw);
+  height: 0.2rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-brand-primary) 18%, transparent);
+}
+.luna-page-loader__bar {
+  position: absolute;
+  inset-block: 0;
+  left: -35%;
+  width: 35%;
+  border-radius: 999px;
+  background: var(--color-brand-primary);
+  box-shadow: 0 0 0.75rem color-mix(in srgb, var(--color-brand-primary) 70%, transparent);
+  will-change: left;
+  animation: luna-page-loader-sweep 1.35s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes luna-page-loader-sweep {
+  0% {
+    left: -35%;
+  }
+  60%,
+  100% {
+    left: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .luna-page-loader__bar {
+    animation-duration: 2.5s;
+  }
+}
 body::before {
   position: fixed;
   inset: 0;
