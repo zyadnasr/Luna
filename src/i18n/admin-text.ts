@@ -234,6 +234,13 @@ const copy = {
     "حفظ المنتج": "Save product",
     "وسائط المنتج": "Product media",
     "الصورة الرئيسية": "Main image",
+    "رفع صورة المنتج": "Upload product image",
+    "استبدال الصورة": "Replace image",
+    "صورة المنتج يجب أن تكون PNG أو JPG أو WEBP وبحد أقصى 5 ميجابايت.":
+      "Product image must be PNG, JPG, or WEBP and 5 MB or smaller.",
+    "تعذر رفع صورة المنتج.": "Unable to upload product image.",
+    "تعذر حفظ صورة المنتج.": "Unable to save product image.",
+    "تم حفظ صورة المنتج.": "Product image saved.",
     "الصور ستُضاف لاحقًا": "Images will be added later",
     "لم يتم تغيير الصور. ستتم إضافة رفع الصور من الإعدادات لاحقًا.":
       "Images were not changed. Image uploads will be added from Settings later.",
@@ -656,6 +663,13 @@ const copy = {
     "حفظ المنتج": "Salva prodotto",
     "وسائط المنتج": "Media prodotto",
     "الصورة الرئيسية": "Immagine principale",
+    "رفع صورة المنتج": "Carica immagine prodotto",
+    "استبدال الصورة": "Sostituisci immagine",
+    "صورة المنتج يجب أن تكون PNG أو JPG أو WEBP وبحد أقصى 5 ميجابايت.":
+      "L'immagine del prodotto deve essere PNG, JPG o WEBP e non superare 5 MB.",
+    "تعذر رفع صورة المنتج.": "Impossibile caricare l'immagine del prodotto.",
+    "تعذر حفظ صورة المنتج.": "Impossibile salvare l'immagine del prodotto.",
+    "تم حفظ صورة المنتج.": "Immagine prodotto salvata.",
     "الصور ستُضاف لاحقًا": "Le immagini verranno aggiunte in seguito",
     "لم يتم تغيير الصور. ستتم إضافة رفع الصور من الإعدادات لاحقًا.":
       "Le immagini non sono state modificate. Il caricamento sarà aggiunto dalle impostazioni.",

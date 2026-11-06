@@ -78,9 +78,11 @@ export function PublicHeader() {
             <svg
               aria-hidden="true"
               viewBox="0 0 24 24"
-              className="size-5 fill-none stroke-current stroke-2"
+              className={`luna-menu-toggle-icon size-5 fill-none stroke-current stroke-2 ${menuOpen ? "is-open" : ""}`}
             >
-              <path d="M4 7h16M4 12h16M4 17h16" />
+              <path className="luna-menu-toggle-line luna-menu-toggle-line--top" d="M4 7h16" />
+              <path className="luna-menu-toggle-line luna-menu-toggle-line--middle" d="M4 12h16" />
+              <path className="luna-menu-toggle-line luna-menu-toggle-line--bottom" d="M4 17h16" />
             </svg>
           </button>
         </div>
@@ -119,8 +121,11 @@ export function PublicHeader() {
           </Link>
         </nav>
       </div>
-      {menuOpen ? (
-        <div className="luna-mobile-menu absolute inset-x-4 top-[calc(100%+0.75rem)] z-50 rounded-[1.35rem] border p-4 md:hidden">
+      <div
+        className={`luna-mobile-menu absolute inset-x-4 top-[calc(100%+0.75rem)] z-50 rounded-[1.35rem] border p-4 md:hidden ${menuOpen ? "is-open" : ""}`}
+        aria-hidden={!menuOpen}
+        inert={!menuOpen ? true : undefined}
+      >
           <div className="mb-3 flex items-center justify-between gap-3 border-b border-[var(--color-border)] pb-3">
             <span className="text-xs font-semibold text-[var(--color-text-muted)]">
               {t.settings}
@@ -148,37 +153,40 @@ export function PublicHeader() {
           <nav className="grid gap-1 text-sm font-semibold" aria-label={t.mainNavigation}>
             <Link
               onClick={closeMenu}
-              className="rounded-xl px-4 py-3 hover:bg-[var(--color-background-deep)]"
+              className="luna-mobile-menu__link rounded-xl px-4 py-3 hover:bg-[var(--color-background-deep)]"
               href="/"
+              style={{ "--menu-link-index": 0 } as CSSProperties}
             >
               {t.home}
             </Link>
             <Link
               onClick={closeMenu}
-              className="rounded-xl px-4 py-3 hover:bg-[var(--color-background-deep)]"
+              className="luna-mobile-menu__link rounded-xl px-4 py-3 hover:bg-[var(--color-background-deep)]"
               href="/menu"
+              style={{ "--menu-link-index": 1 } as CSSProperties}
             >
               {t.menu}
             </Link>
             <Link
               onClick={closeMenu}
-              className="rounded-xl px-4 py-3 hover:bg-[var(--color-background-deep)]"
+              className="luna-mobile-menu__link rounded-xl px-4 py-3 hover:bg-[var(--color-background-deep)]"
               href="/order"
+              style={{ "--menu-link-index": 2 } as CSSProperties}
             >
               {t.quickOrder}
             </Link>
             <Link
               onClick={closeMenu}
-              className="rounded-xl px-4 py-3 hover:bg-[var(--color-background-deep)]"
+              className="luna-mobile-menu__link rounded-xl px-4 py-3 hover:bg-[var(--color-background-deep)]"
               href="https://wa.me/201551612195"
               target="_blank"
               rel="noreferrer"
+              style={{ "--menu-link-index": 3 } as CSSProperties}
             >
               {t.contact}
             </Link>
           </nav>
         </div>
-      ) : null}
       </header>
     </>
   );

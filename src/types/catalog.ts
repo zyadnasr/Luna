@@ -29,6 +29,7 @@ export type ProductWithCatalogData = {
   id: string;
   category_id: string | null;
   sku: string | null;
+  image_url: string | null;
   is_active: boolean;
   availability_status: ProductAvailabilityStatus;
   sort_order: number;
@@ -61,6 +62,7 @@ export type NutritionFormData = {
 };
 export type ProductFormData = {
   id?: string;
+  image_url?: string | null;
   category_id: string | null;
   sku: string;
   is_active: boolean;

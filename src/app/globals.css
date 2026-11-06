@@ -59,6 +59,57 @@ body::before {
   backdrop-filter: blur(32px) saturate(175%);
   isolation: isolate;
   overflow: clip;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(0, -0.75rem, 0) scaleY(0.94);
+  transform-origin: top center;
+  transition:
+    opacity 280ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 420ms;
+  visibility: hidden;
+}
+.luna-mobile-menu.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate3d(0, 0, 0) scaleY(1);
+  visibility: visible;
+}
+.luna-mobile-menu__link {
+  opacity: 0;
+  transform: translate3d(0, -0.45rem, 0);
+  transition:
+    opacity 220ms ease,
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 220ms ease;
+  transition-delay: 0ms;
+}
+.luna-mobile-menu.is-open .luna-mobile-menu__link {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition-delay: calc(90ms + (var(--menu-link-index) * 45ms));
+}
+.luna-menu-toggle-icon {
+  display: block;
+  overflow: visible;
+}
+.luna-menu-toggle-line {
+  transform-box: fill-box;
+  transform-origin: center;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition:
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 180ms ease;
+}
+.luna-menu-toggle-icon.is-open .luna-menu-toggle-line--top {
+  transform: translateY(5px) rotate(45deg);
+}
+.luna-menu-toggle-icon.is-open .luna-menu-toggle-line--middle {
+  opacity: 0;
+}
+.luna-menu-toggle-icon.is-open .luna-menu-toggle-line--bottom {
+  transform: translateY(-5px) rotate(-45deg);
 }
 .public-header {
   position: fixed;
@@ -630,5 +681,11 @@ select:-webkit-autofill:focus {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+  }
+  .luna-mobile-menu,
+  .luna-mobile-menu__link,
+  .luna-menu-toggle-icon,
+  .luna-menu-toggle-line {
+    transition: none !important;
   }
 }

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
-import { useState } from "react";
-import { saveProduct } from "@/lib/catalog/actions";
+import { useEffect, useState } from "react";
+import { saveProduct, saveProductImage } from "@/lib/catalog/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -39,6 +40,8 @@ const blankNutrition = {
   source_image_path: "",
   notes: "",
 };
+const maxProductImageSize = 5 * 1024 * 1024;
+const allowedProductImageTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
 
 type Props = {
   categories: Array<{ id: string; name: string }>;
@@ -72,6 +75,15 @@ export function ProductForm({ categories, initial, productMeta }: Props) {
     useState<(typeof locales)[number]["code"]>("ar");
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const [productImage, setProductImage] = useState<string | null>(initial?.image_url ?? null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imageError, setImageError] = useState("");
+
+  useEffect(() => {
+    return () => {
+      if (productImage?.startsWith("blob:")) URL.revokeObjectURL(productImage);
+    };
+  }, [productImage]);
   const updateTranslation = (
     translationLocale: ProductFormData["translations"][number]["locale"],
     key: "name" | "description" | "ingredients_text" | "allergens_text",
@@ -95,8 +107,18 @@ export function ProductForm({ categories, initial, productMeta }: Props) {
     setSaving(true);
     try {
       const result = await saveProduct(form);
-      setMessage(t(result.message));
-      if (result.success && !form.id) router.push("/admin/products");
+      if (!result.success || !result.productId) {
+        setMessage(t(result.message));
+        return;
+      }
+      if (selectedImage) {
+        const imageResult = await saveProductImage(result.productId, selectedImage);
+        setMessage(t(imageResult.message));
+        if (!imageResult.success) return;
+      } else {
+        setMessage(t(result.message));
+      }
+      if (!form.id) router.push("/admin/products");
     } catch {
       setMessage(t("تعذر حفظ المنتج. حاول مرة أخرى."));
     } finally {
@@ -411,12 +433,55 @@ export function ProductForm({ categories, initial, productMeta }: Props) {
               <h2 className="text-xl font-semibold">{t("وسائط المنتج")}</h2>
               <span className="text-xs text-[var(--color-text-muted)]">{t("الصورة الرئيسية")}</span>
             </div>
-            <div className="mt-5 flex min-h-64 flex-col items-center justify-center rounded-[var(--radius-md)] border-2 border-dashed border-[var(--color-border)] bg-[var(--color-background)] p-6 text-center">
-              <span className="mb-3 text-4xl text-[var(--color-brand-primary)]">◇</span>
-              <p className="text-sm font-semibold">{t("الصور ستُضاف لاحقًا")}</p>
-              <p className="mt-2 max-w-xs text-xs text-[var(--color-text-muted)]">
-                {t("لم يتم تغيير الصور. ستتم إضافة رفع الصور من الإعدادات لاحقًا.")}
-              </p>
+            <div className="mt-5 grid gap-4">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)]">
+                {productImage ? (
+                  <Image
+                    src={productImage}
+                    alt={title}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="grid h-full place-items-center text-center text-[var(--color-text-muted)]">
+                    <div>
+                      <span className="mb-3 block text-4xl text-[var(--color-brand-primary)]">◇</span>
+                      <p className="text-sm font-semibold">{t("رفع صورة المنتج")}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <label className="grid cursor-pointer gap-2 rounded-[var(--radius-md)] border-2 border-dashed border-[var(--color-border)] bg-[var(--color-background)] p-5 text-center transition hover:border-[var(--color-brand-primary)]">
+                <span className="text-sm font-semibold">
+                  {t(productImage ? "استبدال الصورة" : "اختيار صورة")}
+                </span>
+                <span className="text-xs text-[var(--color-text-muted)]">
+                  {t("PNG أو JPG أو WEBP · بحد أقصى 5 ميجابايت")}
+                </span>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="sr-only"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (!file) return;
+                    if (!allowedProductImageTypes.has(file.type) || file.size > maxProductImageSize) {
+                      setImageError(t("صورة المنتج يجب أن تكون PNG أو JPG أو WEBP وبحد أقصى 5 ميجابايت."));
+                      event.target.value = "";
+                      return;
+                    }
+                    setImageError("");
+                    setSelectedImage(file);
+                    setProductImage(URL.createObjectURL(file));
+                  }}
+                />
+              </label>
+              {imageError ? (
+                <p className="text-xs text-[var(--color-danger)]" role="alert">
+                  {imageError}
+                </p>
+              ) : null}
             </div>
           </section>
           <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-card)]">

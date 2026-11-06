@@ -38,18 +38,11 @@ function readImage(value: unknown, fallback: HomepageImage): HomepageImage {
   };
 }
 
-export async function getHomepageSettings(): Promise<HomepageSettings> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("app_settings")
-    .select("value")
-    .eq("key", "homepage_media")
-    .eq("is_public", true)
-    .maybeSingle();
-  if (!data?.value || typeof data.value !== "object") return defaultHomepageSettings;
+function parseHomepageSettings(value: unknown): HomepageSettings {
+  if (!value || typeof value !== "object") return defaultHomepageSettings;
 
-  const value = data.value as Record<string, unknown>;
-  const gallery = Array.isArray(value.gallery) ? value.gallery : [];
+  const record = value as Record<string, unknown>;
+  const gallery = Array.isArray(record.gallery) ? record.gallery : [];
   const configuredGallery = gallery
     .map((image, index) =>
       readImage(
@@ -58,9 +51,10 @@ export async function getHomepageSettings(): Promise<HomepageSettings> {
       ),
     )
     .filter((image) => image.src.trim());
-  const galleryArrangement = value.galleryArrangement;
+  const galleryArrangement = record.galleryArrangement;
+
   return {
-    hero: readImage(value.hero, defaultHomepageSettings.hero),
+    hero: readImage(record.hero, defaultHomepageSettings.hero),
     gallery: configuredGallery.length ? configuredGallery : defaultHomepageSettings.gallery,
     galleryArrangement:
       galleryArrangement === "row" ||
@@ -73,6 +67,17 @@ export async function getHomepageSettings(): Promise<HomepageSettings> {
   };
 }
 
+export async function getHomepageSettings(): Promise<HomepageSettings> {
+  const service = createServiceClient();
+  const { data } = await service
+    .from("app_settings")
+    .select("value")
+    .eq("key", "homepage_media")
+    .eq("is_public", true)
+    .maybeSingle();
+  return parseHomepageSettings(data?.value);
+}
+
 const maxImageSize = 5 * 1024 * 1024;
 const allowedImageTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
 
@@ -80,7 +85,18 @@ export async function saveHomepageMedia(formData: FormData) {
   const user = await requireRole("owner");
   const supabase = await createClient();
   const service = createServiceClient();
-  const current = await getHomepageSettings();
+  const { data: storedSettings, error: readError } = await service
+    .from("app_settings")
+    .select("value")
+    .eq("key", "homepage_media")
+    .maybeSingle();
+  if (readError) {
+    return {
+      success: false,
+      message: "تعذر قراءة صور الصفحة الحالية، لذلك لم يتم حفظ التعديلات حتى لا تُستبدل الصور.",
+    };
+  }
+  const current = parseHomepageSettings(storedSettings?.value);
   const requestedGalleryCount = Math.min(
     Math.max(Number(formData.get("gallery_count") ?? current.gallery.length), 1),
     12,
@@ -143,7 +159,7 @@ export async function saveHomepageMedia(formData: FormData) {
         ? galleryArrangement
         : "coverflow",
   };
-  const { error } = await supabase.from("app_settings").upsert(
+  const { error } = await service.from("app_settings").upsert(
     {
       key: "homepage_media",
       value,

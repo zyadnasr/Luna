@@ -87,6 +87,12 @@ export default async function MenuPage() {
                       key={product.id}
                     >
                       <div className="luna-product-card__media relative" aria-hidden="true">
+                        {product.image_url ? (
+                          <div
+                            className="absolute inset-0 rounded-[0.95rem] bg-cover bg-center"
+                            style={{ backgroundImage: `url(${product.image_url})` }}
+                          />
+                        ) : null}
                         {productPrices.some(
                           (price) =>
                             price.compare_at_price_egp &&

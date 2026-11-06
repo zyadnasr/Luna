@@ -11,6 +11,10 @@ import { getServerLocale } from "@/i18n/server";
 export const metadata: Metadata = {
   title: "Luna Healthy",
   description: "Operations foundation for Luna Healthy.",
+  icons: {
+    icon: "/assets/logo.ico",
+    apple: "/assets/logo-circule.png",
+  },
 };
 
 type RootLayoutProps = {

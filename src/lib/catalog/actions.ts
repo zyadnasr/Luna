@@ -3,10 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth/server";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import type { ProductFormData } from "@/types/catalog";
 
-type ActionResult = { success: boolean; message: string };
+type ActionResult = { success: boolean; message: string; productId?: string };
 const locales = ["ar", "en", "it"] as const;
+
+const maxProductImageSize = 5 * 1024 * 1024;
+const allowedProductImageTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
 
 export async function saveProduct(form: ProductFormData): Promise<ActionResult> {
   try {
@@ -133,9 +137,58 @@ export async function saveProduct(form: ProductFormData): Promise<ActionResult> 
     revalidatePath("/menu");
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${productId}`);
-    return { success: true, message: form.id ? "تم تحديث المنتج." : "تم إنشاء المنتج." };
+    return {
+      success: true,
+      message: form.id ? "تم تحديث المنتج." : "تم إنشاء المنتج.",
+      productId,
+    };
   } catch {
     return { success: false, message: "تعذر حفظ المنتج. حاول مرة أخرى." };
+  }
+}
+
+export async function saveProductImage(
+  productId: string,
+  file: File,
+): Promise<ActionResult> {
+  try {
+    const user = await requireRole("owner");
+    if (!allowedProductImageTypes.has(file.type) || file.size <= 0 || file.size > maxProductImageSize)
+      return { success: false, message: "صورة المنتج يجب أن تكون PNG أو JPG أو WEBP وبحد أقصى 5 ميجابايت." };
+
+    const service = createServiceClient();
+    const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const path = `products/${productId}/${crypto.randomUUID()}.${extension}`;
+    const { error: uploadError } = await service.storage
+      .from("product-media")
+      .upload(path, file, {
+        cacheControl: "31536000",
+        contentType: file.type,
+        upsert: false,
+      });
+    if (uploadError) return { success: false, message: "تعذر رفع صورة المنتج." };
+
+    const imageUrl = service.storage.from("product-media").getPublicUrl(path).data.publicUrl;
+    const supabase = await createClient();
+    const { error: updateError } = await supabase
+      .from("products")
+      .update({ image_url: imageUrl })
+      .eq("id", productId);
+    if (updateError) return { success: false, message: "تعذر حفظ صورة المنتج." };
+
+    await supabase.from("audit_logs").insert({
+      actor_user_id: user.id,
+      action: "product.image_updated",
+      entity_type: "product",
+      entity_id: productId,
+      metadata: { path },
+    });
+    revalidatePath("/menu");
+    revalidatePath("/admin/products");
+    revalidatePath(`/admin/products/${productId}`);
+    return { success: true, message: "تم حفظ صورة المنتج." };
+  } catch {
+    return { success: false, message: "تعذر رفع صورة المنتج." };
   }
 }
 
