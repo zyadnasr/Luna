@@ -68,7 +68,7 @@ export function ScrollExpandHero({
       // Match the compact mobile reference state: the image starts at roughly
       // 42% of the viewport width and 58% of its height, then expands with the
       // same progress curve used by the desktop hero.
-      const startTop = isMobile ? 21 : 12;
+      const startTop = isMobile ? 10 : 12;
       const startSide = isMobile ? 29 : 29;
       const startRadius = isMobile ? 24 : 32;
 
