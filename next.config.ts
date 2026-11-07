@@ -6,8 +6,9 @@ const nextConfig: NextConfig = {
   partialPrefetching: false,
   experimental: {
     serverActions: {
-      // Keep room for multipart boundaries while allowing a normal multi-image upload.
-      bodySizeLimit: "4mb",
+      // The UI accepts images up to 5 MB. Keep room for the multipart request
+      // envelope while the action validates the actual file size server-side.
+      bodySizeLimit: "8mb",
     },
   },
 };

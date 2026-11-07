@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useLocale } from "@/components/ui/locale-provider";
 import { getPublicCopy } from "@/i18n/public";
 import type { OrderStatus } from "@/types/orders";
@@ -301,12 +302,12 @@ export function OrderStatusLive({
             </div>
           )}
         </div>
-        <a
+        <Link
           className="shrink-0 text-sm font-semibold text-[var(--color-text-primary)] underline decoration-[var(--color-brand-primary)] underline-offset-4 transition hover:text-[var(--color-brand-primary)]"
           href="/menu"
         >
           {t.menu}
-        </a>
+        </Link>
       </div>
     </div>
   );

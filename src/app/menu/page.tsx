@@ -93,28 +93,32 @@ export default async function MenuPage() {
                       className="luna-product-card luna-menu-card luna-glass min-w-0 rounded-[1.15rem] border p-3 transition hover:-translate-y-0.5 sm:rounded-[1.25rem] sm:p-4"
                       key={product.id}
                     >
-                      <div className="luna-product-card__media relative" aria-hidden="true">
-                        {product.image_url ? (
-                          <div
-                            className="absolute inset-0 rounded-[0.95rem] bg-cover bg-center"
-                            style={{ backgroundImage: `url(${product.image_url})` }}
-                          />
-                        ) : null}
-                        {productPrices.some(
-                          (price) =>
-                            price.compare_at_price_egp &&
-                            price.compare_at_price_egp > price.price_egp,
-                        ) ? (
-                          <span className="absolute end-3 top-3 rounded-full bg-[#b86f6a] px-2.5 py-1 text-[10px] font-bold text-white shadow-sm">
-                            {t.discountBadge}
-                          </span>
-                        ) : null}
-                      </div>
+                      <Link href={`/menu/${product.id}`} className="block min-w-0">
+                        <div className="luna-product-card__media relative" aria-hidden="true">
+                          {product.image_url ? (
+                            <div
+                              className="absolute inset-0 rounded-[0.95rem] bg-cover bg-center"
+                              style={{ backgroundImage: `url(${product.image_url})` }}
+                            />
+                          ) : null}
+                          {productPrices.some(
+                            (price) =>
+                              price.compare_at_price_egp &&
+                              price.compare_at_price_egp > price.price_egp,
+                          ) ? (
+                            <span className="absolute end-3 top-3 rounded-full bg-[#b86f6a] px-2.5 py-1 text-[10px] font-bold text-white shadow-sm">
+                              {t.discountBadge}
+                            </span>
+                          ) : null}
+                        </div>
+                      </Link>
                       <div className="luna-product-card__content">
                         <div className="flex items-start justify-between gap-2">
-                          <h3 className="line-clamp-3 min-w-0 text-base font-semibold leading-6 sm:text-xl sm:leading-7">
-                            {translation?.name ?? t.menu}
-                          </h3>
+                          <Link href={`/menu/${product.id}`} className="min-w-0">
+                            <h3 className="line-clamp-3 text-base font-semibold leading-6 transition hover:text-[var(--color-brand-primary)] sm:text-xl sm:leading-7">
+                              {translation?.name ?? t.menu}
+                            </h3>
+                          </Link>
                           {!productAvailable ? (
                             <span className="shrink-0 rounded-full border border-[var(--color-warning)]/30 px-2 py-1 text-[10px] font-semibold leading-none text-[var(--color-warning)]">
                               {t.unavailable}
@@ -124,9 +128,11 @@ export default async function MenuPage() {
                           )}
                         </div>
                         {translation?.description ? (
-                          <p className="mt-3 line-clamp-3 text-sm leading-6 text-[var(--color-text-muted)]">
-                            {translation.description}
-                          </p>
+                          <Link href={`/menu/${product.id}`} className="mt-3 block">
+                            <p className="line-clamp-3 text-sm leading-6 text-[var(--color-text-muted)] transition hover:text-[var(--color-text-secondary)]">
+                              {translation.description}
+                            </p>
+                          </Link>
                         ) : null}
                         <div className="mt-4 border-t border-[var(--color-border)] pt-3 sm:mt-5 sm:pt-4">
                           {productPrices.length ? (

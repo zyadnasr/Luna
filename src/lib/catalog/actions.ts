@@ -12,10 +12,22 @@ const locales = ["ar", "en", "it"] as const;
 const maxProductImageSize = 5 * 1024 * 1024;
 const allowedProductImageTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
 
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export async function saveProduct(form: ProductFormData): Promise<ActionResult> {
+  // Keep authorization outside the persistence catch so Next.js redirects are
+  // not converted into the misleading generic save error.
+  const user = await requireRole("owner");
+  let stage = "initialization";
   try {
-    const user = await requireRole("owner");
-    const supabase = await createClient();
+    stage = "creating service client";
+    // The owner check above is the authorization boundary. Use the server
+    // client for the related writes so a stale browser session cannot make a
+    // valid owner save fail halfway through.
+    const supabase = createServiceClient();
+    stage = "validating product";
     if (!form.translations.find((translation) => translation.locale === "ar")?.name.trim())
       return { success: false, message: "اسم المنتج بالعربية مطلوب." };
     const activeLabels = form.prices
@@ -49,9 +61,11 @@ export async function saveProduct(form: ProductFormData): Promise<ActionResult> 
     };
     let productId = form.id;
     if (productId) {
+      stage = "updating product";
       const { error } = await supabase.from("products").update(productPayload).eq("id", productId);
       if (error) return { success: false, message: "تعذر تحديث المنتج." };
     } else {
+      stage = "creating product";
       const { data, error } = await supabase
         .from("products")
         .insert(productPayload)
@@ -70,10 +84,12 @@ export async function saveProduct(form: ProductFormData): Promise<ActionResult> 
         ingredients_text: translation.ingredients_text.trim() || null,
         allergens_text: translation.allergens_text.trim() || null,
       }));
+    stage = "saving translations";
     const { error: translationError } = await supabase
       .from("product_translations")
       .upsert(translationRows, { onConflict: "product_id,locale" });
     if (translationError) return { success: false, message: "تعذر حفظ ترجمات المنتج." };
+    stage = "reading current prices";
     const { data: existingPrices, error: existingPricesError } = await supabase
       .from("product_prices")
       .select("id")
@@ -97,6 +113,7 @@ export async function saveProduct(form: ProductFormData): Promise<ActionResult> 
         valid_until: price.valid_until || null,
       }));
     if (priceRows.length) {
+      stage = "saving prices";
       const { error: priceError } = await supabase
         .from("product_prices")
         .upsert(priceRows, { onConflict: "id" });
@@ -114,6 +131,7 @@ export async function saveProduct(form: ProductFormData): Promise<ActionResult> 
       .map((price) => price.id)
       .filter((id) => !submittedPriceIds.includes(id));
     if (stalePriceIds.length) {
+      stage = "removing stale prices";
       const { error: stalePricesError } = await supabase
         .from("product_prices")
         .delete()
@@ -121,6 +139,7 @@ export async function saveProduct(form: ProductFormData): Promise<ActionResult> 
         .in("id", stalePriceIds);
       if (stalePricesError) return { success: false, message: "تعذر تحديث الأسعار." };
     }
+    stage = "writing audit log";
     await supabase.from("audit_logs").insert({
       actor_user_id: user.id,
       action: form.id ? "product.updated" : "product.created",
@@ -142,7 +161,12 @@ export async function saveProduct(form: ProductFormData): Promise<ActionResult> 
       message: form.id ? "تم تحديث المنتج." : "تم إنشاء المنتج.",
       productId,
     };
-  } catch {
+  } catch (error) {
+    console.error("saveProduct: unexpected failure", {
+      productId: form.id ?? null,
+      stage,
+      error: getErrorMessage(error),
+    });
     return { success: false, message: "تعذر حفظ المنتج. حاول مرة أخرى." };
   }
 }
@@ -151,14 +175,21 @@ export async function saveProductImage(
   productId: string,
   file: File,
 ): Promise<ActionResult> {
+  // Authorization must remain outside the catch so redirects are preserved.
+  const user = await requireRole("owner");
+  let uploadedPath: string | null = null;
   try {
-    const user = await requireRole("owner");
-    if (!allowedProductImageTypes.has(file.type) || file.size <= 0 || file.size > maxProductImageSize)
+    if (
+      !allowedProductImageTypes.has(file.type) ||
+      file.size <= 0 ||
+      file.size > maxProductImageSize
+    )
       return { success: false, message: "صورة المنتج يجب أن تكون PNG أو JPG أو WEBP وبحد أقصى 5 ميجابايت." };
 
     const service = createServiceClient();
     const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
     const path = `products/${productId}/${crypto.randomUUID()}.${extension}`;
+    uploadedPath = path;
     const { error: uploadError } = await service.storage
       .from("product-media")
       .upload(path, file, {
@@ -166,17 +197,42 @@ export async function saveProductImage(
         contentType: file.type,
         upsert: false,
       });
-    if (uploadError) return { success: false, message: "تعذر رفع صورة المنتج." };
+    if (uploadError) {
+      console.error("saveProductImage: storage upload failed", {
+        productId,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        error: uploadError.message,
+      });
+      return {
+        success: false,
+        message: "تعذر رفع صورة المنتج. تأكد من نوع الصورة وحجمها ثم حاول مرة أخرى.",
+      };
+    }
 
     const imageUrl = service.storage.from("product-media").getPublicUrl(path).data.publicUrl;
-    const supabase = await createClient();
-    const { error: updateError } = await supabase
+    // The service client is already authorized by requireRole("owner") and
+    // avoids a second RLS decision after the storage upload succeeds.
+    const { error: updateError } = await service
       .from("products")
       .update({ image_url: imageUrl })
       .eq("id", productId);
-    if (updateError) return { success: false, message: "تعذر حفظ صورة المنتج." };
+    if (updateError) {
+      console.error("saveProductImage: product update failed", {
+        productId,
+        path,
+        error: updateError.message,
+      });
+      await service.storage.from("product-media").remove([path]);
+      uploadedPath = null;
+      return {
+        success: false,
+        message: "تم رفع الصورة لكن تعذر ربطها بالمنتج. حاول مرة أخرى.",
+      };
+    }
 
-    await supabase.from("audit_logs").insert({
+    await service.from("audit_logs").insert({
       actor_user_id: user.id,
       action: "product.image_updated",
       entity_type: "product",
@@ -187,7 +243,23 @@ export async function saveProductImage(
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${productId}`);
     return { success: true, message: "تم حفظ صورة المنتج." };
-  } catch {
+  } catch (error) {
+    console.error("saveProductImage: unexpected failure", {
+      productId,
+      uploadedPath,
+      error: getErrorMessage(error),
+    });
+    if (uploadedPath) {
+      try {
+        const service = createServiceClient();
+        await service.storage.from("product-media").remove([uploadedPath]);
+      } catch (cleanupError) {
+        console.error("saveProductImage: cleanup failed", {
+          uploadedPath,
+          error: getErrorMessage(cleanupError),
+        });
+      }
+    }
     return { success: false, message: "تعذر رفع صورة المنتج." };
   }
 }
