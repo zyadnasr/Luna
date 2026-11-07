@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { useCart } from "./cart-provider";
 import { useLocale } from "@/components/ui/locale-provider";
 import { getPublicCopy, localizePriceLabel } from "@/i18n/public";
+import { trackAnalyticsEvent } from "@/components/analytics/analytics-provider";
 
 export function CartDrawer({ contextLabel }: { contextLabel?: string }) {
   const { items, setQuantity, remove, clear } = useCart();
@@ -37,6 +38,14 @@ export function CartDrawer({ contextLabel }: { contextLabel?: string }) {
           if (contextLabel) {
             event.preventDefault();
             setOpen(true);
+          } else if (items.length) {
+            trackAnalyticsEvent({
+              eventName: "begin_checkout",
+              metadata: {
+                value: subtotal,
+                itemCount: count,
+              },
+            });
           }
         }}
         className="luna-glass relative grid size-11 place-items-center rounded-full border text-[var(--color-text-primary)] transition hover:-translate-y-0.5 active:scale-95"

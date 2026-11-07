@@ -11,6 +11,7 @@ import type { OrderContext } from "@/types/orders";
 import type { OrderErrorCode } from "@/types/orders";
 import { useLocale } from "@/components/ui/locale-provider";
 import { getPublicCopy } from "@/i18n/public";
+import { trackAnalyticsEvent } from "@/components/analytics/analytics-provider";
 import {
   isValidCustomerName,
   isValidDeliveryAddress,
@@ -175,6 +176,15 @@ export function CheckoutForm({
         setMessage(t.submitError);
         return;
       }
+      trackAnalyticsEvent({
+        eventName: "purchase",
+        metadata: {
+          value: items.reduce((sum, item) => sum + (item.unitPrice ?? 0) * item.quantity, 0),
+          currency: "EGP",
+          orderNumber: result.orderNumber,
+          itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
+        },
+      });
       clear();
       router.replace(
         `/order/success?number=${encodeURIComponent(result.orderNumber)}&token=${encodeURIComponent(result.lookupToken)}`,

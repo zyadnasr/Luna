@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { CartItem } from "@/types/orders";
+import { trackAnalyticsEvent } from "@/components/analytics/analytics-provider";
 const key = "luna-cart-v2";
 type CartContext = {
   items: CartItem[];
@@ -22,7 +23,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem(key, JSON.stringify(items));
   }, [items]);
-  const add = (item: CartItem) =>
+  const add = (item: CartItem) => {
+    trackAnalyticsEvent({
+      eventName: "add_to_cart",
+      metadata: {
+        productId: item.productId,
+        priceId: item.priceId,
+        quantity: item.quantity,
+        value: (item.unitPrice ?? 0) * item.quantity,
+      },
+    });
     setItems((current) => {
       const found = current.find(
         (entry) => entry.productId === item.productId && entry.priceId === item.priceId,
@@ -35,6 +45,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           )
         : [...current, item];
     });
+  };
   const setQuantity = (productId: string, priceId: string, quantity: number) =>
     setItems((current) =>
       current
