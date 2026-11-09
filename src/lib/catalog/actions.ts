@@ -4,16 +4,45 @@ import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { getProductImageType, isValidProductImage } from "@/lib/catalog/image-validation";
 import type { ProductFormData } from "@/types/catalog";
 
-type ActionResult = { success: boolean; message: string; productId?: string };
+type ActionResult = { success: boolean; message: string; productId?: string; debugStage?: string };
 const locales = ["ar", "en", "it"] as const;
-
-const maxProductImageSize = 5 * 1024 * 1024;
-const allowedProductImageTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);
+}
+
+function logDatabaseFailure(
+  operation: string,
+  error: unknown,
+  context: Record<string, unknown> = {},
+) {
+  const databaseError = error as {
+    code?: string;
+    details?: string;
+    hint?: string;
+    message?: string;
+  };
+  console.error("catalog database failure", {
+    operation,
+    code: databaseError.code ?? null,
+    details: databaseError.details ?? null,
+    hint: databaseError.hint ?? null,
+    error: databaseError.message ?? getErrorMessage(error),
+    ...context,
+  });
+}
+
+function textValue(value: string | null | undefined) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function toIsoTimestamp(value: string | null | undefined, fallback: string | null = null) {
+  if (!value) return fallback;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? fallback : parsed.toISOString();
 }
 
 export async function saveProduct(form: ProductFormData): Promise<ActionResult> {
@@ -22,17 +51,17 @@ export async function saveProduct(form: ProductFormData): Promise<ActionResult> 
   const user = await requireRole("owner");
   let stage = "initialization";
   try {
-    stage = "creating service client";
-    // The owner check above is the authorization boundary. Use the server
-    // client for the related writes so a stale browser session cannot make a
-    // valid owner save fail halfway through.
+    stage = "creating database client";
+    // requireRole is the authorization boundary. Use the service client for
+    // this multi-table owner write so one RLS decision cannot leave a product
+    // half-saved after the owner has already been verified.
     const supabase = createServiceClient();
     stage = "validating product";
-    if (!form.translations.find((translation) => translation.locale === "ar")?.name.trim())
+    if (!textValue(form.translations.find((translation) => translation.locale === "ar")?.name))
       return { success: false, message: "اسم المنتج بالعربية مطلوب." };
     const activeLabels = form.prices
       .filter((price) => price.is_active)
-      .map((price) => price.label.trim())
+      .map((price) => textValue(price.label))
       .filter(Boolean);
     if (new Set(activeLabels).size !== activeLabels.length)
       return { success: false, message: "لا يمكن تكرار اسم السعر النشط." };
@@ -46,16 +75,14 @@ export async function saveProduct(form: ProductFormData): Promise<ActionResult> 
         Number(price.compare_at_price_egp) < Number(price.price_egp)
       )
         return { success: false, message: "السعر الأصلي لا يمكن أن يكون أقل من سعر البيع." };
-      if (
-        price.valid_until &&
-        price.valid_from &&
-        new Date(price.valid_until) < new Date(price.valid_from)
-      )
+      const validFrom = toIsoTimestamp(price.valid_from);
+      const validUntil = toIsoTimestamp(price.valid_until);
+      if (validUntil && validFrom && new Date(validUntil) < new Date(validFrom))
         return { success: false, message: "تاريخ الانتهاء لا يمكن أن يسبق تاريخ البداية." };
     }
     const productPayload = {
       category_id: form.category_id || null,
-      sku: form.sku.trim() || null,
+      sku: textValue(form.sku) || null,
       is_active: form.is_active,
       availability_status: form.availability_status,
     };
@@ -63,7 +90,10 @@ export async function saveProduct(form: ProductFormData): Promise<ActionResult> 
     if (productId) {
       stage = "updating product";
       const { error } = await supabase.from("products").update(productPayload).eq("id", productId);
-      if (error) return { success: false, message: "تعذر تحديث المنتج." };
+      if (error) {
+        logDatabaseFailure(stage, error, { productId });
+        return { success: false, message: "تعذر تحديث المنتج." };
+      }
     } else {
       stage = "creating product";
       const { data, error } = await supabase
@@ -71,36 +101,45 @@ export async function saveProduct(form: ProductFormData): Promise<ActionResult> 
         .insert(productPayload)
         .select("id")
         .single();
-      if (error || !data) return { success: false, message: "تعذر إنشاء المنتج." };
+      if (error || !data) {
+        logDatabaseFailure(stage, error ?? new Error("No product id returned"));
+        return { success: false, message: "تعذر إنشاء المنتج." };
+      }
       productId = data.id;
     }
     const translationRows = form.translations
-      .filter((translation) => translation.name.trim())
+      .filter((translation) => textValue(translation.name))
       .map((translation) => ({
         product_id: productId,
         locale: translation.locale,
-        name: translation.name.trim(),
-        description: translation.description.trim() || null,
-        ingredients_text: translation.ingredients_text.trim() || null,
-        allergens_text: translation.allergens_text.trim() || null,
+        name: textValue(translation.name),
+        description: textValue(translation.description) || null,
+        ingredients_text: textValue(translation.ingredients_text) || null,
+        allergens_text: textValue(translation.allergens_text) || null,
       }));
     stage = "saving translations";
     const { error: translationError } = await supabase
       .from("product_translations")
       .upsert(translationRows, { onConflict: "product_id,locale" });
-    if (translationError) return { success: false, message: "تعذر حفظ ترجمات المنتج." };
+    if (translationError) {
+      logDatabaseFailure(stage, translationError, { productId, rowCount: translationRows.length });
+      return { success: false, message: "تعذر حفظ ترجمات المنتج." };
+    }
     stage = "reading current prices";
     const { data: existingPrices, error: existingPricesError } = await supabase
       .from("product_prices")
       .select("id")
       .eq("product_id", productId);
-    if (existingPricesError) return { success: false, message: "تعذر قراءة الأسعار الحالية." };
+    if (existingPricesError) {
+      logDatabaseFailure(stage, existingPricesError, { productId });
+      return { success: false, message: "تعذر قراءة الأسعار الحالية." };
+    }
     const priceRows = form.prices
-      .filter((price) => price.label.trim() || Number(price.price_egp) > 0)
+      .filter((price) => textValue(price.label) || Number(price.price_egp) > 0)
       .map((price) => ({
         ...(price.id ? { id: price.id } : {}),
         product_id: productId,
-        label: price.label.trim() || null,
+        label: textValue(price.label) || null,
         price_egp: Number(price.price_egp),
         compare_at_price_egp:
           price.compare_at_price_egp === null ||
@@ -109,15 +148,18 @@ export async function saveProduct(form: ProductFormData): Promise<ActionResult> 
             ? null
             : Number(price.compare_at_price_egp),
         is_active: price.is_active,
-        valid_from: price.valid_from || new Date().toISOString(),
-        valid_until: price.valid_until || null,
+        valid_from: toIsoTimestamp(price.valid_from, new Date().toISOString()),
+        valid_until: toIsoTimestamp(price.valid_until),
       }));
     if (priceRows.length) {
       stage = "saving prices";
       const { error: priceError } = await supabase
         .from("product_prices")
         .upsert(priceRows, { onConflict: "id" });
-      if (priceError) return { success: false, message: "تعذر حفظ الأسعار." };
+      if (priceError) {
+        logDatabaseFailure(stage, priceError, { productId, rowCount: priceRows.length });
+        return { success: false, message: "تعذر حفظ الأسعار." };
+      }
       await supabase.from("audit_logs").insert({
         actor_user_id: user.id,
         action: "price.updated",
@@ -137,7 +179,10 @@ export async function saveProduct(form: ProductFormData): Promise<ActionResult> 
         .delete()
         .eq("product_id", productId)
         .in("id", stalePriceIds);
-      if (stalePricesError) return { success: false, message: "تعذر تحديث الأسعار." };
+      if (stalePricesError) {
+        logDatabaseFailure(stage, stalePricesError, { productId, stalePriceCount: stalePriceIds.length });
+        return { success: false, message: "تعذر تحديث الأسعار." };
+      }
     }
     stage = "writing audit log";
     await supabase.from("audit_logs").insert({
@@ -148,7 +193,7 @@ export async function saveProduct(form: ProductFormData): Promise<ActionResult> 
       metadata: {
         locales: locales.filter((locale) =>
           form.translations.some(
-            (translation) => translation.locale === locale && translation.name.trim(),
+            (translation) => translation.locale === locale && textValue(translation.name),
           ),
         ),
       },
@@ -167,7 +212,11 @@ export async function saveProduct(form: ProductFormData): Promise<ActionResult> 
       stage,
       error: getErrorMessage(error),
     });
-    return { success: false, message: "تعذر حفظ المنتج. حاول مرة أخرى." };
+    return {
+      success: false,
+      message: "تعذر حفظ المنتج. حاول مرة أخرى.",
+      debugStage: `${stage}: ${getErrorMessage(error)}`,
+    };
   }
 }
 
@@ -179,22 +228,19 @@ export async function saveProductImage(
   const user = await requireRole("owner");
   let uploadedPath: string | null = null;
   try {
-    if (
-      !allowedProductImageTypes.has(file.type) ||
-      file.size <= 0 ||
-      file.size > maxProductImageSize
-    )
+    const contentType = getProductImageType(file);
+    if (!contentType || !isValidProductImage(file))
       return { success: false, message: "صورة المنتج يجب أن تكون PNG أو JPG أو WEBP وبحد أقصى 5 ميجابايت." };
 
     const service = createServiceClient();
-    const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const extension = contentType === "image/png" ? "png" : contentType === "image/webp" ? "webp" : "jpg";
     const path = `products/${productId}/${crypto.randomUUID()}.${extension}`;
     uploadedPath = path;
     const { error: uploadError } = await service.storage
       .from("product-media")
       .upload(path, file, {
         cacheControl: "31536000",
-        contentType: file.type,
+        contentType,
         upsert: false,
       });
     if (uploadError) {
@@ -202,12 +248,15 @@ export async function saveProductImage(
         productId,
         fileName: file.name,
         fileType: file.type,
+        normalizedType: contentType,
         fileSize: file.size,
+        code: uploadError.name,
         error: uploadError.message,
       });
       return {
         success: false,
-        message: "تعذر رفع صورة المنتج. تأكد من نوع الصورة وحجمها ثم حاول مرة أخرى.",
+        message: "تعذر رفع صورة المنتج. حاول مرة أخرى.",
+        debugStage: `storage upload: ${uploadError.name}: ${uploadError.message}`,
       };
     }
 
@@ -260,7 +309,11 @@ export async function saveProductImage(
         });
       }
     }
-    return { success: false, message: "تعذر رفع صورة المنتج." };
+    return {
+      success: false,
+      message: "تعذر رفع صورة المنتج. حاول مرة أخرى.",
+      debugStage: `image upload: ${getErrorMessage(error)}`,
+    };
   }
 }
 

@@ -24,10 +24,10 @@ function InfoRow({
 }) {
   return (
     <div
-      className={`grid grid-cols-3 gap-3 py-3 text-sm ${last ? "" : "border-b border-[var(--color-border)]"}`}
+      className={`grid gap-1 py-3 text-sm sm:grid-cols-3 sm:gap-3 ${last ? "" : "border-b border-[var(--color-border)]"}`}
     >
       <span className="font-medium text-[var(--color-text-muted)]">{label}</span>
-      <span className="col-span-2 min-w-0 text-[var(--color-text-primary)]">{children}</span>
+      <span className="min-w-0 break-words text-[var(--color-text-primary)] sm:col-span-2">{children}</span>
     </div>
   );
 }
@@ -63,12 +63,12 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
 
   return (
     <section className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--color-border)] pb-6">
-        <div>
+      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--color-border)] pb-6">
+        <div className="min-w-0">
           <p className="text-sm font-semibold text-[var(--color-brand-primary)]">
             {t("تفاصيل الطلب")}
           </p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+          <h1 className="mt-2 break-words text-2xl font-bold leading-tight tracking-tight sm:text-4xl">
             {t("الطلب")}{" "}
             <span className="text-[var(--color-brand-primary)]">#{order.order_number}</span>
           </h1>
@@ -86,9 +86,9 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
         />
       </header>
 
-      <div className="grid items-start gap-6 lg:grid-cols-12">
+      <div className="grid min-w-0 items-start gap-6 lg:grid-cols-12">
         <div className="space-y-6 lg:col-span-5">
-          <article className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)] sm:p-6">
+          <article className="min-w-0 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)] sm:p-6">
             <h2 className="flex items-center gap-2 text-lg font-bold">
               <span className="grid size-8 place-items-center rounded-[var(--radius-sm)] bg-[var(--color-nav-active-bg)] text-[var(--color-brand-primary)]">
                 ⌁
@@ -122,7 +122,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
             </div>
           </article>
 
-          <article className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)] sm:p-6">
+          <article className="min-w-0 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)] sm:p-6">
             <h2 className="flex items-center gap-2 text-lg font-bold">
               <span className="grid size-8 place-items-center rounded-[var(--radius-sm)] bg-[var(--color-nav-active-bg)] text-[var(--color-brand-primary)]">
                 ▣
@@ -159,7 +159,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
           </article>
         </div>
 
-        <article className="flex flex-col rounded-[var(--radius-lg)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-soft)] sm:p-7 lg:col-span-7">
+        <article className="min-w-0 flex flex-col rounded-[var(--radius-lg)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-soft)] sm:p-7 lg:col-span-7">
           <StatusTransition
             id={order.id}
             orderNumber={order.order_number}

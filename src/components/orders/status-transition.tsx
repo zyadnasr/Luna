@@ -166,8 +166,8 @@ export function StatusTransition({
           <p className="mt-1 text-sm opacity-80">{labels.outOfFlow}</p>
         </div>
       ) : (
-        <div className="mt-10 overflow-x-auto pb-2">
-          <div className="relative flex min-w-[560px] justify-between gap-4 px-2 sm:px-5">
+        <div className="mt-8 max-w-full overflow-x-auto pb-2 sm:mt-10">
+          <div className="relative flex min-w-[440px] justify-between gap-3 px-2 sm:min-w-[560px] sm:gap-4 sm:px-5">
             <div className="absolute start-7 end-7 top-5 h-1 rounded-full bg-[var(--color-background-deep)]" />
             <div
               className="absolute start-7 top-5 h-1 rounded-full bg-[var(--color-brand-primary)] transition-all duration-300"

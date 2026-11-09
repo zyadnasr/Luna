@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 import { saveProduct, saveProductImage } from "@/lib/catalog/actions";
+import { isValidProductImage } from "@/lib/catalog/image-validation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -40,9 +41,6 @@ const blankNutrition = {
   source_image_path: "",
   notes: "",
 };
-const maxProductImageSize = 5 * 1024 * 1024;
-const allowedProductImageTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
-
 type Props = {
   categories: Array<{ id: string; name: string }>;
   initial?: ProductFormData;
@@ -108,12 +106,23 @@ export function ProductForm({ categories, initial, productMeta }: Props) {
     try {
       const result = await saveProduct(form);
       if (!result.success || !result.productId) {
-        setMessage(t(result.message));
+        if (result.debugStage) {
+          console.error("Product save failed", { stage: result.debugStage });
+        }
+        setMessage(
+          `${t(result.message)}${result.debugStage && process.env.NODE_ENV !== "production" ? ` [${result.debugStage}]` : ""}`,
+        );
         return;
       }
       if (selectedImage) {
         const imageResult = await saveProductImage(result.productId, selectedImage);
-        setMessage(t(imageResult.message));
+        setMessage(
+          `${t(imageResult.message)}${
+            imageResult.debugStage && process.env.NODE_ENV !== "production"
+              ? ` [${imageResult.debugStage}]`
+              : ""
+          }`,
+        );
         if (!imageResult.success) return;
       } else {
         setMessage(t(result.message));
@@ -131,7 +140,7 @@ export function ProductForm({ categories, initial, productMeta }: Props) {
 
   return (
     <form id="product-edit-form" onSubmit={submit} className="grid gap-6">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--color-border)] pb-6">
+      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--color-border)] pb-5 sm:items-center sm:gap-4 sm:pb-6">
         <div className="flex min-w-0 items-center gap-3">
           <Link
             href="/admin/products"
@@ -148,13 +157,13 @@ export function ProductForm({ categories, initial, productMeta }: Props) {
             </span>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-[var(--color-success)]/40 bg-[var(--color-success)]/10 px-3 py-2 text-xs font-semibold text-[var(--color-success)]">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          <span className="rounded-full border border-[var(--color-success)]/40 bg-[var(--color-success)]/10 px-2.5 py-1.5 text-[0.68rem] font-semibold text-[var(--color-success)] sm:px-3 sm:py-2 sm:text-xs">
             ● {form.is_active ? t("نشط في القائمة") : t("غير نشط")}
           </span>
           <Link
             href="/admin/products"
-            className="inline-flex min-h-11 items-center rounded-[var(--radius-pill)] border border-[var(--color-border)] px-5 text-sm font-semibold transition hover:bg-[var(--color-surface)]"
+            className="inline-flex min-h-10 items-center rounded-[var(--radius-pill)] border border-[var(--color-border)] px-3 text-xs font-semibold transition hover:bg-[var(--color-surface)] sm:min-h-11 sm:px-5 sm:text-sm"
           >
             {t("إلغاء")}
           </Link>
@@ -164,10 +173,10 @@ export function ProductForm({ categories, initial, productMeta }: Props) {
         </div>
       </header>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,0.75fr)]">
+      <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,0.75fr)]">
         <div className="grid gap-6">
           <section className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]">
-            <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-6 py-5">
+            <div className="flex items-start justify-between gap-3 border-b border-[var(--color-border)] px-4 py-4 sm:gap-4 sm:px-6 sm:py-5">
               <div>
                 <h2 className="text-xl font-semibold">{t("معلومات المنتج")}</h2>
                 <p className="mt-1 text-sm text-[var(--color-text-muted)]">
@@ -183,13 +192,13 @@ export function ProductForm({ categories, initial, productMeta }: Props) {
               role="tablist"
               aria-label={t("الترجمات")}
             >
-              <div className="flex min-w-max">
+              <div className="grid min-w-0 grid-cols-3">
                 {locales.map((item) => (
                   <button
                     type="button"
                     role="tab"
                     aria-selected={activeTranslationLocale === item.code}
-                    className={`border-b-2 px-6 py-4 text-sm font-semibold transition ${activeTranslationLocale === item.code ? "border-[var(--color-brand-primary)] text-[var(--color-brand-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"}`}
+                    className={`min-w-0 border-b-2 px-2 py-3 text-xs font-semibold transition sm:px-6 sm:py-4 sm:text-sm ${activeTranslationLocale === item.code ? "border-[var(--color-brand-primary)] text-[var(--color-brand-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"}`}
                     key={item.code}
                     onClick={() => setActiveTranslationLocale(item.code)}
                   >
@@ -208,7 +217,7 @@ export function ProductForm({ categories, initial, productMeta }: Props) {
                 form.translations.find((item) => item.locale === activeTranslationLocale) ??
                 blankTranslation(activeTranslationLocale);
               return (
-                <div className="grid gap-5 p-6">
+                <div className="grid gap-5 p-4 sm:p-6">
                   <label className="grid gap-2 text-sm font-semibold">
                     {t("اسم المنتج")}
                     <Input
@@ -269,7 +278,7 @@ export function ProductForm({ categories, initial, productMeta }: Props) {
             })()}
           </section>
 
-          <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-card)]">
+          <section className="min-w-0 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)] sm:p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-semibold">{t("الأسعار والخيارات")}</h2>
@@ -300,56 +309,40 @@ export function ProductForm({ categories, initial, productMeta }: Props) {
                 {t("إضافة سعر")}
               </Button>
             </div>
-            <div className="mt-6 overflow-x-auto rounded-[var(--radius-md)] border border-[var(--color-border)]">
-              <div className="min-w-[760px]">
-                <div className="grid grid-cols-[1.1fr_0.8fr_0.95fr_1fr_auto] gap-3 border-b border-[var(--color-border)] bg-[var(--color-background-deep)]/25 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+            <div className="mt-6 overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-border)]">
+              <div>
+                <div className="hidden grid-cols-[1.1fr_0.8fr_0.95fr_1fr_auto] gap-3 border-b border-[var(--color-border)] bg-[var(--color-background-deep)]/25 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] md:grid">
                   <span>{t("الحجم / الخيار")}</span>
                   <span>{t("السعر")}</span>
                   <span>{t("السعر الأصلي")}</span>
                   <span>{t("آخر تحديث")}</span>
                   <span>{t("إجراء")}</span>
                 </div>
-                <div className="grid gap-2 p-3">
+                <div className="grid gap-2 p-2 sm:p-3">
                   {form.prices.map((price, index) => (
                     <div
-                      className="grid grid-cols-[1.1fr_0.8fr_0.95fr_1fr_auto] items-center gap-3 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-background)] p-3"
+                      className="grid min-w-0 gap-2 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-background)] p-3 md:grid-cols-[1.1fr_0.8fr_0.95fr_1fr_auto] md:items-center md:gap-3"
                       key={price.id ?? index}
                     >
-                      <Input
-                        aria-label={t("اسم السعر")}
-                        placeholder={t("اسم الخيار")}
-                        value={price.label}
-                        onChange={(event) => updatePrice(index, { label: event.target.value })}
-                      />
-                      <Input
-                        aria-label={t("السعر بالجنيه")}
-                        type="number"
-                        min="0.01"
-                        step="0.01"
-                        placeholder="EGP"
-                        value={price.price_egp}
-                        onChange={(event) => updatePrice(index, { price_egp: event.target.value })}
-                      />
-                      <Input
-                        aria-label={t("السعر الأصلي قبل الخصم")}
-                        type="number"
-                        min="0.01"
-                        step="0.01"
-                        placeholder={t("اختياري")}
-                        value={price.compare_at_price_egp ?? ""}
-                        onChange={(event) =>
-                          updatePrice(index, { compare_at_price_egp: event.target.value })
-                        }
-                      />
-                      <Input
-                        aria-label={t("يبدأ من")}
-                        type="datetime-local"
-                        value={price.valid_from}
-                        onChange={(event) => updatePrice(index, { valid_from: event.target.value })}
-                      />
+                      <label className="grid min-w-0 gap-1 text-xs font-semibold text-[var(--color-text-muted)] md:contents">
+                        <span className="md:hidden">{t("الحجم / الخيار")}</span>
+                        <Input aria-label={t("اسم السعر")} placeholder={t("اسم الخيار")} value={price.label} onChange={(event) => updatePrice(index, { label: event.target.value })} />
+                      </label>
+                      <label className="grid min-w-0 gap-1 text-xs font-semibold text-[var(--color-text-muted)] md:contents">
+                        <span className="md:hidden">{t("السعر")}</span>
+                        <Input aria-label={t("السعر بالجنيه")} type="number" min="0.01" step="0.01" placeholder="EGP" value={price.price_egp} onChange={(event) => updatePrice(index, { price_egp: event.target.value })} />
+                      </label>
+                      <label className="grid min-w-0 gap-1 text-xs font-semibold text-[var(--color-text-muted)] md:contents">
+                        <span className="md:hidden">{t("السعر الأصلي")}</span>
+                        <Input aria-label={t("السعر الأصلي قبل الخصم")} type="number" min="0.01" step="0.01" placeholder={t("اختياري")} value={price.compare_at_price_egp ?? ""} onChange={(event) => updatePrice(index, { compare_at_price_egp: event.target.value })} />
+                      </label>
+                      <label className="grid min-w-0 gap-1 text-xs font-semibold text-[var(--color-text-muted)] md:contents">
+                        <span className="md:hidden">{t("آخر تحديث")}</span>
+                        <Input aria-label={t("يبدأ من")} type="datetime-local" value={price.valid_from} onChange={(event) => updatePrice(index, { valid_from: event.target.value })} />
+                      </label>
                       <button
                         type="button"
-                        className="rounded-[var(--radius-sm)] px-2 text-sm text-[var(--color-danger)]"
+                        className="justify-self-start rounded-[var(--radius-sm)] px-2 text-sm text-[var(--color-danger)] md:justify-self-end"
                         onClick={() =>
                           setForm((current) => ({
                             ...current,
@@ -366,65 +359,7 @@ export function ProductForm({ categories, initial, productMeta }: Props) {
             </div>
           </section>
 
-          <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-card)]">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-semibold">{t("المعلومات الغذائية")}</h2>
-                <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-                  {t("كل الحقول اختيارية. أضف القيم المؤكدة فقط.")}
-                </p>
-              </div>
-              <span className="rounded-full bg-[var(--color-background-deep)] px-3 py-2 text-xs font-semibold text-[var(--color-brand-primary)]">
-                {t("قيم مؤكدة")}
-              </span>
-            </div>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {(
-                [
-                  ["serving_size", "حجم الحصة"],
-                  ["calories", "السعرات"],
-                  ["protein_g", "البروتين"],
-                  ["carbohydrates_g", "الكربوهيدرات"],
-                  ["sugars_g", "السكريات"],
-                  ["total_fat_g", "إجمالي الدهون"],
-                  ["saturated_fat_g", "الدهون المشبعة"],
-                  ["trans_fat_g", "الدهون المتحولة"],
-                  ["fiber_g", "الألياف"],
-                  ["cholesterol_mg", "الكوليسترول"],
-                ] as const
-              ).map(([key, label]) => (
-                <label className="grid gap-2 text-sm font-semibold" key={key}>
-                  {t(label)}
-                  <Input
-                    type={key === "serving_size" ? "text" : "number"}
-                    step="0.01"
-                    value={form.nutrition[key] ?? ""}
-                    onChange={(event) =>
-                      setForm((current) => ({
-                        ...current,
-                        nutrition: {
-                          ...current.nutrition,
-                          [key]: event.target.value === "" ? null : event.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </label>
-              ))}
-            </div>
-            <label className="mt-5 grid gap-2 text-sm font-semibold">
-              {t("ملاحظات")}
-              <Textarea
-                value={form.nutrition.notes ?? ""}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    nutrition: { ...current.nutrition, notes: event.target.value },
-                  }))
-                }
-              />
-            </label>
-          </section>
+          {/* Nutrition is intentionally disabled during the current testing phase. */}
         </div>
 
         <aside className="grid gap-6 lg:sticky lg:top-6">
@@ -466,7 +401,7 @@ export function ProductForm({ categories, initial, productMeta }: Props) {
                   onChange={(event) => {
                     const file = event.target.files?.[0];
                     if (!file) return;
-                    if (!allowedProductImageTypes.has(file.type) || file.size > maxProductImageSize) {
+                    if (!isValidProductImage(file)) {
                       setImageError(t("صورة المنتج يجب أن تكون PNG أو JPG أو WEBP وبحد أقصى 5 ميجابايت."));
                       event.target.value = "";
                       return;

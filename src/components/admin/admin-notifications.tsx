@@ -238,7 +238,7 @@ export function AdminNotifications({
             void markAsRead(incoming.id);
             setIncoming(null);
           }}
-          className="fixed end-6 top-24 z-[60] grid w-[min(24rem,calc(100vw-3rem))] gap-1 rounded-[var(--radius-lg)] border border-[var(--color-brand-primary)] bg-[var(--color-surface-elevated)] p-4 text-start shadow-[var(--shadow-soft)]"
+          className="fixed inset-x-3 top-20 z-[60] grid gap-1 rounded-[var(--radius-lg)] border border-[var(--color-brand-primary)] bg-[var(--color-surface-elevated)] p-3 text-start shadow-[var(--shadow-soft)] sm:inset-x-auto sm:end-6 sm:top-24 sm:w-[min(24rem,calc(100vw-3rem))] sm:p-4"
         >
           <span className="text-xs font-semibold text-[var(--color-brand-primary)]">
             {labels[locale].incoming}
@@ -258,7 +258,7 @@ export function AdminNotifications({
             void requestDesktopPermission();
             setOpen((current) => !current);
           }}
-          className="relative rounded-[var(--radius-pill)] border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary)] transition hover:border-[var(--color-brand-primary)]"
+          className="relative max-w-[9.5rem] truncate rounded-[var(--radius-pill)] border border-[var(--color-border)] px-2.5 py-1.5 text-xs font-semibold text-[var(--color-text-secondary)] transition hover:border-[var(--color-brand-primary)] sm:max-w-none sm:px-4 sm:py-2 sm:text-sm"
         >
           {labels[locale].title}
           {unreadCount ? (
@@ -268,8 +268,8 @@ export function AdminNotifications({
           ) : null}
         </button>
         {open ? (
-          <div className="absolute end-0 top-12 z-50 w-[min(22rem,calc(100vw-2rem))] rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-3 shadow-[var(--shadow-soft)]">
-            <div className="flex items-center justify-between gap-3 border-b border-[var(--color-border)] px-2 pb-3">
+          <div className="fixed inset-x-3 top-20 z-50 max-h-[calc(100dvh-6rem)] overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-3 shadow-[var(--shadow-soft)] sm:absolute sm:inset-x-auto sm:end-0 sm:top-12 sm:max-h-none sm:w-[min(22rem,calc(100vw-2rem))]">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--color-border)] px-2 pb-3">
               <p className="font-semibold">{labels[locale].title}</p>
               <div className="flex items-center gap-2">
                 {unreadCount ? (
@@ -299,7 +299,7 @@ export function AdminNotifications({
                 {labels[locale].enableDesktop}
               </button>
             ) : null}
-            <div className="mt-2 grid max-h-80 gap-1 overflow-y-auto">
+            <div className="mt-2 grid max-h-[min(20rem,calc(100dvh-10rem))] gap-1 overflow-y-auto">
               {notifications.length ? (
                 notifications.map((notification) => (
                   <button

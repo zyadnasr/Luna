@@ -70,6 +70,10 @@ const adminLabels = {
     المستخدمون: "Users",
     الإعدادات: "Settings",
     "مساحة الإدارة": "Admin workspace",
+    القائمة: "Menu",
+    "فتح القائمة": "Open menu",
+    "إغلاق القائمة": "Close menu",
+    "فتح التنقل الإداري": "Open admin navigation",
     "بدون دور": "No role",
     خروج: "Sign out",
     owner: "Owner",
@@ -98,6 +102,10 @@ const adminLabels = {
     المستخدمون: "Utenti",
     الإعدادات: "Impostazioni",
     "مساحة الإدارة": "Area amministrazione",
+    القائمة: "Menu",
+    "فتح القائمة": "Apri menu",
+    "إغلاق القائمة": "Chiudi menu",
+    "فتح التنقل الإداري": "Apri navigazione amministrativa",
     "بدون دور": "Nessun ruolo",
     خروج: "Esci",
     owner: "Proprietario",
@@ -130,6 +138,7 @@ export function AdminShell({
   const sidebarPlacement = isArabic ? "right-0 border-l" : "left-0 border-r";
   const collapsedTransform = isArabic ? "translate-x-full" : "-translate-x-full";
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const openSidebar = () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
@@ -151,8 +160,11 @@ export function AdminShell({
       );
     return (pathname === href || pathname.startsWith(`${href}/`)) && !hasMoreSpecificMatch;
   };
+  const activeNavigationItem = navigation
+    .flatMap((section) => section.items)
+    .find((item) => isActive(item.href));
   return (
-    <div className="min-h-screen bg-[var(--color-background)]">
+    <div className="min-h-screen min-w-0 overflow-x-clip bg-[var(--color-background)]">
       <div
         className={`pointer-events-none fixed ${sidebarPlacement.split(" ")[0]} top-20 bottom-0 z-30 hidden w-72 lg:block`}
       >
@@ -206,13 +218,13 @@ export function AdminShell({
           </nav>
         </aside>
       </div>
-      <div>
-        <header className="sticky top-0 z-20 flex min-h-20 items-center justify-between gap-4 border-b border-[var(--color-border)] bg-[var(--color-surface-glass)] px-5 shadow-[var(--shadow-inset)] backdrop-blur-[var(--blur-glass)] sm:px-8">
-          <div>
+      <div className="min-w-0">
+        <header className="sticky top-0 z-20 flex min-h-16 items-center justify-between gap-3 border-b border-[var(--color-border)] bg-[var(--color-surface-glass)] px-4 shadow-[var(--shadow-inset)] backdrop-blur-[var(--blur-glass)] sm:min-h-20 sm:gap-4 sm:px-8">
+          <div className="min-w-0 shrink">
             <p className="text-xs text-[var(--color-text-muted)]">{translate("مساحة الإدارة")}</p>
-            <p className="mt-1 font-semibold">{profile.display_name ?? user.email}</p>
+            <p className="mt-1 truncate text-sm font-semibold sm:text-base">{profile.display_name ?? user.email}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
             <AdminNotifications initialNotifications={initialNotifications} />
             <span className="hidden rounded-[var(--radius-pill)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-semibold text-[var(--color-text-primary)] sm:inline-flex">
               {roles
@@ -221,7 +233,7 @@ export function AdminShell({
             </span>
             <form action={signOut}>
               <button
-                className="rounded-[var(--radius-pill)] border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary)] transition hover:border-[var(--color-danger)] hover:text-[var(--color-danger)]"
+                className="rounded-[var(--radius-pill)] border border-[var(--color-border)] px-2.5 py-1.5 text-xs font-semibold text-[var(--color-text-secondary)] transition hover:border-[var(--color-danger)] hover:text-[var(--color-danger)] sm:px-4 sm:py-2 sm:text-sm"
                 type="submit"
               >
                 {translate("خروج")}
@@ -230,23 +242,71 @@ export function AdminShell({
           </div>
         </header>
         <nav
-          className="flex gap-2 overflow-x-auto border-b border-[var(--color-border)] bg-[var(--color-surface-glass)] p-3 lg:hidden"
+          className="border-b border-[var(--color-border)] bg-[var(--color-surface-glass)] lg:hidden"
           aria-label="التنقل الإداري للموبايل"
         >
-          {navigation
-            .flatMap((section) => section.items)
-            .map((item) => (
-              <Link
-                aria-current={isActive(item.href) ? "page" : undefined}
-                className={`shrink-0 rounded-[var(--radius-pill)] border border-[var(--color-border)] px-3 py-2 text-xs font-semibold transition ${isActive(item.href) ? "bg-[var(--color-nav-active-bg)] text-[var(--color-nav-active-text)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-nav-active-bg)] hover:text-[var(--color-nav-active-text)]"}`}
-                href={item.href}
-                key={item.href}
-              >
-                {translate(item.label)}
-              </Link>
-            ))}
+          <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-8">
+            <div className="min-w-0">
+              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
+                {translate("القائمة")}
+              </p>
+              <p className="mt-1 truncate text-sm font-semibold text-[var(--color-text-primary)]">
+                {activeNavigationItem ? translate(activeNavigationItem.label) : translate("القائمة")}
+              </p>
+            </div>
+            <button
+              aria-controls="admin-mobile-menu"
+              aria-expanded={mobileMenuOpen}
+              aria-label={translate(mobileMenuOpen ? "إغلاق القائمة" : "فتح القائمة")}
+              className="grid size-11 shrink-0 place-items-center rounded-[var(--radius-pill)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] transition duration-200 hover:border-[var(--color-brand-primary)] hover:bg-[var(--color-nav-active-bg)] focus:outline-none focus:ring-4 focus:ring-[var(--color-focus-ring)]"
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              type="button"
+            >
+              <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l12 12M18 6L6 18" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M4 12h16M4 17h16" />
+                )}
+              </svg>
+            </button>
+          </div>
+          <div
+            aria-hidden={!mobileMenuOpen}
+            className={`overflow-hidden transition-[max-height,opacity,visibility] duration-300 ease-out ${mobileMenuOpen ? "visible max-h-[80rem] opacity-100" : "invisible pointer-events-none max-h-0 opacity-0"}`}
+            id="admin-mobile-menu"
+          >
+            <div className="border-t border-[var(--color-border)] px-4 pb-4 pt-3 sm:px-8">
+              <div className="grid gap-4 sm:grid-cols-2">
+                {navigation.map((section) => (
+                  <div key={section.group}>
+                    <p className="mb-2 px-1 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
+                      {translate(section.group)}
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {section.items.map((item) => {
+                        const active = isActive(item.href);
+                        return (
+                          <Link
+                            aria-current={active ? "page" : undefined}
+                            className={`flex min-h-10 min-w-0 items-center justify-between gap-2 rounded-[var(--radius-pill)] border px-3 py-2 text-xs font-semibold leading-5 transition duration-200 focus:outline-none focus:ring-4 focus:ring-[var(--color-focus-ring)] ${active ? "border-transparent bg-[var(--color-nav-active-bg)] text-[var(--color-nav-active-text)] shadow-[var(--shadow-card)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-brand-primary)] hover:bg-[var(--color-nav-active-bg)] hover:text-[var(--color-nav-active-text)]"}`}
+                            href={item.href}
+                            key={item.href}
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            <span className="min-w-0 break-words">{translate(item.label)}</span>
+                            {active ? <span className="size-1.5 shrink-0 rounded-full bg-[var(--color-brand-primary)]" /> : null}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </nav>
-        <main id="admin-main" className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-12">
+        <main id="admin-main" className="mx-auto min-w-0 max-w-7xl px-4 py-6 sm:px-8 sm:py-12">
           {children}
         </main>
       </div>

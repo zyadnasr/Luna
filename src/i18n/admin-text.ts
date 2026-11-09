@@ -239,6 +239,11 @@ const copy = {
     "صورة المنتج يجب أن تكون PNG أو JPG أو WEBP وبحد أقصى 5 ميجابايت.":
       "Product image must be PNG, JPG, or WEBP and 5 MB or smaller.",
     "تعذر رفع صورة المنتج.": "Unable to upload product image.",
+    "تعذر رفع صورة المنتج. حاول مرة أخرى.": "Unable to upload product image. Please try again.",
+    "تعذر رفع صورة المنتج. تأكد من نوع الصورة وحجمها ثم حاول مرة أخرى.":
+      "Unable to upload product image. Please check the file type and size, then try again.",
+    "تم رفع الصورة لكن تعذر ربطها بالمنتج. حاول مرة أخرى.":
+      "The image was uploaded, but it could not be linked to the product. Please try again.",
     "تعذر حفظ صورة المنتج.": "Unable to save product image.",
     "تم حفظ صورة المنتج.": "Product image saved.",
     "الصور ستُضاف لاحقًا": "Images will be added later",
@@ -668,6 +673,12 @@ const copy = {
     "صورة المنتج يجب أن تكون PNG أو JPG أو WEBP وبحد أقصى 5 ميجابايت.":
       "L'immagine del prodotto deve essere PNG, JPG o WEBP e non superare 5 MB.",
     "تعذر رفع صورة المنتج.": "Impossibile caricare l'immagine del prodotto.",
+    "تعذر رفع صورة المنتج. حاول مرة أخرى.":
+      "Impossibile caricare l'immagine del prodotto. Riprova.",
+    "تعذر رفع صورة المنتج. تأكد من نوع الصورة وحجمها ثم حاول مرة أخرى.":
+      "Impossibile caricare l'immagine del prodotto. Controlla tipo e dimensione, poi riprova.",
+    "تم رفع الصورة لكن تعذر ربطها بالمنتج. حاول مرة أخرى.":
+      "Immagine caricata, ma non è stato possibile collegarla al prodotto. Riprova.",
     "تعذر حفظ صورة المنتج.": "Impossibile salvare l'immagine del prodotto.",
     "تم حفظ صورة المنتج.": "Immagine prodotto salvata.",
     "الصور ستُضاف لاحقًا": "Le immagini verranno aggiunte in seguito",
