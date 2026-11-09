@@ -17,7 +17,8 @@ export function HomepageMediaForm({ initial }: { initial: HomepageSettings }) {
   const initialImages = [initial.hero, ...initial.gallery];
   const [previews, setPreviews] = useState(initialImages.map((image) => image.src));
   const [alts, setAlts] = useState(initialImages.map((image) => image.alt));
-  const [galleryCount, setGalleryCount] = useState(Math.max(1, initial.gallery.length));
+  const [removed, setRemoved] = useState(initialImages.map(() => false));
+  const [galleryCount, setGalleryCount] = useState(Math.max(0, initial.gallery.length));
   const [message, setMessage] = useState("");
   const [uploadError, setUploadError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -91,6 +92,10 @@ export function HomepageMediaForm({ initial }: { initial: HomepageSettings }) {
           altLabel={t("النص البديل")}
           fileHelp={t("PNG أو JPG أو WEBP · بحد أقصى 5 ميجابايت")}
           preview={previews[0]}
+          canDelete={false}
+          removed={false}
+          removeLabel=""
+          restoreLabel=""
           onAltChange={(value) =>
             setAlts((current) => current.map((item, index) => (index === 0 ? value : item)))
           }
@@ -111,14 +116,26 @@ export function HomepageMediaForm({ initial }: { initial: HomepageSettings }) {
               altLabel={t("النص البديل")}
               fileHelp={t("PNG أو JPG أو WEBP · بحد أقصى 5 ميجابايت")}
               preview={previews[itemIndex] ?? ""}
+              canDelete
+              removed={removed[itemIndex] ?? false}
+              removeLabel={t("حذف صورة الجاليري")}
+              restoreLabel={t("استعادة صورة الجاليري")}
               onAltChange={(value) =>
                 setAlts((current) =>
                   current.map((item, currentIndex) => (currentIndex === itemIndex ? value : item)),
                 )
               }
-              onFileChange={(value) =>
+              onFileChange={(value) => {
+                setRemoved((current) =>
+                  current.map((item, currentIndex) => (currentIndex === itemIndex ? false : item)),
+                );
                 setPreviews((current) =>
                   current.map((item, currentIndex) => (currentIndex === itemIndex ? value : item)),
+                );
+              }}
+              onRemove={() =>
+                setRemoved((current) =>
+                  current.map((item, currentIndex) => (currentIndex === itemIndex ? !item : item)),
                 )
               }
             />
@@ -133,6 +150,7 @@ export function HomepageMediaForm({ initial }: { initial: HomepageSettings }) {
             setGalleryCount((count) => count + 1);
             setPreviews((current) => [...current, ""]);
             setAlts((current) => [...current, ""]);
+            setRemoved((current) => [...current, false]);
           }}
           type="button"
           variant="secondary"
@@ -167,8 +185,13 @@ function MediaField({
   chooseLabel,
   altLabel,
   fileHelp,
+  canDelete,
+  removed,
+  removeLabel,
+  restoreLabel,
   onAltChange,
   onFileChange,
+  onRemove,
 }: {
   label: string;
   fileName: string;
@@ -178,15 +201,20 @@ function MediaField({
   chooseLabel: string;
   altLabel: string;
   fileHelp: string;
+  canDelete: boolean;
+  removed: boolean;
+  removeLabel: string;
+  restoreLabel: string;
   onAltChange: (value: string) => void;
   onFileChange: (value: string) => void;
+  onRemove?: () => void;
 }) {
   return (
     <fieldset className="grid min-w-0 gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] p-4">
       <legend className="px-1 text-sm font-semibold">{label}</legend>
       <div className="grid min-w-0 gap-3">
         <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-sm)] bg-[var(--color-background-deep)]">
-          {preview ? (
+          {preview && !removed ? (
             <Image
               src={preview}
               alt={alt || label}
@@ -205,6 +233,7 @@ function MediaField({
           <label className="grid gap-1 text-xs font-semibold text-[var(--color-text-muted)]">
             {chooseLabel}
             <Input
+              key={`${fileName}-${removed ? "removed" : "active"}`}
               type="file"
               name={fileName}
               accept="image/png,image/jpeg,image/webp"
@@ -215,6 +244,19 @@ function MediaField({
               className="min-w-0 cursor-pointer overflow-hidden text-ellipsis p-2 text-xs file:me-3 file:rounded-full file:border-0 file:bg-[var(--color-brand-secondary)] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[var(--color-on-brand)]"
             />
           </label>
+          {canDelete ? (
+            <>
+              <input
+                name={fileName.replace(/_file$/, "_remove")}
+                type="hidden"
+                value={removed ? "true" : "false"}
+                readOnly
+              />
+              <Button type="button" variant="ghost" onClick={onRemove}>
+                {removed ? restoreLabel : removeLabel}
+              </Button>
+            </>
+          ) : null}
           <label className="grid gap-1 text-xs font-semibold text-[var(--color-text-muted)]">
             {altLabel}
             <Input

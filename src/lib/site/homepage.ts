@@ -42,7 +42,8 @@ function parseHomepageSettings(value: unknown): HomepageSettings {
   if (!value || typeof value !== "object") return defaultHomepageSettings;
 
   const record = value as Record<string, unknown>;
-  const gallery = Array.isArray(record.gallery) ? record.gallery : [];
+  const hasConfiguredGallery = Array.isArray(record.gallery);
+  const gallery: unknown[] = hasConfiguredGallery ? (record.gallery as unknown[]) : [];
   const configuredGallery = gallery
     .map((image, index) =>
       readImage(
@@ -55,7 +56,7 @@ function parseHomepageSettings(value: unknown): HomepageSettings {
 
   return {
     hero: readImage(record.hero, defaultHomepageSettings.hero),
-    gallery: configuredGallery.length ? configuredGallery : defaultHomepageSettings.gallery,
+    gallery: hasConfiguredGallery ? configuredGallery : defaultHomepageSettings.gallery,
     galleryArrangement:
       galleryArrangement === "row" ||
       galleryArrangement === "grid" ||
@@ -81,6 +82,13 @@ export async function getHomepageSettings(): Promise<HomepageSettings> {
 const maxImageSize = 5 * 1024 * 1024;
 const allowedImageTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
 
+function getHomepageStoragePath(src: string) {
+  const marker = "/storage/v1/object/public/homepage-media/";
+  const markerIndex = src.indexOf(marker);
+  if (markerIndex === -1) return null;
+  return decodeURIComponent(src.slice(markerIndex + marker.length));
+}
+
 export async function saveHomepageMedia(formData: FormData) {
   const user = await requireRole("owner");
   const supabase = await createClient();
@@ -98,14 +106,21 @@ export async function saveHomepageMedia(formData: FormData) {
   }
   const current = parseHomepageSettings(storedSettings?.value);
   const requestedGalleryCount = Math.min(
-    Math.max(Number(formData.get("gallery_count") ?? current.gallery.length), 1),
+    Math.max(Number(formData.get("gallery_count") ?? current.gallery.length), 0),
     12,
   );
   const entries = [
-    { fileKey: "hero_file", altKey: "hero_alt", current: current.hero, required: true },
+    {
+      fileKey: "hero_file",
+      altKey: "hero_alt",
+      removeKey: undefined,
+      current: current.hero,
+      required: true,
+    },
     ...Array.from({ length: requestedGalleryCount }, (_, index) => ({
       fileKey: `gallery_${index}_file`,
       altKey: `gallery_${index}_alt`,
+      removeKey: `gallery_${index}_remove`,
       current: current.gallery[index] ?? null,
       required: false,
     })),
@@ -117,6 +132,8 @@ export async function saveHomepageMedia(formData: FormData) {
     const submittedAlt = String(formData.get(entry.altKey) ?? "").trim();
     const value = formData.get(entry.fileKey);
     const file = value instanceof File && value.size > 0 ? value : null;
+    const remove = entry.removeKey ? formData.get(entry.removeKey) === "true" : false;
+    if (remove && !entry.required) continue;
     const generatedAlt = file
       ? file.name
           .replace(/\.[^.]+$/, "")
@@ -169,6 +186,15 @@ export async function saveHomepageMedia(formData: FormData) {
     { onConflict: "key" },
   );
   if (error) return { success: false, message: "تعذر حفظ صور الصفحة الرئيسية." };
+
+  const nextSources = new Set([value.hero.src, ...value.gallery.map((image) => image.src)]);
+  const removedPaths = [current.hero, ...current.gallery]
+    .filter((image) => !nextSources.has(image.src))
+    .map((image) => getHomepageStoragePath(image.src))
+    .filter((path): path is string => Boolean(path));
+  if (removedPaths.length) {
+    await service.storage.from("homepage-media").remove(removedPaths);
+  }
 
   await supabase.from("audit_logs").insert({
     actor_user_id: user.id,
