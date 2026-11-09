@@ -1,11 +1,15 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageContainer } from "@/components/ui/page-container";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ProductOrderPanel } from "@/components/catalog/product-order-panel";
 import { getProduct, translationName } from "@/lib/catalog/queries";
-import { getProductAvailability } from "@/lib/inventory/availability";
+import {
+  getProductAvailability,
+  RECIPE_AVAILABILITY_ENABLED,
+} from "@/lib/inventory/availability";
 import { getServerLocale } from "@/i18n/server";
 import { getPublicCopy } from "@/i18n/public";
 import { getSiteUrl } from "@/lib/seo";
@@ -72,9 +76,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const prices = product.product_prices.filter(
     (price) => price.is_active && (!price.valid_until || new Date(price.valid_until) > new Date()),
   );
-  const availabilityEntries = await Promise.all(
-    prices.map(async (price) => [price.id, (await getProductAvailability(product.id, price.id)).available] as const),
-  );
+  const availabilityEntries = RECIPE_AVAILABILITY_ENABLED
+    ? await Promise.all(
+        prices.map(
+          async (price) => [price.id, (await getProductAvailability(product.id, price.id)).available] as const,
+        ),
+      )
+    : prices.map((price) => [price.id, true] as const);
   const availabilityByPriceId = Object.fromEntries(availabilityEntries);
   const productAvailable =
     product.availability_status === "available" &&
@@ -100,7 +108,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <div className="luna-glass overflow-hidden rounded-[2rem] border p-3 shadow-[var(--shadow-elevated)] sm:p-5">
             <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-[var(--color-background-deep)]">
               {product.image_url ? (
-                <img src={product.image_url} alt={translation?.name ?? t.product} className="size-full object-cover" />
+                <Image
+                  alt={translation?.name ?? t.product}
+                  className="object-cover"
+                  fill
+                  sizes="(max-width: 767px) 100vw, 50vw"
+                  src={product.image_url}
+                />
               ) : (
                 <div className="grid size-full place-items-center text-sm text-[var(--color-text-muted)]">
                   {t.productDetails}

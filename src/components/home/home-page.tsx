@@ -14,7 +14,7 @@ const copy = {
     titleAccent: "ليومك.",
     description: "كوكيز صحية تُحضّر بعناية. اطلبها من المنيو أو دعنا نوصلها إليك داخل القاهرة.",
     browse: "تصفح المنيو",
-    story: "اكتشف قصتنا",
+    visitUs: "زورنا",
     scrollHint: "مرر لاستكشاف المزيد",
     galleryLabel: "من مطبخ Luna",
     galleryTitle: "تفاصيل صغيرة، مزاج أهدأ.",
@@ -35,7 +35,7 @@ const copy = {
     description:
       "Carefully made healthy cookies. Order from the menu or let us deliver across Cairo.",
     browse: "Browse menu",
-    story: "Our story",
+    visitUs: "Visit us",
     scrollHint: "Scroll to explore",
     galleryLabel: "Inside Luna",
     galleryTitle: "Small details, calmer moods.",
@@ -56,7 +56,7 @@ const copy = {
     description:
       "Biscotti sani preparati con cura. Ordina dal menu o lasciaci consegnare al Cairo.",
     browse: "Apri il menu",
-    story: "La nostra storia",
+    visitUs: "Vieni a trovarci",
     scrollHint: "Scorri per esplorare",
     galleryLabel: "Dentro Luna",
     galleryTitle: "Piccoli dettagli, giornate più leggere.",
@@ -110,12 +110,10 @@ export function HomePage({ media }: { media: HomepageSettings }) {
                 {t.browse}
               </Link>
               <Link
-                href="https://wa.me/201551612195"
-                target="_blank"
-                rel="noreferrer"
+                href="/branches"
                 className="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-pill)] border border-white/45 bg-black/15 px-7 text-sm font-semibold text-white backdrop-blur-sm transition duration-200 hover:-translate-y-0.5 hover:border-white"
               >
-                {t.story}
+                {t.visitUs}
               </Link>
             </div>
           </div>
@@ -158,7 +156,7 @@ export function HomePage({ media }: { media: HomepageSettings }) {
         </div>
         <div className="grid gap-4">
           <Link
-            href="/order"
+            href="/branches"
             className="group flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-card)] transition duration-500 ease-out hover:-translate-y-1 hover:border-[var(--color-brand-primary)] hover:shadow-[var(--shadow-soft)] sm:p-7"
           >
             <span>

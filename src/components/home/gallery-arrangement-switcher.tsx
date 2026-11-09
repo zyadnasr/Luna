@@ -120,10 +120,10 @@ export function GalleryArrangementSwitcher({
                 alt={image.alt}
                 className="object-cover"
                 fill
+                loading={isActive ? "eager" : "lazy"}
                 sizes="(max-width: 639px) 66vw, (max-width: 1023px) 30vw, 19rem"
                 src={image.src}
                 draggable={false}
-                unoptimized
               />
             </button>
           );

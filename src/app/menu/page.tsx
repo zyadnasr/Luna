@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getCategories, getProducts, translationName } from "@/lib/catalog/queries";
 import { EmptyCatalogState } from "@/components/catalog/empty-catalog-state";
 import { PageContainer } from "@/components/ui/page-container";
@@ -6,7 +7,10 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { MenuOrderControls } from "@/components/orders/menu-order-controls";
 import { getServerLocale } from "@/i18n/server";
 import { getPublicCopy, localizePriceLabel } from "@/i18n/public";
-import { getProductAvailability } from "@/lib/inventory/availability";
+import {
+  getProductAvailability,
+  RECIPE_AVAILABILITY_ENABLED,
+} from "@/lib/inventory/availability";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -36,12 +40,17 @@ export default async function MenuPage() {
         price.is_active && (!price.valid_until || new Date(price.valid_until) > new Date()),
     ),
   );
-  const availabilityEntries = await Promise.all(
-    activePrices.map(
-      async (price) =>
-        [price.id, (await getProductAvailability(price.product_id, price.id)).available] as const,
-    ),
-  );
+  // Recipe availability is currently disabled. The active-price query already
+  // contains everything needed for the public menu, so avoid one server query
+  // per price while preserving the same result until recipes are re-enabled.
+  const availabilityEntries = RECIPE_AVAILABILITY_ENABLED
+    ? await Promise.all(
+        activePrices.map(
+          async (price) =>
+            [price.id, (await getProductAvailability(price.product_id, price.id)).available] as const,
+        ),
+      )
+    : activePrices.map((price) => [price.id, true] as const);
   const availabilityByPriceId = Object.fromEntries(availabilityEntries);
   return (
     <PageContainer className="max-w-7xl">
@@ -96,9 +105,13 @@ export default async function MenuPage() {
                       <Link href={`/menu/${product.id}`} className="block min-w-0">
                         <div className="luna-product-card__media relative" aria-hidden="true">
                           {product.image_url ? (
-                            <div
-                              className="absolute inset-0 rounded-[0.95rem] bg-cover bg-center"
-                              style={{ backgroundImage: `url(${product.image_url})` }}
+                            <Image
+                              alt=""
+                              className="rounded-[0.95rem] object-cover"
+                              fill
+                              loading="lazy"
+                              sizes="(max-width: 639px) calc(100vw - 2rem), (max-width: 1023px) 50vw, 36rem"
+                              src={product.image_url}
                             />
                           ) : null}
                           {productPrices.some(

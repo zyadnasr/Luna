@@ -26,6 +26,9 @@ const copy = {
       "Upload hero and gallery images from your device and edit each alt text.",
     "مساحة العمل": "Workspace",
     التشغيل: "Operations",
+    الفروع: "Branches",
+    "إدارة فروع Luna وعناوينها التي تظهر للزوار.":
+      "Manage Luna branches and the addresses shown to visitors.",
     "المنتجات والمخزون": "Products & inventory",
     التصنيفات: "Categories",
     "أنشئ تصنيفات القائمة ورتّب ظهورها. لا توجد تصنيفات تجريبية مضافة.":
@@ -458,6 +461,9 @@ const copy = {
       "Carica immagini hero e galleria dal dispositivo e modifica il testo alternativo.",
     "مساحة العمل": "Area di lavoro",
     التشغيل: "Operazioni",
+    الفروع: "Sedi",
+    "إدارة فروع Luna وعناوينها التي تظهر للزوار.":
+      "Gestisci le sedi Luna e gli indirizzi mostrati ai visitatori.",
     "المنتجات والمخزون": "Prodotti e inventario",
     التصنيفات: "Categorie",
     "أنشئ تصنيفات القائمة ورتّب ظهورها. لا توجد تصنيفات تجريبية مضافة.":

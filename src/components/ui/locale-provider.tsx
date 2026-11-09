@@ -18,7 +18,7 @@ const LOCALE_CHANGE_EVENT = "luna-locale-change";
 
 function getStoredLocale(): Locale {
   const saved = localStorage.getItem("luna-locale");
-  return saved === "ar" || saved === "en" || saved === "it" ? saved : "ar";
+  return saved === "ar" || saved === "en" || saved === "it" ? saved : "en";
 }
 
 function subscribeToLocale(callback: () => void) {

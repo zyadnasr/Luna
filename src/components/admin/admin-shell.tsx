@@ -18,6 +18,7 @@ const navigation = [
     group: "التشغيل",
     items: [
       { label: "الطلبات", href: "/admin/orders" },
+      { label: "الفروع", href: "/admin/branches" },
       { label: "الترابيزات", href: "/admin/tables" },
     ],
   },
@@ -56,6 +57,7 @@ const adminLabels = {
     "نظرة عامة": "Overview",
     التشغيل: "Operations",
     الطلبات: "Orders",
+    الفروع: "Branches",
     الترابيزات: "Tables",
     "المنتجات والمخزون": "Products & inventory",
     المنتجات: "Products",
@@ -88,6 +90,7 @@ const adminLabels = {
     "نظرة عامة": "Panoramica",
     التشغيل: "Operazioni",
     الطلبات: "Ordini",
+    الفروع: "Sedi",
     الترابيزات: "Tavoli",
     "المنتجات والمخزون": "Prodotti e inventario",
     المنتجات: "Prodotti",
