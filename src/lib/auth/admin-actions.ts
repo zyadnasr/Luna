@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { UserRole } from "@/types/domain";
 import { managedRoles } from "@/lib/auth/roles";
+import { getPublicSitePath } from "@/lib/site-url";
 
 export type ManagedUser = {
   id: string;
@@ -64,13 +65,9 @@ export async function inviteManagedUser(input: {
     return { success: false, message: "اختر صلاحية واحدة على الأقل." };
 
   const service = createServiceClient();
-  const inviteRedirect = new URL(
-    "/admin/reset-password",
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-  );
   const { data, error } = await service.auth.admin.inviteUserByEmail(email, {
     data: { display_name: displayName },
-    redirectTo: inviteRedirect.toString(),
+    redirectTo: getPublicSitePath("/admin/reset-password"),
   });
   if (error || !data.user) {
     console.error("Managed user invitation failed", {
