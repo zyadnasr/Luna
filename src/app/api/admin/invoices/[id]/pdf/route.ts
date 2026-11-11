@@ -100,40 +100,6 @@ function buildPdf(
         .text(`${label}: ${value}`, 300, y, { width: right - 300, align: "right" });
       y += label === labels.total ? 27 : 20;
     }
-    const order = invoice.orders;
-    const detailRows: Array<[string, string | number | null | undefined]> = [
-      [labels.orderNumber, order?.order_number],
-      [labels.orderType, order?.order_type],
-      [labels.source, order?.source],
-      [labels.orderStatus, order?.status],
-      [labels.paymentMethod, order?.payment_method],
-      [labels.paymentStatus, order?.payment_status],
-      [labels.salesChannel, order?.sales_channel],
-      [labels.acquisitionSource, order?.acquisition_source],
-      [labels.attributionType, order?.attribution_type],
-      [labels.campaignAdSet, order?.campaign_ad_set],
-      [labels.influencerPartner, order?.influencer_partner_name],
-      [labels.businessType, order?.business_type],
-      [labels.customerNotes, order?.customer_notes],
-      [labels.invoiceNotes, order?.invoice_notes],
-      [labels.coupon, order?.coupon_code],
-      [labels.requestedDelivery, order?.requested_delivery_time ? formatInvoiceDate(order.requested_delivery_time, locale) : null],
-      [labels.deliveryLocation, order?.delivery_location_url],
-      [labels.invoiceRequested, order?.invoice_requested == null ? null : order.invoice_requested ? labels.yes : labels.no],
-      [labels.externalInvoiceUrl, order?.external_invoice_url],
-      [labels.externalInvoiceError, order?.external_invoice_error],
-    ];
-    if (detailRows.some(([, value]) => value)) {
-      document.addPage();
-      y = 58;
-      writeRight(labels.orderDetails, y, 16);
-      y += 30;
-      for (const [label, value] of detailRows) {
-        if (!value) continue;
-        writeRight(`${label}: ${String(value)}`, y, 9);
-        y += 18;
-      }
-    }
     document
       .fillColor("#65705b")
       .fontSize(10)

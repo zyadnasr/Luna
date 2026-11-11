@@ -108,34 +108,6 @@ async function buildWord(
               size: label === labels.total ? 24 : 20,
             }),
           ),
-          ...(() => {
-            const order = invoice.orders;
-            const detailRows: Array<[string, string | number | null | undefined]> = [
-              [labels.orderNumber, order?.order_number],
-              [labels.orderType, order?.order_type],
-              [labels.source, order?.source],
-              [labels.orderStatus, order?.status],
-              [labels.paymentMethod, order?.payment_method],
-              [labels.paymentStatus, order?.payment_status],
-              [labels.salesChannel, order?.sales_channel],
-              [labels.acquisitionSource, order?.acquisition_source],
-              [labels.attributionType, order?.attribution_type],
-              [labels.campaignAdSet, order?.campaign_ad_set],
-              [labels.influencerPartner, order?.influencer_partner_name],
-              [labels.businessType, order?.business_type],
-              [labels.customerNotes, order?.customer_notes],
-              [labels.invoiceNotes, order?.invoice_notes],
-              [labels.coupon, order?.coupon_code],
-              [labels.requestedDelivery, order?.requested_delivery_time ? formatInvoiceDate(order.requested_delivery_time, locale) : null],
-              [labels.deliveryLocation, order?.delivery_location_url],
-              [labels.invoiceRequested, order?.invoice_requested == null ? null : order.invoice_requested ? labels.yes : labels.no],
-              [labels.externalInvoiceUrl, order?.external_invoice_url],
-              [labels.externalInvoiceError, order?.external_invoice_error],
-            ];
-            return detailRows.some(([, value]) => value)
-              ? [paragraph(labels.orderDetails, locale, { bold: true, size: 25, heading: HeadingLevel.HEADING_2 }), ...detailRows.filter(([, value]) => value).map(([label, value]) => paragraph(`${label}: ${String(value)}`, locale, { size: 18 }))]
-              : [];
-          })(),
           paragraph(labels.thankYou, locale, { size: 20 }),
         ],
       },

@@ -32,7 +32,7 @@ export async function createInvoiceForDeliveredOrder(orderId: string) {
     order_id: orderId, invoice_number: invoiceNumber, customer_name: order.customer_name, customer_phone: order.customer_phone,
     customer_address: order.delivery_address, customer_type: customerType, subtotal_egp: order.subtotal_egp,
     delivery_fee_egp: order.delivery_fee_egp, discount_percentage: discountPercentage, discount_amount_egp: order.discount_egp ?? 0,
-    tax_amount_egp: 0, total_egp: order.total_egp,
+    tax_amount_egp: 0, total_egp: order.total_egp, order_data_snapshot: order,
   }).select("id,invoice_number").single();
   if (error || !invoice) throw error ?? new Error("Unable to create invoice");
   if (items?.length) {

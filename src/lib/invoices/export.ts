@@ -26,6 +26,7 @@ export type InvoiceExportData = {
   total_egp: number | string;
   currency: string;
   issued_at: string;
+  order_data_snapshot: Record<string, unknown> | null;
   invoice_items: InvoiceExportItem[];
   orders?: InvoiceOrderDetails | null;
 };
