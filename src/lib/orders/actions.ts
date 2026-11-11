@@ -19,6 +19,7 @@ import { getProductAvailability, RECIPE_AVAILABILITY_ENABLED } from "@/lib/inven
 import type { OrderSource } from "@/types/domain";
 import { createOrderNotifications } from "@/lib/notifications/server";
 import { createInvoiceForDeliveredOrder } from "@/lib/invoices/generate";
+import { getServerLocale } from "@/i18n/server";
 
 const transitions: Record<OrderStatus, OrderStatus[]> = {
   new: ["confirmed", "rejected", "cancelled"],
@@ -492,7 +493,20 @@ export async function reviewPayment(
     metadata: { note: note || null },
   });
   revalidatePath(`/admin/orders/${payment.order_id}`);
-  return { success: true, message: status === "paid" ? "تم اعتماد الدفع." : "تم رفض الدفع." };
+  const locale = await getServerLocale();
+  const message =
+    locale === "ar"
+      ? status === "paid"
+        ? "تم اعتماد الدفع."
+        : "تم رفض الدفع."
+      : locale === "it"
+        ? status === "paid"
+          ? "Pagamento approvato."
+          : "Pagamento rifiutato."
+        : status === "paid"
+          ? "Payment approved."
+          : "Payment rejected.";
+  return { success: true, message };
 }
 
 export async function getPaymentProofUrl(paymentId: string) {

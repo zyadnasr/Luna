@@ -16,9 +16,9 @@ type LocaleContextValue = { locale: Locale; setLocale: (locale: Locale) => void 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 const LOCALE_CHANGE_EVENT = "luna-locale-change";
 
-function getStoredLocale(): Locale {
+function getStoredLocale(fallback: Locale): Locale {
   const saved = localStorage.getItem("luna-locale");
-  return saved === "ar" || saved === "en" || saved === "it" ? saved : "en";
+  return saved === "ar" || saved === "en" || saved === "it" ? saved : fallback;
 }
 
 function subscribeToLocale(callback: () => void) {
@@ -38,7 +38,11 @@ export function LocaleProvider({
   initialLocale: Locale;
 }) {
   const router = useRouter();
-  const locale = useSyncExternalStore(subscribeToLocale, getStoredLocale, () => initialLocale);
+  const locale = useSyncExternalStore(
+    subscribeToLocale,
+    () => getStoredLocale(initialLocale),
+    () => initialLocale,
+  );
 
   useEffect(() => {
     document.documentElement.lang = locale;
