@@ -14,19 +14,27 @@ type Product = {
   name: string;
   prices: Array<{ id: string; label: string | null; price_egp: number }>;
 };
+type Branch = {
+  id: string;
+  name: string;
+  locations: { name: string; address: string | null; map_url: string | null } | Array<{ name: string; address: string | null; map_url: string | null }> | null;
+};
 export function ManualOrderForm({
   products,
   zones,
+  branches,
   instapayNumber,
 }: {
   products: Product[];
   zones: Array<{ id: string; name_ar: string; delivery_fee_egp: number }>;
+  branches: Branch[];
   instapayNumber: string;
 }) {
   const router = useRouter();
   const { locale } = useLocale();
   const t = (value: string) => translateAdminText(locale, value);
   const [source, setSource] = useState<"talabat" | "uber" | "whatsapp" | "manual">("talabat");
+  const [branchId, setBranchId] = useState("");
   const [type, setType] = useState<"delivery" | "external">("delivery");
   const [productId, setProductId] = useState(products[0]?.id ?? "");
   const [priceId, setPriceId] = useState(products[0]?.prices[0]?.id ?? "");
@@ -58,6 +66,7 @@ export function ManualOrderForm({
       source,
       orderType: type,
       externalReference: data.reference,
+      branchId: source === "manual" ? branchId || undefined : undefined,
       customerName: data.name,
       customerPhone: data.phone,
       notes: data.notes,
@@ -88,6 +97,15 @@ export function ManualOrderForm({
             </option>
           </Select>
         </label>
+        {source === "manual" ? (
+          <label className="grid gap-2 text-sm font-semibold">
+            {t("الفرع")}
+            <Select value={branchId} onChange={(event) => setBranchId(event.target.value)}>
+              <option value="">{locale === "ar" ? "اختر الفرع" : locale === "it" ? "Scegli filiale" : "Choose branch"}</option>
+              {branches.map((branch) => <option value={branch.id} key={branch.id}>{branch.name}</option>)}
+            </Select>
+          </label>
+        ) : null}
         {data.payment === "instapay" ? (
           <label className="grid gap-2 text-sm font-semibold">
             Instapay{" "}

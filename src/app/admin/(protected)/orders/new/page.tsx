@@ -8,11 +8,15 @@ import { translateAdminText } from "@/i18n/admin-text";
 
 export default async function NewOrderPage() {
   await requireRole("owner");
-  const [{ products }, { data: zones }, instapayNumber] = await Promise.all([
+  const [{ products }, { data: zones }, { data: branches }, instapayNumber] = await Promise.all([
     getProducts({ availability: "available" }),
     (await createClient())
       .from("delivery_zones")
       .select("id, name_ar, delivery_fee_egp")
+      .eq("is_active", true),
+    (await createClient())
+      .from("branches")
+      .select("id, name, locations(name, address, map_url)")
       .eq("is_active", true),
     getInstapaySettings(),
   ]);
@@ -37,7 +41,7 @@ export default async function NewOrderPage() {
         </p>
       </div>
       <div className="mt-8">
-        <ManualOrderForm products={catalog} zones={zones ?? []} instapayNumber={instapayNumber} />
+        <ManualOrderForm products={catalog} zones={zones ?? []} branches={branches ?? []} instapayNumber={instapayNumber} />
       </div>
     </section>
   );

@@ -20,6 +20,7 @@ import type { OrderSource } from "@/types/domain";
 import { createOrderNotifications } from "@/lib/notifications/server";
 import { createInvoiceForDeliveredOrder } from "@/lib/invoices/generate";
 import { getServerLocale } from "@/i18n/server";
+import { reverseGeocodeLocation } from "@/lib/locations/geocode";
 
 const transitions: Record<OrderStatus, OrderStatus[]> = {
   new: ["confirmed", "rejected", "cancelled"],
@@ -252,6 +253,9 @@ async function createPublicOrderInternal(input: OrderInput): Promise<OrderResult
     );
   }
   const total = Math.max(0, subtotal + deliveryFee - discount);
+  const geocodedLocation = await reverseGeocodeLocation(input.deliveryLocationUrl);
+  const resolvedDeliveryAddress =
+    geocodedLocation?.formattedAddress || normalizeDeliveryAddress(input.deliveryAddress ?? "") || null;
   const { data: order, error } = await writer
     .from("orders")
     .insert({
@@ -263,8 +267,12 @@ async function createPublicOrderInternal(input: OrderInput): Promise<OrderResult
       customer_phone: normalizedPhone,
       customer_email: input.customerEmail?.trim() || null,
       delivery_zone_id: input.deliveryZoneId ?? null,
-      delivery_address: normalizeDeliveryAddress(input.deliveryAddress ?? "") || null,
+      delivery_address: resolvedDeliveryAddress,
       delivery_location_url: input.deliveryLocationUrl?.trim() || null,
+      delivery_latitude: geocodedLocation?.latitude ?? null,
+      delivery_longitude: geocodedLocation?.longitude ?? null,
+      delivery_place_name: geocodedLocation?.formattedAddress ?? null,
+      delivery_place_id: geocodedLocation?.placeId ?? null,
       customer_notes: input.customerNotes?.trim() || null,
       requested_delivery_time: input.requestedDeliveryTime || null,
       subtotal_egp: subtotal,
@@ -544,6 +552,7 @@ export async function createManualOrder(input: {
   source: "talabat" | "uber" | "whatsapp" | "manual";
   orderType: "delivery" | "external";
   externalReference: string;
+  branchId?: string;
   customerName: string;
   customerPhone: string;
   notes: string;
@@ -616,17 +625,38 @@ export async function createManualOrder(input: {
     if (!zone) return fail("منطقة التوصيل غير متاحة.");
     fee = Number(zone.delivery_fee_egp);
   }
+  let branchName: string | null = null;
+  let branchAddress: string | null = null;
+  let branchMapUrl: string | null = null;
+  if (input.branchId) {
+    const { data: branch } = await supabase
+      .from("branches")
+      .select("id, name, locations(name, address, map_url)")
+      .eq("id", input.branchId)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (!branch) return fail("الفرع غير متاح.");
+    branchName = branch.name;
+    const location = Array.isArray(branch.locations) ? branch.locations[0] : branch.locations;
+    branchAddress = location?.address ?? location?.name ?? null;
+    branchMapUrl = location?.map_url ?? null;
+  }
+  const customerName = input.customerName.trim() || branchName;
+  const deliveryAddress = input.address?.trim() || (input.orderType === "external" ? branchAddress : null);
+  const deliveryLocationUrl = input.locationUrl?.trim() || (input.orderType === "external" ? branchMapUrl : null);
   const { data: order, error } = await writer
     .from("orders")
     .insert({
       source: input.source,
       order_type: input.orderType,
-      customer_name: input.customerName || null,
+      customer_name: customerName,
       customer_phone: input.customerPhone || null,
       customer_notes: [input.externalReference, input.notes].filter(Boolean).join(" · ") || null,
       delivery_zone_id: input.deliveryZoneId || null,
-      delivery_address: input.address || null,
-      delivery_location_url: input.locationUrl || null,
+      delivery_address: deliveryAddress,
+      delivery_location_url: deliveryLocationUrl,
+      branch_id: input.branchId || null,
+      sales_channel: input.branchId ? "branch" : null,
       subtotal_egp: subtotal,
       delivery_fee_egp: fee,
       total_egp: subtotal + fee,

@@ -90,6 +90,9 @@ async function buildWord(
           ...(invoice.customer_address
             ? [paragraph(`${labels.address}: ${invoice.customer_address}`, locale)]
             : []),
+          ...(invoice.orders?.coupon_code
+            ? [paragraph(`${labels.coupon}: ${invoice.orders.coupon_code}`, locale)]
+            : []),
           new Table({
             width: { size: 100, type: WidthType.PERCENTAGE },
             borders: {

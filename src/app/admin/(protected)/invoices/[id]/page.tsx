@@ -229,6 +229,7 @@ export default async function InvoiceDetailsPage({ params }: { params: Promise<{
           <p className="mt-2 text-sm text-[var(--color-text-muted)]">{labels.issued}: {date(invoice.issued_at, locale)}</p>
         </div>
         <div className="flex gap-2">
+          <a className="rounded-[var(--radius-pill)] border border-[var(--color-border)] px-3 py-2 text-sm hover:border-[var(--color-brand-primary)]" href={`/admin/invoices/${invoice.id}/print`}>{locale === "ar" ? "طباعة" : locale === "it" ? "Stampa" : "Print"}</a>
           <a className="rounded-[var(--radius-pill)] border border-[var(--color-border)] px-3 py-2 text-sm hover:border-[var(--color-brand-primary)]" download href={`/api/admin/invoices/${invoice.id}/pdf`}>{labels.pdf}</a>
           <a className="rounded-[var(--radius-pill)] border border-[var(--color-border)] px-3 py-2 text-sm hover:border-[var(--color-brand-primary)]" download href={`/api/admin/invoices/${invoice.id}/word`}>{labels.word}</a>
         </div>
