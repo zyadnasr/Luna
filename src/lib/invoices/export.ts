@@ -233,13 +233,17 @@ export function formatInvoiceDate(value: string, locale: Locale) {
 }
 
 export function invoiceFontSource(locale: Locale) {
-  const fontPath = path.join(
-    process.cwd(),
-    "node_modules",
-    "@fontsource",
-    "noto-sans-arabic",
-    "files",
-    locale === "ar" ? "noto-sans-arabic-arabic-400-normal.woff" : "noto-sans-arabic-latin-400-normal.woff",
-  );
-  return readFileSync(fontPath);
+  try {
+    const fontPath = path.join(
+      process.cwd(),
+      "node_modules",
+      "@fontsource",
+      "noto-sans-arabic",
+      "files",
+      locale === "ar" ? "noto-sans-arabic-arabic-400-normal.woff" : "noto-sans-arabic-latin-400-normal.woff",
+    );
+    return readFileSync(fontPath);
+  } catch {
+    return null;
+  }
 }
