@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       pdfkit: path.resolve(process.cwd(), "node_modules/pdfkit/js/pdfkit.browser.js"),
+      "pdfkit-browser": path.resolve(process.cwd(), "node_modules/pdfkit/js/pdfkit.browser.js"),
     };
     return config;
   },

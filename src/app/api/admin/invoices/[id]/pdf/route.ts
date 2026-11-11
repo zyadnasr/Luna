@@ -1,4 +1,4 @@
-import PDFDocument from "pdfkit";
+import PDFDocument from "pdfkit-browser";
 import { requirePermission } from "@/lib/auth/server";
 import { getServerLocale } from "@/i18n/server";
 import {
