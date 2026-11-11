@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { LogoMark } from "@/components/ui/logo-mark";
+import { getServerLocale } from "@/i18n/server";
+import { getTranslations } from "@/i18n/translations";
 
-export default function NotFound() {
+export default async function NotFound() {
+  const translations = getTranslations(await getServerLocale());
   return (
     <main className="min-h-[70vh] px-5 py-16">
       <div className="mx-auto max-w-xl text-center">
@@ -9,15 +12,15 @@ export default function NotFound() {
           <LogoMark size={58} />
         </div>
         <p className="mt-8 text-sm font-semibold text-[var(--color-text-muted)]">404</p>
-        <h1 className="mt-3 text-4xl font-semibold">الصفحة غير موجودة</h1>
+        <h1 className="mt-3 text-4xl font-semibold">{translations.notFound.title}</h1>
         <p className="mt-4 leading-7 text-[var(--color-text-muted)]">
-          يبدو أن هذا العنوان ليس ضمن مساحة Luna الحالية.
+          {translations.notFound.description}
         </p>
         <Link
           className="mt-8 inline-flex min-h-11 items-center rounded-[var(--radius-pill)] bg-[var(--color-brand-secondary)] px-5 text-sm font-semibold text-[var(--color-on-brand)]"
           href="/"
         >
-          العودة للرئيسية
+          {translations.notFound.home}
         </Link>
       </div>
     </main>

@@ -16,6 +16,7 @@ export const permissions = [
   "expenses.view",
   "expenses.manage",
   "reports.view",
+  "invoices.view",
   "users.view",
   "users.manage",
   "settings.view",
@@ -41,6 +42,7 @@ export const rolePermissions: Record<UserRole, readonly Permission[]> = {
     "expenses.view",
     "expenses.manage",
     "reports.view",
+    "invoices.view",
   ],
   cashier: [
     "admin.access",
@@ -52,7 +54,7 @@ export const rolePermissions: Record<UserRole, readonly Permission[]> = {
   ],
   kitchen: ["admin.access", "orders.view"],
   inventory: ["admin.access", "inventory.view", "inventory.manage", "catalog.view", "reports.view"],
-  accountant: ["admin.access", "expenses.view", "expenses.manage", "reports.view"],
+  accountant: ["admin.access", "expenses.view", "expenses.manage", "reports.view", "invoices.view"],
 };
 
 export function roleHasPermission(roles: readonly UserRole[], permission: Permission) {

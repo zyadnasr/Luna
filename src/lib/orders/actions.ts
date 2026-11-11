@@ -18,6 +18,7 @@ import {
 import { getProductAvailability, RECIPE_AVAILABILITY_ENABLED } from "@/lib/inventory/availability";
 import type { OrderSource } from "@/types/domain";
 import { createOrderNotifications } from "@/lib/notifications/server";
+import { createInvoiceForDeliveredOrder } from "@/lib/invoices/generate";
 
 const transitions: Record<OrderStatus, OrderStatus[]> = {
   new: ["confirmed", "rejected", "cancelled"],
@@ -679,6 +680,13 @@ export async function updateOrderStatus(
     .single();
   if (!current) return fail("الطلب غير موجود.");
   if (current.status === status) {
+    if (status === "delivered") {
+      try {
+        await createInvoiceForDeliveredOrder(id);
+      } catch (error) {
+        console.error("Invoice generation failed", error);
+      }
+    }
     revalidatePath("/admin/orders");
     revalidatePath(`/admin/orders/${id}`);
     return { success: true, message: "تم تحديث الحالة." };
@@ -747,6 +755,13 @@ export async function updateOrderStatus(
       total: Number(current.total_egp),
     }),
   );
+  if (status === "delivered") {
+    try {
+      await createInvoiceForDeliveredOrder(id);
+    } catch (error) {
+      console.error("Invoice generation failed", error);
+    }
+  }
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${id}`);
   return { success: true, message: "تم تحديث الحالة." };
@@ -811,6 +826,11 @@ export async function markPublicOrderDelivered(
       total: Number(order.total_egp),
     }),
   );
+  try {
+    await createInvoiceForDeliveredOrder(order.id);
+  } catch (error) {
+    console.error("Invoice generation failed", error);
+  }
   revalidatePath(`/order/status/${encodeURIComponent(orderNumber)}`);
   revalidatePath("/admin/orders");
   return { success: true, message: "تم تأكيد استلام الطلب." };

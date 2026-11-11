@@ -43,6 +43,12 @@ export const translations: Record<Locale, TranslationDictionary> = {
       status: "الحالة",
       ready: "يعمل",
     },
+    notFound: {
+      title: "الصفحة غير موجودة",
+      description: "يبدو أن هذا العنوان ليس ضمن مساحة Luna الحالية.",
+      home: "العودة للرئيسية",
+      admin: "العودة إلى الإدارة",
+    },
     shell: { menu: "القائمة", language: "اللغة", footer: "بنية تشغيلية قيد الإعداد" },
     orders: {
       title: "الطلبات",
@@ -122,6 +128,12 @@ export const translations: Record<Locale, TranslationDictionary> = {
       description: "A basic endpoint confirming that the application is running.",
       status: "Status",
       ready: "Operational",
+    },
+    notFound: {
+      title: "Page not found",
+      description: "This address is not part of the current Luna space.",
+      home: "Back to home",
+      admin: "Back to admin",
     },
     inventory: {
       title: "Inventory",
@@ -239,6 +251,12 @@ export const translations: Record<Locale, TranslationDictionary> = {
       description: "Una pagina base per confermare che l'applicazione è attiva.",
       status: "Stato",
       ready: "Operativo",
+    },
+    notFound: {
+      title: "Pagina non trovata",
+      description: "Questo indirizzo non fa parte dello spazio Luna attuale.",
+      home: "Torna alla home",
+      admin: "Torna all'amministrazione",
     },
     inventory: {
       title: "Inventario",

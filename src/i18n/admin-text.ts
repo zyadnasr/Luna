@@ -414,6 +414,33 @@ const copy = {
     الترابيزات: "Tables",
     المصروفات: "Expenses",
     التقارير: "Reports",
+    "استيراد البيانات": "Data import",
+    "استيراد الطلبات": "Import orders",
+    "ارفع ملف Excel لإنشاء الطلبات الخارجية دفعة واحدة مع تسجيل الأخطاء لكل صف.":
+      "Upload an Excel file to create external orders in bulk with row-level error tracking.",
+    "ملف Excel": "Excel file",
+    "اختيار ملف": "Choose file",
+    "لم يتم اختيار ملف": "No file chosen",
+    "الأعمدة المدعومة": "Supported columns",
+    "رقم الطلب، المصدر، الحالة، اسم العميل، الهاتف، العنوان، الإجمالي الفرعي، رسوم التوصيل، الإجمالي، طريقة الدفع، حالة الدفع، التاريخ.":
+      "Order number, source, status, customer name, phone, address, subtotal, delivery fee, total, payment method, payment status, and date.",
+    "الإجمالي مطلوب، وباقي الأعمدة لها قيم افتراضية آمنة. الحد الأقصى 5000 صف و10 ميجابايت.":
+      "Total is required. Other columns have safe defaults. The limit is 5,000 rows and 10 MB.",
+    "تم استيراد": "Imported",
+    "صف، وفشل": "rows; failed",
+    "صف.": "rows.",
+    "جارٍ الاستيراد...": "Importing...",
+    "بدء الاستيراد": "Start import",
+    "اختر ملف Excel أولًا.": "Choose an Excel file first.",
+    "حجم الملف يجب ألا يتجاوز 10 ميجابايت.": "The file must not exceed 10 MB.",
+    "تعذر بدء عملية الاستيراد. تأكد من تطبيق Migration الاستيراد.":
+      "Unable to start the import. Make sure the import migration has been applied.",
+    "ورقة Excel فارغة.": "The Excel sheet is empty.",
+    "الحد الأقصى للاستيراد هو 5000 صف في المرة الواحدة.":
+      "The import limit is 5,000 rows at a time.",
+    "اكتمل الاستيراد مع تسجيل الصفوف التي بها أخطاء.":
+      "The import completed; rows with errors were recorded.",
+    "فشل استيراد كل الصفوف.": "All rows failed to import.",
     "هذه الوحدة قيد الإعداد": "This module is being prepared",
     "ستظهر هنا البيانات التشغيلية عند تفعيل هذه الوحدة.":
       "Operational data will appear here once this module is enabled.",
@@ -854,6 +881,32 @@ const copy = {
     الترابيزات: "Tavoli",
     المصروفات: "Spese",
     التقارير: "Report",
+    "استيراد البيانات": "Importazione dati",
+    "استيراد الطلبات": "Importa ordini",
+    "ارفع ملف Excel لإنشاء الطلبات الخارجية دفعة واحدة مع تسجيل الأخطاء لكل صف.":
+      "Carica un file Excel per creare ordini esterni in blocco con il tracciamento degli errori per riga.",
+    "ملف Excel": "File Excel",
+    "اختيار ملف": "Scegli file",
+    "لم يتم اختيار ملف": "Nessun file scelto",
+    "الأعمدة المدعومة": "Colonne supportate",
+    "رقم الطلب، المصدر، الحالة، اسم العميل، الهاتف، العنوان، الإجمالي الفرعي، رسوم التوصيل، الإجمالي، طريقة الدفع، حالة الدفع، التاريخ.":
+      "Numero ordine, fonte, stato, nome cliente, telefono, indirizzo, subtotale, costo consegna, totale, metodo di pagamento, stato pagamento e data.",
+    "الإجمالي مطلوب، وباقي الأعمدة لها قيم افتراضية آمنة. الحد الأقصى 5000 صف و10 ميجابايت.":
+      "Il totale è obbligatorio. Le altre colonne hanno valori predefiniti sicuri. Limite: 5.000 righe e 10 MB.",
+    "تم استيراد": "Importate",
+    "صف، وفشل": "righe; fallite",
+    "صف.": "righe.",
+    "جارٍ الاستيراد...": "Importazione...",
+    "بدء الاستيراد": "Avvia importazione",
+    "اختر ملف Excel أولًا.": "Scegli prima un file Excel.",
+    "حجم الملف يجب ألا يتجاوز 10 ميجابايت.": "Il file non può superare 10 MB.",
+    "تعذر بدء عملية الاستيراد. تأكد من تطبيق Migration الاستيراد.":
+      "Impossibile avviare l'importazione. Verifica che la migration sia stata applicata.",
+    "ورقة Excel فارغة.": "Il foglio Excel è vuoto.",
+    "الحد الأقصى للاستيراد هو 5000 صف في المرة الواحدة.": "Il limite è di 5.000 righe per volta.",
+    "اكتمل الاستيراد مع تسجيل الصفوف التي بها أخطاء.":
+      "Importazione completata; le righe con errori sono state registrate.",
+    "فشل استيراد كل الصفوف.": "Tutte le righe non sono state importate.",
     "هذه الوحدة قيد الإعداد": "Questo modulo è in preparazione",
     "ستظهر هنا البيانات التشغيلية عند تفعيل هذه الوحدة.":
       "I dati operativi appariranno qui quando il modulo sarà attivato.",

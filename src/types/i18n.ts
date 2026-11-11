@@ -20,6 +20,12 @@ export type TranslationDictionary = {
     status: string;
     ready: string;
   };
+  notFound: {
+    title: string;
+    description: string;
+    home: string;
+    admin: string;
+  };
   shell: {
     menu: string;
     language: string;
