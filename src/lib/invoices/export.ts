@@ -1,7 +1,7 @@
-import path from "node:path";
-import { existsSync } from "node:fs";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { Locale } from "@/config/site";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 
 export type InvoiceExportItem = {
   product_name_snapshot: Record<string, string> | Array<{ locale: string; name: string }> | null;
@@ -232,8 +232,14 @@ export function formatInvoiceDate(value: string, locale: Locale) {
   return new Date(value).toLocaleString(numberLocale, { dateStyle: "medium", timeStyle: "short" });
 }
 
-export function invoiceFontPath(locale: Locale) {
-  const subset = locale === "ar" ? "arabic" : "latin";
-  const bundledFont = path.join(process.cwd(), "public", "fonts", `noto-sans-arabic-${subset}-400-normal.woff`);
-  return existsSync(bundledFont) ? bundledFont : null;
+export function invoiceFontSource(locale: Locale) {
+  const fontPath = path.join(
+    process.cwd(),
+    "node_modules",
+    "@fontsource",
+    "noto-sans-arabic",
+    "files",
+    locale === "ar" ? "noto-sans-arabic-arabic-400-normal.woff" : "noto-sans-arabic-latin-400-normal.woff",
+  );
+  return readFileSync(fontPath);
 }

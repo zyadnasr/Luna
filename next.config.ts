@@ -1,7 +1,15 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      pdfkit: path.resolve(process.cwd(), "node_modules/pdfkit/js/pdfkit.browser.js"),
+    };
+    return config;
+  },
   cacheComponents: false,
   partialPrefetching: false,
   images: {

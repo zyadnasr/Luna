@@ -6,7 +6,7 @@ import {
   formatInvoiceMoney,
   getInvoiceExportData,
   invoiceExportCopy,
-  invoiceFontPath,
+  invoiceFontSource,
   productName,
 } from "@/lib/invoices/export";
 
@@ -28,7 +28,7 @@ function buildPdf(
     document.on("data", (chunk: Buffer) => chunks.push(chunk));
     document.on("end", () => resolve(Buffer.concat(chunks)));
     document.on("error", reject);
-    const font = invoiceFontPath(locale);
+    const font = invoiceFontSource(locale);
     if (font) document.font(font);
     const right = document.page.width - document.page.margins.right;
     const number = (value: number | string) => formatInvoiceMoney(value, locale, invoice.currency);
