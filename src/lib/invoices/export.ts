@@ -1,5 +1,4 @@
-import path from "node:path";
-import { existsSync } from "node:fs";
+import { createRequire } from "node:module";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { Locale } from "@/config/site";
 
@@ -234,13 +233,12 @@ export function formatInvoiceDate(value: string, locale: Locale) {
 
 export function invoiceFontPath(locale: Locale) {
   const subset = locale === "ar" ? "arabic" : "latin";
-  const bundledFont = path.join(
-    process.cwd(),
-    "node_modules",
-    "@fontsource",
-    "noto-sans-arabic",
-    "files",
-    `noto-sans-arabic-${subset}-400-normal.woff`,
-  );
-  return existsSync(bundledFont) ? bundledFont : null;
+  const resolve = createRequire(`${process.cwd()}/package.json`).resolve;
+  try {
+    return subset === "arabic"
+      ? resolve("@fontsource/noto-sans-arabic/files/noto-sans-arabic-arabic-400-normal.woff")
+      : resolve("@fontsource/noto-sans-arabic/files/noto-sans-arabic-latin-400-normal.woff");
+  } catch {
+    return null;
+  }
 }
