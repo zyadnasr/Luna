@@ -214,7 +214,12 @@ export default async function InvoicesPage() {
                     key={invoice.id}
                   >
                     <td className="px-4 py-4">
-                      <p className="font-semibold">{invoice.invoice_number}</p>
+                      <Link
+                        className="font-semibold text-[var(--color-brand-primary)] hover:underline"
+                        href={`/admin/invoices/${invoice.id}`}
+                      >
+                        {invoice.invoice_number}
+                      </Link>
                       <Link
                         className="mt-1 inline-block text-xs text-[var(--color-brand-primary)] hover:underline"
                         href={`/admin/orders/${invoice.order_id}`}
