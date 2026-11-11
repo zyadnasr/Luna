@@ -145,15 +145,9 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
                 <InfoRow label={t("المبلغ")} last>
                   {Number(payment.amount_egp).toLocaleString(numberLocale)} EGP
                 </InfoRow>
-                {payment.method === "instapay" ? (
-                  <div className="mt-4">
-                    <PaymentProof paymentId={payment.id} status={payment.status} />
-                  </div>
-                ) : (
-                  <p className="mt-4 text-xs italic text-[var(--color-text-muted)]">
-                    {t("الدفع نقدًا، لا توجد صورة إثبات.")}
-                  </p>
-                )}
+                <div className="mt-4">
+                  <PaymentProof paymentId={payment.id} status={payment.status} method={payment.method} />
+                </div>
               </div>
             ))}
           </article>
@@ -223,8 +217,8 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
   );
 }
 
-async function PaymentProof({ paymentId, status }: { paymentId: string; status: string }) {
-  const signedUrl = await getPaymentProofUrl(paymentId);
-  return <PaymentReview paymentId={paymentId} status={status} signedUrl={signedUrl} />;
+async function PaymentProof({ paymentId, status, method }: { paymentId: string; status: string; method: string }) {
+  const signedUrl = method === "instapay" ? await getPaymentProofUrl(paymentId) : null;
+  return <PaymentReview paymentId={paymentId} status={status} signedUrl={signedUrl} method={method} />;
 }
 import type { ReactNode } from "react";

@@ -472,7 +472,7 @@ export async function reviewPayment(
     .select("id, order_id, proof_path")
     .eq("id", id)
     .maybeSingle();
-  if (!payment) return fail("إثبات الدفع غير موجود.");
+  if (!payment) return fail("الدفع غير موجود.");
   const { error } = await supabase
     .from("payments")
     .update({

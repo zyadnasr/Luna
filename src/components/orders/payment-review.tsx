@@ -9,10 +9,12 @@ export function PaymentReview({
   paymentId,
   status,
   signedUrl,
+  method,
 }: {
   paymentId: string;
   status: string;
   signedUrl: string | null;
+  method?: string;
 }) {
   const { locale } = useLocale();
   const [note, setNote] = useState("");
@@ -73,8 +75,14 @@ export function PaymentReview({
           />
           <div className="flex gap-3">
             <Button disabled={busy} onClick={() => submit("paid")}>
-              {locale === "ar"
-                ? "اعتماد الدفع"
+              {method === "cash"
+                ? locale === "ar"
+                  ? "تأكيد استلام الكاش"
+                  : locale === "it"
+                    ? "Conferma contanti ricevuti"
+                    : "Confirm cash received"
+                : locale === "ar"
+                  ? "اعتماد الدفع"
                 : locale === "it"
                   ? "Approva pagamento"
                   : "Approve payment"}
