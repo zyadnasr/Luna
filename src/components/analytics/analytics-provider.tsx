@@ -24,6 +24,8 @@ export type StoredAttribution = {
   fbclid: string | null;
 };
 
+const landingPageStorageKey = "luna-attribution-landing-page";
+
 const getSessionId = () => {
   const key = "luna-analytics-session";
   const existing = window.localStorage.getItem(key);
@@ -56,13 +58,27 @@ export function getStoredAttribution(): StoredAttribution {
   const gclid = params.get("gclid") || stored("luna-gclid");
   const fbclid = params.get("fbclid") || stored("luna-fbclid");
   const referrer = document.referrer || null;
+  const savedLandingPage = stored(landingPageStorageKey);
+  const hasExplicitAttribution = [
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_content",
+    "utm_term",
+    "gclid",
+    "fbclid",
+  ].some((key) => params.has(key));
+  const landingPage = hasExplicitAttribution ? window.location.pathname : savedLandingPage || window.location.pathname;
+  if (hasExplicitAttribution || !savedLandingPage) {
+    window.localStorage.setItem(landingPageStorageKey, landingPage);
+  }
   const source = utmSource || (gclid ? "google" : fbclid ? "meta" : referrer ? "referral" : "direct");
   const type = utmSource ? "utm" : gclid ? "google_ads" : fbclid ? "meta_ads" : referrer ? "referral" : "direct";
   return {
     source,
     type,
     referrer,
-    landingPage: window.location.pathname,
+    landingPage,
     sessionId: getSessionId(),
     utmSource,
     utmMedium: params.get("utm_medium") || stored("luna-utm-medium"),
