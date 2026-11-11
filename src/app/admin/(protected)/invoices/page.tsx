@@ -39,6 +39,8 @@ const copy = {
     issuedStatus: "صادرة",
     voidStatus: "ملغاة",
     order: "الطلب",
+    pdf: "PDF",
+    word: "Word",
     noInvoices: "لا توجد فواتير حتى الآن.",
     setupRequired: "لم يتم تجهيز جدول الفواتير بعد. طبّق migration الفواتير أولًا.",
     retry: "حاول تحديث الصفحة بعد تطبيق الـmigration.",
@@ -62,6 +64,8 @@ const copy = {
     issuedStatus: "Issued",
     voidStatus: "Voided",
     order: "Order",
+    pdf: "PDF",
+    word: "Word",
     noInvoices: "No invoices yet.",
     setupRequired: "The invoices table is not ready yet. Apply the invoices migration first.",
     retry: "Refresh this page after applying the migration.",
@@ -85,6 +89,8 @@ const copy = {
     issuedStatus: "Emessa",
     voidStatus: "Annullata",
     order: "Ordine",
+    pdf: "PDF",
+    word: "Word",
     noInvoices: "Nessuna fattura ancora.",
     setupRequired: "La tabella delle fatture non è ancora pronta. Applica prima la migration.",
     retry: "Aggiorna la pagina dopo aver applicato la migration.",
@@ -215,6 +221,22 @@ export default async function InvoicesPage() {
                       >
                         {labels.order}
                       </Link>
+                      <div className="mt-2 flex gap-2 text-xs">
+                        <a
+                          className="rounded-[var(--radius-pill)] border border-[var(--color-border)] px-2.5 py-1 text-[var(--color-text-secondary)] transition hover:border-[var(--color-brand-primary)] hover:text-[var(--color-brand-primary)]"
+                          download
+                          href={`/api/admin/invoices/${invoice.id}/pdf`}
+                        >
+                          {labels.pdf}
+                        </a>
+                        <a
+                          className="rounded-[var(--radius-pill)] border border-[var(--color-border)] px-2.5 py-1 text-[var(--color-text-secondary)] transition hover:border-[var(--color-brand-primary)] hover:text-[var(--color-brand-primary)]"
+                          download
+                          href={`/api/admin/invoices/${invoice.id}/word`}
+                        >
+                          {labels.word}
+                        </a>
+                      </div>
                     </td>
                     <td className="px-4 py-4">
                       <p>{invoice.customer_name || "-"}</p>
