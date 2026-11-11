@@ -9,6 +9,21 @@ type AnalyticsEvent = {
   metadata?: Record<string, unknown>;
 };
 
+export type StoredAttribution = {
+  source: string;
+  type: string;
+  referrer: string | null;
+  landingPage: string;
+  sessionId: string;
+  utmSource: string | null;
+  utmMedium: string | null;
+  utmCampaign: string | null;
+  utmContent: string | null;
+  utmTerm: string | null;
+  gclid: string | null;
+  fbclid: string | null;
+};
+
 const getSessionId = () => {
   const key = "luna-analytics-session";
   const existing = window.localStorage.getItem(key);
@@ -18,21 +33,62 @@ const getSessionId = () => {
   return value;
 };
 
+export function getStoredAttribution(): StoredAttribution {
+  if (typeof window === "undefined") {
+    return {
+      source: "direct",
+      type: "direct",
+      referrer: null,
+      landingPage: "/",
+      sessionId: "",
+      utmSource: null,
+      utmMedium: null,
+      utmCampaign: null,
+      utmContent: null,
+      utmTerm: null,
+      gclid: null,
+      fbclid: null,
+    };
+  }
+  const params = new URLSearchParams(window.location.search);
+  const stored = (key: string) => window.localStorage.getItem(key);
+  const utmSource = params.get("utm_source") || stored("luna-utm-source");
+  const gclid = params.get("gclid") || stored("luna-gclid");
+  const fbclid = params.get("fbclid") || stored("luna-fbclid");
+  const referrer = document.referrer || null;
+  const source = utmSource || (gclid ? "google" : fbclid ? "meta" : referrer ? "referral" : "direct");
+  const type = utmSource ? "utm" : gclid ? "google_ads" : fbclid ? "meta_ads" : referrer ? "referral" : "direct";
+  return {
+    source,
+    type,
+    referrer,
+    landingPage: window.location.pathname,
+    sessionId: getSessionId(),
+    utmSource,
+    utmMedium: params.get("utm_medium") || stored("luna-utm-medium"),
+    utmCampaign: params.get("utm_campaign") || stored("luna-utm-campaign"),
+    utmContent: params.get("utm_content") || stored("luna-utm-content"),
+    utmTerm: params.get("utm_term") || stored("luna-utm-term"),
+    gclid,
+    fbclid,
+  };
+}
+
 export function trackAnalyticsEvent({ eventName, metadata = {} }: AnalyticsEvent) {
   if (typeof window === "undefined") return;
-  const params = new URLSearchParams(window.location.search);
+  const attribution = getStoredAttribution();
   const payload = {
     eventName,
-    sessionId: getSessionId(),
+    sessionId: attribution.sessionId,
     path: window.location.pathname,
     referrer: document.referrer || null,
-    utmSource: params.get("utm_source") || window.localStorage.getItem("luna-utm-source"),
-    utmMedium: params.get("utm_medium") || window.localStorage.getItem("luna-utm-medium"),
-    utmCampaign: params.get("utm_campaign") || window.localStorage.getItem("luna-utm-campaign"),
-    utmContent: params.get("utm_content") || window.localStorage.getItem("luna-utm-content"),
-    utmTerm: params.get("utm_term") || window.localStorage.getItem("luna-utm-term"),
-    gclid: params.get("gclid") || window.localStorage.getItem("luna-gclid"),
-    fbclid: params.get("fbclid") || window.localStorage.getItem("luna-fbclid"),
+    utmSource: attribution.utmSource,
+    utmMedium: attribution.utmMedium,
+    utmCampaign: attribution.utmCampaign,
+    utmContent: attribution.utmContent,
+    utmTerm: attribution.utmTerm,
+    gclid: attribution.gclid,
+    fbclid: attribution.fbclid,
     metadata,
   };
   void fetch("/api/analytics/events", {
@@ -56,7 +112,6 @@ export function AnalyticsProvider({ settings }: { settings: AnalyticsSettings })
   const previousPath = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!settings.enabled) return;
     const params = new URLSearchParams(searchParams.toString());
     const storageMap: Record<string, string> = {
       utm_source: "luna-utm-source",
@@ -71,6 +126,7 @@ export function AnalyticsProvider({ settings }: { settings: AnalyticsSettings })
       const value = params.get(param);
       if (value) window.localStorage.setItem(key, value.slice(0, 200));
     });
+    if (!settings.enabled) return;
 
     const w = window as Window & {
       dataLayer?: unknown[];

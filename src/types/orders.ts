@@ -34,8 +34,23 @@ export type OrderInput = {
   requestedDeliveryTime?: string;
   paymentMethod: PaymentMethod;
   couponCode?: string;
+  attribution?: OrderAttribution;
   items: CartItem[];
   paymentProof?: File;
+};
+export type OrderAttribution = {
+  source?: string | null;
+  type?: string | null;
+  referrer?: string | null;
+  landingPage?: string | null;
+  sessionId?: string | null;
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
+  utmContent?: string | null;
+  utmTerm?: string | null;
+  gclid?: string | null;
+  fbclid?: string | null;
 };
 export type OrderErrorCode =
   | "generic"
@@ -65,6 +80,10 @@ export type OrderResult = {
   errorCode?: OrderErrorCode;
   orderNumber?: string;
   lookupToken?: string;
+  subtotal?: number;
+  discount?: number;
+  total?: number;
+  couponCode?: string | null;
 };
 export type OrderProductReference = {
   id: string;

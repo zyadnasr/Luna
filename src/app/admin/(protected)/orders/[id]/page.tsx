@@ -99,6 +99,14 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
               <InfoRow label={t("المصدر")}>
                 {translations.orders.source[order.source] ?? order.source}
               </InfoRow>
+              <InfoRow label={t("مصدر الإعلان")}>{order.attribution_source || "-"}</InfoRow>
+              <InfoRow label={t("نوع الإسناد")}>{order.attribution_type || "-"}</InfoRow>
+              <InfoRow label={t("الحملة الإعلانية")}>{order.attribution_utm_campaign || "-"}</InfoRow>
+              <InfoRow label={t("وسيط الإعلان")}>{order.attribution_utm_medium || "-"}</InfoRow>
+              <InfoRow label={t("صفحة الإحالة")}>{order.attribution_referrer || "-"}</InfoRow>
+              <InfoRow label={t("معرّفات الإعلان")}>{[order.attribution_gclid && `gclid: ${order.attribution_gclid}`, order.attribution_fbclid && `fbclid: ${order.attribution_fbclid}`].filter(Boolean).join(" · ") || "-"}</InfoRow>
+              <InfoRow label={t("كود الخصم")}>{order.coupon_code || "-"}</InfoRow>
+              <InfoRow label={t("قيمة الخصم")}>{Number(order.discount_egp || 0).toLocaleString(numberLocale)} EGP</InfoRow>
               <InfoRow label={t("نوع الطلب")}>
                 <span className="inline-flex rounded-[var(--radius-pill)] bg-[var(--color-info)]/10 px-2.5 py-1 text-xs font-semibold text-[var(--color-info)]">
                   {translations.orders.type[order.order_type] ?? order.order_type}

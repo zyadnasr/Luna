@@ -20,6 +20,8 @@ const copy = {
     purchases: "عمليات الشراء",
     conversion: "معدل التحويل",
     revenue: "الإيراد المنسوب",
+    discountTotal: "إجمالي الخصومات",
+    discountedPurchases: "طلبات بخصم",
     sources: "مصادر الزيارات",
     campaigns: "الحملات",
     noData: "لا توجد بيانات بعد.",
@@ -40,6 +42,8 @@ const copy = {
     purchases: "Purchases",
     conversion: "Conversion rate",
     revenue: "Attributed revenue",
+    discountTotal: "Total discounts",
+    discountedPurchases: "Discounted orders",
     sources: "Traffic sources",
     campaigns: "Campaigns",
     noData: "No data yet.",
@@ -60,6 +64,8 @@ const copy = {
     purchases: "Acquisti",
     conversion: "Tasso di conversione",
     revenue: "Entrate attribuite",
+    discountTotal: "Sconti totali",
+    discountedPurchases: "Ordini scontati",
     sources: "Sorgenti",
     campaigns: "Campagne",
     noData: "Nessun dato ancora.",
@@ -90,6 +96,8 @@ export default async function AnalyticsPage() {
     [text.purchases, snapshot.purchases],
     [text.conversion, `${formatNumber(snapshot.conversionRate, locale)}%`],
     [text.revenue, `${formatNumber(snapshot.revenue, locale)} EGP`],
+    [text.discountTotal, `${formatNumber(snapshot.discountTotal, locale)} EGP`],
+    [text.discountedPurchases, snapshot.discountedPurchases],
   ];
   return (
     <div className="grid gap-8">

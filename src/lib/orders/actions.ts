@@ -274,10 +274,22 @@ async function createPublicOrderInternal(input: OrderInput): Promise<OrderResult
       coupon_id: couponId,
       coupon_code: couponCode,
       discount_egp: discount,
+      attribution_source: input.attribution?.source?.slice(0, 160) || "direct",
+      attribution_type: input.attribution?.type?.slice(0, 80) || "direct",
+      attribution_referrer: input.attribution?.referrer?.slice(0, 500) || null,
+      attribution_landing_page: input.attribution?.landingPage?.slice(0, 500) || null,
+      attribution_session_id: input.attribution?.sessionId?.slice(0, 100) || null,
+      attribution_utm_source: input.attribution?.utmSource?.slice(0, 160) || null,
+      attribution_utm_medium: input.attribution?.utmMedium?.slice(0, 160) || null,
+      attribution_utm_campaign: input.attribution?.utmCampaign?.slice(0, 160) || null,
+      attribution_utm_content: input.attribution?.utmContent?.slice(0, 160) || null,
+      attribution_utm_term: input.attribution?.utmTerm?.slice(0, 160) || null,
+      attribution_gclid: input.attribution?.gclid?.slice(0, 200) || null,
+      attribution_fbclid: input.attribution?.fbclid?.slice(0, 200) || null,
       payment_method: input.paymentMethod,
       payment_status: input.paymentMethod === "cash" ? "cash_pending" : "pending",
     })
-    .select("id, order_number, status_lookup_token, total_egp")
+    .select("id, order_number, status_lookup_token, subtotal_egp, discount_egp, total_egp")
     .single();
   if (error || !order) return fail("تعذر إنشاء الطلب. حاول مرة أخرى.");
   if (input.paymentMethod === "instapay" && input.paymentProof) {
@@ -370,6 +382,10 @@ async function createPublicOrderInternal(input: OrderInput): Promise<OrderResult
     message: "تم استلام طلبك.",
     orderNumber: order.order_number,
     lookupToken: order.status_lookup_token,
+    subtotal: Number(order.subtotal_egp),
+    discount: Number(order.discount_egp),
+    total: Number(order.total_egp),
+    couponCode,
   };
 }
 

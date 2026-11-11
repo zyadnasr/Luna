@@ -44,6 +44,11 @@ const copy = {
     attributionType: "نوع الإسناد",
     businessType: "نوع العميل التجاري",
     coupon: "كود الخصم",
+    discount: "قيمة الخصم",
+    campaign: "الحملة الإعلانية",
+    medium: "وسيط الإعلان",
+    referrer: "صفحة الإحالة",
+    clickIds: "معرّفات الإعلان",
     yes: "نعم",
     no: "لا",
   },
@@ -82,6 +87,11 @@ const copy = {
     attributionType: "Attribution type",
     businessType: "Business type",
     coupon: "Coupon code",
+    discount: "Discount amount",
+    campaign: "Ad campaign",
+    medium: "Ad medium",
+    referrer: "Referrer",
+    clickIds: "Ad click IDs",
     yes: "Yes",
     no: "No",
   },
@@ -120,6 +130,11 @@ const copy = {
     attributionType: "Tipo attribuzione",
     businessType: "Tipo cliente aziendale",
     coupon: "Codice sconto",
+    discount: "Importo sconto",
+    campaign: "Campagna pubblicitaria",
+    medium: "Mezzo pubblicitario",
+    referrer: "Referrer",
+    clickIds: "ID clic annuncio",
     yes: "Sì",
     no: "No",
   },
@@ -145,6 +160,13 @@ type Order = {
   attribution_type: string | null;
   business_type: string | null;
   coupon_code: string | null;
+  discount_egp: number | string | null;
+  attribution_source: string | null;
+  attribution_utm_campaign: string | null;
+  attribution_utm_medium: string | null;
+  attribution_referrer: string | null;
+  attribution_gclid: string | null;
+  attribution_fbclid: string | null;
   invoice_requested: boolean | null;
   order_items: Array<{
     id: string;
@@ -256,10 +278,18 @@ export default async function InvoiceDetailsPage({ params }: { params: Promise<{
                   <Field label={labels.delivery} value={order.delivery_address} />
                   <Field label={labels.deliveryTime} value={order.requested_delivery_time ? date(order.requested_delivery_time, locale) : null} />
                   <Field label={labels.salesChannel} value={order.sales_channel} />
-                  <Field label={labels.acquisitionSource} value={order.acquisition_source} />
+                  <Field label={labels.acquisitionSource} value={order.acquisition_source || order.attribution_source} />
                   <Field label={labels.attributionType} value={order.attribution_type} />
+                  <Field label={labels.campaign} value={order.attribution_utm_campaign} />
+                  <Field label={labels.medium} value={order.attribution_utm_medium} />
+                  <Field label={labels.referrer} value={order.attribution_referrer} />
+                  <Field
+                    label={labels.clickIds}
+                    value={[order.attribution_gclid && `gclid: ${order.attribution_gclid}`, order.attribution_fbclid && `fbclid: ${order.attribution_fbclid}`].filter(Boolean).join(" · ")}
+                  />
                   <Field label={labels.businessType} value={order.business_type} />
                   <Field label={labels.coupon} value={order.coupon_code} />
+                  <Field label={labels.discount} value={money(order.discount_egp ?? 0, locale, invoice.currency)} />
                   <Field label={labels.notes} value={order.customer_notes} />
                 </div>
                 <div className="mt-4 border-t border-[var(--color-border)] pt-3"><p className="text-xs text-[var(--color-text-muted)]">{labels.products}</p><div className="mt-2 space-y-1 text-sm">{(order.order_items ?? []).map((item) => <div className="flex justify-between gap-3" key={item.id}><span>{item.price_label_snapshot || (item.product_name_snapshot && Object.values(item.product_name_snapshot)[0]) || "-"} × {item.quantity}</span><span className="font-semibold">{money(item.line_total_egp, locale, invoice.currency)}</span></div>)}</div></div>

@@ -11,7 +11,7 @@ import type { OrderContext } from "@/types/orders";
 import type { OrderErrorCode } from "@/types/orders";
 import { useLocale } from "@/components/ui/locale-provider";
 import { getPublicCopy } from "@/i18n/public";
-import { trackAnalyticsEvent } from "@/components/analytics/analytics-provider";
+import { getStoredAttribution, trackAnalyticsEvent } from "@/components/analytics/analytics-provider";
 import {
   isValidCustomerName,
   isValidDeliveryAddress,
@@ -143,6 +143,7 @@ export function CheckoutForm({
         requestedDeliveryTime: new Date().toISOString(),
         paymentMethod: data.payment,
         couponCode: data.coupon || undefined,
+        attribution: getStoredAttribution(),
         items,
       });
       if (!result.success) {
@@ -179,7 +180,10 @@ export function CheckoutForm({
       trackAnalyticsEvent({
         eventName: "purchase",
         metadata: {
-          value: items.reduce((sum, item) => sum + (item.unitPrice ?? 0) * item.quantity, 0),
+          value: result.total ?? 0,
+          subtotal: result.subtotal ?? 0,
+          discount: result.discount ?? 0,
+          couponCode: result.couponCode ?? null,
           currency: "EGP",
           orderNumber: result.orderNumber,
           itemCount: items.reduce((sum, item) => sum + item.quantity, 0),

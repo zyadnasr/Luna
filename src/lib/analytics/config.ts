@@ -95,6 +95,15 @@ export async function getAnalyticsSnapshot() {
     const value = Number(metadata?.value ?? 0);
     return sum + (Number.isFinite(value) ? value : 0);
   }, 0);
+  const discountTotal = purchases.reduce((sum, event) => {
+    const metadata = event.metadata as Record<string, unknown> | null;
+    const value = Number(metadata?.discount ?? 0);
+    return sum + (Number.isFinite(value) ? value : 0);
+  }, 0);
+  const discountedPurchases = purchases.filter((event) => {
+    const metadata = event.metadata as Record<string, unknown> | null;
+    return Number(metadata?.discount ?? 0) > 0;
+  }).length;
   const sources = new Map<string, number>();
   const campaigns = new Map<string, number>();
   for (const event of events) {
@@ -110,6 +119,8 @@ export async function getAnalyticsSnapshot() {
     checkouts: count("begin_checkout"),
     purchases: purchases.length,
     revenue,
+    discountTotal,
+    discountedPurchases,
     conversionRate: sessions ? (purchases.length / sessions) * 100 : 0,
     sources: top(sources),
     campaigns: top(campaigns),
