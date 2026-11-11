@@ -55,6 +55,16 @@ const aliases = {
   paymentMethod: ["payment_method", "payment method", "طريقة الدفع"],
   paymentStatus: ["payment_status", "payment status", "حالة الدفع"],
   createdAt: ["created_at", "created at", "date", "التاريخ", "تاريخ الطلب"],
+  salesChannel: ["sales_channel", "sales channel", "قناة البيع"],
+  acquisitionSource: ["acquisition_source", "acquisition source", "مصدر الاستحواذ"],
+  attributionType: ["attribution_type", "attribution type", "نوع الإسناد"],
+  campaignAdSet: ["campaign_ad_set", "campaign / ad set", "الحملة / مجموعة الإعلانات"],
+  influencerPartner: ["influencer_partner_name", "influencer / partner name", "اسم المؤثر / الشريك"],
+  businessType: ["business_type", "customer type", "نوع العميل"],
+  invoiceRequested: ["invoice_requested", "invoice issued", "هل يوجد إصدار فاتورة؟"],
+  invoiceNotes: ["invoice_notes", "invoice notes", "ملاحظات على الفاتورة"],
+  invoiceUrl: ["external_invoice_url", "invoice pdf url", "رابط الفاتورة"],
+  invoiceError: ["external_invoice_error", "invoice error", "خطأ الفاتورة"],
 } as const;
 
 function normalizeKey(value: string) {
@@ -93,6 +103,14 @@ function parseDate(value: string) {
   return date.toISOString();
 }
 
+function parseOptionalBoolean(value: string) {
+  if (!value) return null;
+  const normalized = value.trim().toLowerCase();
+  if (["y", "yes", "true", "1", "نعم"].includes(normalized)) return true;
+  if (["n", "no", "false", "0", "لا"].includes(normalized)) return false;
+  return null;
+}
+
 function parseRow(row: Record<string, unknown>) {
   const source = enumValue(cell(row, aliases.source), sourceValues, "manual", "المصدر");
   const status = enumValue(cell(row, aliases.status), statusValues, "new", "الحالة");
@@ -128,6 +146,16 @@ function parseRow(row: Record<string, unknown>) {
     payment_method: paymentMethod,
     payment_status: paymentStatus,
     created_at: parseDate(cell(row, aliases.createdAt)),
+    sales_channel: cell(row, aliases.salesChannel) || null,
+    acquisition_source: cell(row, aliases.acquisitionSource) || null,
+    attribution_type: cell(row, aliases.attributionType) || null,
+    campaign_ad_set: cell(row, aliases.campaignAdSet) || null,
+    influencer_partner_name: cell(row, aliases.influencerPartner) || null,
+    business_type: cell(row, aliases.businessType) || null,
+    invoice_requested: parseOptionalBoolean(cell(row, aliases.invoiceRequested)),
+    invoice_notes: cell(row, aliases.invoiceNotes) || null,
+    external_invoice_url: cell(row, aliases.invoiceUrl) || null,
+    external_invoice_error: cell(row, aliases.invoiceError) || null,
   };
 }
 

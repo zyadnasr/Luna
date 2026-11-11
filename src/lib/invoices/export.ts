@@ -27,6 +27,31 @@ export type InvoiceExportData = {
   currency: string;
   issued_at: string;
   invoice_items: InvoiceExportItem[];
+  orders?: InvoiceOrderDetails | null;
+};
+
+export type InvoiceOrderDetails = {
+  order_number: string | null;
+  order_type: string | null;
+  source: string | null;
+  status: string | null;
+  payment_method: string | null;
+  payment_status: string | null;
+  delivery_location_url: string | null;
+  customer_notes: string | null;
+  requested_delivery_time: string | null;
+  coupon_code: string | null;
+  discount_egp: number | string | null;
+  sales_channel: string | null;
+  acquisition_source: string | null;
+  attribution_type: string | null;
+  campaign_ad_set: string | null;
+  influencer_partner_name: string | null;
+  business_type: string | null;
+  invoice_requested: boolean | null;
+  invoice_notes: string | null;
+  external_invoice_url: string | null;
+  external_invoice_error: string | null;
 };
 
 export const invoiceExportCopy = {
@@ -52,6 +77,30 @@ export const invoiceExportCopy = {
     issued: "صادرة",
     void: "ملغاة",
     thankYou: "شكرًا لاختيار Luna Healthy",
+    orderDetails: "تفاصيل الطلب",
+    orderNumber: "رقم الطلب",
+    orderType: "نوع الطلب",
+    source: "المصدر",
+    orderStatus: "حالة الطلب",
+    paymentMethod: "طريقة الدفع",
+    paymentStatus: "حالة الدفع",
+    salesChannel: "قناة البيع",
+    acquisitionSource: "مصدر الاستحواذ",
+    attributionType: "نوع الإسناد",
+    campaignAdSet: "الحملة / مجموعة الإعلانات",
+    influencerPartner: "اسم المؤثر / الشريك",
+    businessType: "نوع العميل التجاري",
+    customerTypeLabel: "تصنيف العميل",
+    customerNotes: "ملاحظات العميل",
+    invoiceNotes: "ملاحظات الفاتورة",
+    coupon: "كود الخصم",
+    requestedDelivery: "موعد التسليم المطلوب",
+    deliveryLocation: "رابط الموقع",
+    invoiceRequested: "إصدار فاتورة",
+    externalInvoiceUrl: "رابط الفاتورة الخارجي",
+    externalInvoiceError: "خطأ الفاتورة الخارجي",
+    yes: "نعم",
+    no: "لا",
   },
   en: {
     title: "Invoice",
@@ -75,6 +124,30 @@ export const invoiceExportCopy = {
     issued: "Issued",
     void: "Voided",
     thankYou: "Thank you for choosing Luna Healthy",
+    orderDetails: "Order details",
+    orderNumber: "Order number",
+    orderType: "Order type",
+    source: "Source",
+    orderStatus: "Order status",
+    paymentMethod: "Payment method",
+    paymentStatus: "Payment status",
+    salesChannel: "Sales channel",
+    acquisitionSource: "Acquisition source",
+    attributionType: "Attribution type",
+    campaignAdSet: "Campaign / ad set",
+    influencerPartner: "Influencer / partner",
+    businessType: "Business type",
+    customerTypeLabel: "Customer classification",
+    customerNotes: "Customer notes",
+    invoiceNotes: "Invoice notes",
+    coupon: "Coupon code",
+    requestedDelivery: "Requested delivery",
+    deliveryLocation: "Location URL",
+    invoiceRequested: "Invoice issued",
+    externalInvoiceUrl: "External invoice URL",
+    externalInvoiceError: "External invoice error",
+    yes: "Yes",
+    no: "No",
   },
   it: {
     title: "Fattura",
@@ -98,6 +171,30 @@ export const invoiceExportCopy = {
     issued: "Emessa",
     void: "Annullata",
     thankYou: "Grazie per aver scelto Luna Healthy",
+    orderDetails: "Dettagli ordine",
+    orderNumber: "Numero ordine",
+    orderType: "Tipo ordine",
+    source: "Fonte",
+    orderStatus: "Stato ordine",
+    paymentMethod: "Metodo di pagamento",
+    paymentStatus: "Stato pagamento",
+    salesChannel: "Canale di vendita",
+    acquisitionSource: "Fonte acquisizione",
+    attributionType: "Tipo attribuzione",
+    campaignAdSet: "Campagna / gruppo annunci",
+    influencerPartner: "Influencer / partner",
+    businessType: "Tipo cliente aziendale",
+    customerTypeLabel: "Classificazione cliente",
+    customerNotes: "Note cliente",
+    invoiceNotes: "Note fattura",
+    coupon: "Codice sconto",
+    requestedDelivery: "Consegna richiesta",
+    deliveryLocation: "URL posizione",
+    invoiceRequested: "Fattura emessa",
+    externalInvoiceUrl: "URL fattura esterna",
+    externalInvoiceError: "Errore fattura esterna",
+    yes: "Sì",
+    no: "No",
   },
 } as const;
 
@@ -105,7 +202,7 @@ export async function getInvoiceExportData(id: string) {
   const db = createServiceClient();
   const { data, error } = await db
     .from("invoices")
-    .select("*, invoice_items(*)")
+    .select("*, invoice_items(*), orders(*)")
     .eq("id", id)
     .maybeSingle();
   if (error || !data) return null;
