@@ -4,7 +4,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import type { Locale } from "@/config/site";
 
 export type InvoiceExportItem = {
-  product_name_snapshot: Record<string, string> | null;
+  product_name_snapshot: Record<string, string> | Array<{ locale: string; name: string }> | null;
   price_label_snapshot: string | null;
   unit_price_egp: number | string;
   quantity: number;
@@ -114,6 +114,14 @@ export async function getInvoiceExportData(id: string) {
 
 export function productName(item: InvoiceExportItem, locale: Locale) {
   const snapshot = item.product_name_snapshot ?? {};
+  if (Array.isArray(snapshot)) {
+    return (
+      snapshot.find((translation) => translation.locale === locale)?.name ||
+      snapshot.find((translation) => translation.locale === "ar")?.name ||
+      snapshot[0]?.name ||
+      "-"
+    );
+  }
   return snapshot[locale] || snapshot.ar || snapshot.en || Object.values(snapshot)[0] || "-";
 }
 
@@ -127,14 +135,15 @@ export function formatInvoiceDate(value: string, locale: Locale) {
   return new Date(value).toLocaleString(numberLocale, { dateStyle: "medium", timeStyle: "short" });
 }
 
-export function invoiceFontPath() {
+export function invoiceFontPath(locale: Locale) {
+  const subset = locale === "ar" ? "arabic" : "latin";
   const bundledFont = path.join(
     process.cwd(),
     "node_modules",
     "@fontsource",
     "noto-sans-arabic",
     "files",
-    "noto-sans-arabic-arabic-400-normal.woff",
+    `noto-sans-arabic-${subset}-400-normal.woff`,
   );
   return existsSync(bundledFont) ? bundledFont : null;
 }
