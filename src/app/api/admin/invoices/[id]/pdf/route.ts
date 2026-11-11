@@ -52,8 +52,10 @@ function buildPdf(
       writeRight(`${labels.address}: ${invoice.customer_address}`, 256, 10);
     if (invoice.orders?.coupon_code)
       writeRight(`${labels.coupon}: ${invoice.orders.coupon_code}`, 276, 10);
+    if (invoice.orders?.delivery_location_url)
+      writeRight(`${labels.locationLink}: ${invoice.orders.delivery_location_url}`, 296, 8);
 
-    let y = invoice.customer_address || invoice.orders?.coupon_code ? 326 : 286;
+    let y = invoice.customer_address || invoice.orders?.coupon_code || invoice.orders?.delivery_location_url ? 346 : 286;
     const columns =
       locale === "ar"
         ? { item: right - 300, quantity: right - 210, unit: right - 130, total: right - 35 }

@@ -93,6 +93,9 @@ async function buildWord(
           ...(invoice.orders?.coupon_code
             ? [paragraph(`${labels.coupon}: ${invoice.orders.coupon_code}`, locale)]
             : []),
+          ...(invoice.orders?.delivery_location_url
+            ? [paragraph(`${labels.locationLink}: ${invoice.orders.delivery_location_url}`, locale)]
+            : []),
           new Table({
             width: { size: 100, type: WidthType.PERCENTAGE },
             borders: {

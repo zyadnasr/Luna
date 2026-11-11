@@ -44,6 +44,7 @@ const copy = {
     attributionType: "نوع الإسناد",
     businessType: "نوع العميل التجاري",
     coupon: "كود الخصم",
+    locationLink: "رابط موقع التسليم",
     discount: "قيمة الخصم",
     campaign: "الحملة الإعلانية",
     medium: "وسيط الإعلان",
@@ -87,6 +88,7 @@ const copy = {
     attributionType: "Attribution type",
     businessType: "Business type",
     coupon: "Coupon code",
+    locationLink: "Delivery location link",
     discount: "Discount amount",
     campaign: "Ad campaign",
     medium: "Ad medium",
@@ -130,6 +132,7 @@ const copy = {
     attributionType: "Tipo attribuzione",
     businessType: "Tipo cliente aziendale",
     coupon: "Codice sconto",
+    locationLink: "Link posizione consegna",
     discount: "Importo sconto",
     campaign: "Campagna pubblicitaria",
     medium: "Mezzo pubblicitario",
@@ -149,6 +152,7 @@ type Order = {
   customer_name: string | null;
   customer_phone: string | null;
   delivery_address: string | null;
+  delivery_location_url: string | null;
   customer_notes: string | null;
   payment_method: string | null;
   payment_status: string | null;
@@ -277,6 +281,7 @@ export default async function InvoiceDetailsPage({ params }: { params: Promise<{
                   <Field label={labels.payment} value={order.payment_method} />
                   <Field label={labels.paymentStatus} value={order.payment_status} />
                   <Field label={labels.delivery} value={order.delivery_address} />
+                  <Field label={labels.locationLink} value={order.delivery_location_url ? <a className="underline" href={order.delivery_location_url}>{order.delivery_location_url}</a> : null} />
                   <Field label={labels.deliveryTime} value={order.requested_delivery_time ? date(order.requested_delivery_time, locale) : null} />
                   <Field label={labels.salesChannel} value={order.sales_channel} />
                   <Field label={labels.acquisitionSource} value={order.acquisition_source || order.attribution_source} />

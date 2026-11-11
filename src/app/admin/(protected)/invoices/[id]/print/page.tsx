@@ -33,6 +33,7 @@ export default async function PrintInvoicePage({ params }: { params: Promise<{ i
         <p>{labels.phone}: <strong>{invoice.customer_phone || "-"}</strong></p>
         <p>{labels.address}: <strong>{invoice.customer_address || "-"}</strong></p>
         {order?.coupon_code ? <p>{labels.coupon}: <strong>{order.coupon_code}</strong></p> : null}
+        {order?.delivery_location_url ? <p>{labels.locationLink}: <a className="underline" href={order.delivery_location_url}>{order.delivery_location_url}</a></p> : null}
       </section>
       <table className="mt-6 w-full border-collapse text-sm">
         <thead><tr className="border-b-2 border-[#65705b] text-start"><th className="py-2 text-start">{labels.item}</th><th className="py-2 text-end">{labels.quantity}</th><th className="py-2 text-end">{labels.unitPrice}</th><th className="py-2 text-end">{labels.lineTotal}</th></tr></thead>
